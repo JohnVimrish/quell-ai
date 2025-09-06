@@ -76,3 +76,42 @@ quell-ai/
 └─ README.md
 ```
 
+⚙️ Setup (Local Dev)
+1. Clone & Install
+git clone https://github.com/<your-username>/quell-ai.git
+cd quell-ai
+python -m venv .venv
+source .venv/bin/activate   # (or .venv\Scripts\Activate.ps1 on Windows)
+pip install -r requirements.txt
+2. Configure .env
+FLASK_ENV=development
+DATABASE_URL=postgres://<your-neon-db-connection>
+EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+
+# Optional provider keys
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+DEEPGRAM_API_KEY=
+ELEVENLABS_API_KEY=
+3. Run the App
+uvicorn api.app:create_app --host 0.0.0.0 --port 8080
+
+Visit http://localhost:8080/healthz → should return { "status": "ok" }.
+
+🔐 Privacy by Design
+
+1.Feed items auto-delete after 7 days (archive +7 days, then purge).
+2.Sensitive input (bank, SSN, etc.) flagged before saving.
+3.Whitelisted contacts = never intercepted by AI.
+4.Recordings/transcripts are opt-in only.
+5.AI always discloses itself on calls.
+
+🧩 Roadmap
+
+
+
+📜 License
+
+Apache-2.0 (see LICENSE)
+
