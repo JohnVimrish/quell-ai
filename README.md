@@ -72,6 +72,7 @@ quell-ai/
 │  └─ styles.css
 ├─ tests/
 ├─ requirements.txt
-├─ .e
+├─ .env.example
+└─ README.md
 ```
 
