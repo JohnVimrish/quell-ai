@@ -36,4 +36,48 @@ An open-source, privacy-first AI copilot that auto-attends calls and texts on yo
 | Policy audit (why AI said this) | ✅ | ❌ | ❌ | ⚠️ Partial |
 
 ---
-
+**Project Structure**
+quell-ai/
+│ │ └─ reputation/
+│ │ └─ truecaller_adapter.py
+│ ├─ repositories/
+│ │ ├─ base.py
+│ │ ├─ calls_repo.py
+│ │ ├─ texts_repo.py
+│ │ ├─ feed_repo.py
+│ │ ├─ contacts_repo.py
+│ │ └─ embeddings_repo.py
+│ ├─ domain/
+│ │ ├─ models.py # dataclasses: Call, TextMessage, FeedItem, Contact…
+│ │ └─ value_objects.py # PhoneNumber, Duration, UserId…
+│ ├─ db/
+│ │ ├─ connection.py # SQLAlchemy/psycopg pool + session
+│ │ └─ migrations/ # SQL migrations
+│ ├─ utils/
+│ │ ├─ config.py # loads .env + config/*.json
+│ │ ├─ validation.py # sensitive data guards, schema checks
+│ │ ├─ auth.py # login/session helpers
+│ │ ├─ clock.py # testable time source
+│ │ └─ logging.py
+│ └─ templates/ # Jinja2 HTML + minimal CSS
+│ ├─ base.html
+│ ├─ dashboard.html
+│ ├─ feed.html
+│ ├─ contacts.html
+│ ├─ transcripts.html
+│ ├─ texts.html
+│ ├─ report.html
+│ └─ voice.html
+├─ config/
+│ ├─ queries.json # named SQL/DSL (no inline SQL in code)
+│ ├─ policies.json # disclosure text, default rules, spam keywords
+│ ├─ providers.json # which adapters active (dev vs prod)
+│ └─ env/
+│ ├─ dev.json
+│ ├─ stage.json
+│ └─ prod.json
+├─ public/ # static assets (css/js/img)
+├─ tests/
+├─ .env.example
+├─ requirements.txt
+└─ README.md
