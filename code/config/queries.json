@@ -1,0 +1,6 @@
+{
+  "users_create": "INSERT INTO users(email, password_hash) VALUES ($1,$2) RETURNING id, email, password_hash, created_at",
+  "users_by_email": "SELECT id, email, password_hash, created_at FROM users WHERE email=$1",
+  "feed_create": "INSERT INTO feed_items(user_id, title, body, tags, status, created_at, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+  "feed_active_by_user": "SELECT id, title, body, tags, status, created_at, expires_at FROM feed_items WHERE user_id=$1 AND status='active' AND expires_at > NOW() ORDER BY created_at DESC"
+}

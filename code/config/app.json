@@ -1,0 +1,6 @@
+{
+  "debug": false,
+  "database": {
+    "url": "postgresql://postgres:postgres@localhost:5432/quell"
+  }
+}
