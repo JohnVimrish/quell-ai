@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 =======
 # quell-ai
 Personal Communicator-Copilot: An AI assistant for calls and texts.
@@ -177,6 +176,3 @@ Visit http://localhost:8080/healthz → should return { "status": "ok" }.
 📜 License
 
 Apache-2.0 (see LICENSE)
->>>>>>> 85998b6 (Initial commit: add all project files)
-
-

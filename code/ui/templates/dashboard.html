@@ -1,0 +1,111 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Communicator-Copilot{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome back! Here's a summary of your communication activity.</p>
+
+<!-- Summary Stats Cards -->
+<div class="stats-grid">
+    <div class="card stat-card">
+        <div class="stat-card-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="stat-card-info">
+            <span class="stat-card-title">Spam Calls Blocked</span>
+            <span class="stat-card-value">{{ stats.spam_blocked | default('0') }}</span>
+            <span class="stat-card-period">This Week</span>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-card-icon"><i class="fas fa-robot"></i></div>
+        <div class="stat-card-info">
+            <span class="stat-card-title">AI Handled Calls</span>
+            <span class="stat-card-value">{{ stats.ai_handled_calls | default('0') }}</span>
+            <span class="stat-card-period">This Week</span>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-card-icon"><i class="fas fa-phone-slash"></i></div>
+        <div class="stat-card-info">
+            <span class="stat-card-title">Missed Calls</span>
+            <span class="stat-card-value">{{ stats.missed_calls | default('0') }}</span>
+            <span class="stat-card-period">This Week</span>
+        </div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-card-icon"><i class="fas fa-sms"></i></div>
+        <div class="stat-card-info">
+            <span class="stat-card-title">Texts Processed</span>
+            <span class="stat-card-value">{{ stats.texts_processed | default('0') }}</span>
+            <span class="stat-card-period">This Week</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">Quick Actions</div>
+    <div class="quick-actions">
+        <a href="/contacts/new" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Contact</a>
+        <a href="/instructions/new" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Add AI Instruction</a>
+        <a href="/reports" class="btn btn-secondary"><i class="fas fa-chart-line"></i> View Reports</a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card">
+    <div class="card-header">Recent Activity</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Contact</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Summary / Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for call in recent_calls %}
+            <tr>
+                <td><i class="fas fa-phone-alt"></i> Call</td>
+                <td>{{ call.contact_name or call.from_number }}</td>
+                <td>{{ call.started_at | humanize_time }}</td>
+                <td><span class="tag tag-{{ call.status | lower }}">{{ call.status }}</span></td>
+                <td><a href="/calls/{{ call.id }}">View Details</a></td>
+            </tr>
+            {% endfor %}
+            
+            <!-- Example static rows for demonstration -->
+            <tr>
+                <td><i class="fas fa-phone-alt" title="Call"></i></td>
+                <td>John Doe <small>(+1-555-123-4567)</small></td>
+                <td>2 hours ago</td>
+                <td><span class="tag tag-success">Completed</span></td>
+                <td><a href="/calls/1" class="btn btn-sm btn-secondary">View Details</a></td>
+            </tr>
+            <tr>
+                <td><i class="fas fa-sms" title="Text"></i></td>
+                <td>Marketing Corp</td>
+                <td>Yesterday</td>
+                <td><span class="tag tag-info">Received</span></td>
+                <td><a href="/texts/3" class="btn btn-sm btn-secondary">View Message</a></td>
+            </tr>
+            <tr>
+                <td><i class="fas fa-shield-alt" title="Spam"></i></td>
+                <td>(123) 456-7890</td>
+                <td>Yesterday</td>
+                <td><span class="tag tag-spam">Blocked</span></td>
+                <td>Spam call automatically blocked by AI.</td>
+            </tr>
+
+            {% if not recent_calls and not recent_texts %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px;">No recent activity.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

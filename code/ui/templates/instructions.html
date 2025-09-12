@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}AI Instructions - Communicator-Copilot{% endblock %}
+
+{% block content %}
+<script>
+    function toggleVerificationDetails() {
+        const verificationCheckbox = document.getElementById('verification_required');
+        const verificationDetails = document.getElementById('verification_details');
+        verificationDetails.style.display = verificationCheckbox.checked ? 'block' : 'none';
+    }
+
+    function toggleVerificationDataFields() {
+        const verificationMethod = document.getElementById('verification_method').value;
+        const passcodeField = document.getElementById('passcode_field');
+        const questionField = document.getElementById('question_field');
+        
+        passcodeField.style.display = 'none';
+        questionField.style.display = 'none';
+
+        if (verificationMethod === 'passcode') {
+            passcodeField.style.display = 'block';
+        } else if (verificationMethod === 'question') {
+            questionField.style.display = 'block';
+        }
+    }
+
+    // Run on page load to set initial state
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleVerificationDetails();
+        toggleVerificationDataFields();
+    });
+</script>
+
+<h1>AI Instruction Feed</h1>
+
+<div class="card">
+    <div class="card-header">Add New Instruction</div>
+    <form action="/instructions" method="post">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" placeholder="e.g., Regarding the upcoming project deadline" required>
+        </div>
+        <div class="form-group">
+            <label for="instruction_text">Instruction Text</label>
+            <textarea id="instruction_text" name="instruction_text" rows="4" placeholder="e.g., If they ask about the project, tell them I'm reviewing the documents and will call back tomorrow." required></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="instruction_type">Instruction Type</label>
+                <select id="instruction_type" name="instruction_type">
+                    <option value="general" selected>General</option>
+                    <option value="call">Call-Specific</option>
+                    <option value="text">Text-Specific</option>
+                    <option value="verification">Verification Only</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="priority">Priority</label>
+                <select id="priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="target_contact">Target Contact (Optional)</label>
+            <input type="text" id="target_contact" name="target_contact" placeholder="e.g., +11234567890 or 'John Doe'">
+        </div>
+
+        <div style="display: flex; gap: 20px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="expires_at">Expires At (Optional)</label>
+                <input type="datetime-local" id="expires_at" name="expires_at">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="max_usage">Max Usage Count (Optional)</label>
+                <input type="number" id="max_usage" name="max_usage" min="1" placeholder="e.g., 3">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="verification_required" name="verification_required" value="true" onchange="toggleVerificationDetails()">
+                Require Verification to Disclose
+            </label>
+        </div>
+
+        <div id="verification_details" style="display: none; border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: -10px; margin-bottom: 15px;">
+            <div class="form-group">
+                <label for="verification_method">Verification Method</label>
+                <select id="verification_method" name="verification_method" onchange="toggleVerificationDataFields()">
+                    <option value="">Select Method</option>
+                    <option value="passcode">Passcode</option>
+                    <option value="question">Security Question</option>
+                    <option value="callback">Request a Callback</option>
+                </select>
+            </div>
+            <div id="passcode_field" style="display: none;">
+                <div class="form-group">
+                    <label for="passcode">Passcode</label>
+                    <input type="text" id="passcode" name="passcode" placeholder="Enter the passcode">
+                </div>
+            </div>
+            <div id="question_field" style="display: none;">
+                <div class="form-group">
+                    <label for="security_question">Security Question</label>
+                    <input type="text" id="security_question" name="security_question" placeholder="e.g., What is my mother's maiden name?">
+                </div>
+                <div class="form-group">
+                    <label for="security_answer">Expected Answer</label>
+                    <input type="text" id="security_answer" name="security_answer" placeholder="Enter the exact answer">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Instruction</button>
+    </form>
+</div>
+
+<div class="instructions-list">
+    <h2>Active & Recent Instructions</h2>
+    {% for instruction in instructions %}
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="margin-top: 0;">{{ instruction.title }}</h3>
+                <p>{{ instruction.instruction_text }}</p>
+            </div>
+            <div>
+                <span class="tag" style="background-color: #eee;">{{ instruction.status | title }}</span>
+            </div>
+        </div>
+        <div style="font-size: 0.9em; color: #555; margin-top: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
+            <span><strong>Priority:</strong> {{ instruction.priority | title }}</span>
+            <span><strong>Type:</strong> {{ instruction.instruction_type | title }}</span>
+            {% if instruction.target_contact %}
+            <span><strong>For:</strong> {{ instruction.target_contact }}</span>
+            {% endif %}
+            {% if instruction.verification_required %}
+            <span><strong>Verification:</strong> Required ({{ instruction.verification_method | title }})</span>
+            {% endif %}
+            <span><strong>Usage:</strong> {{ instruction.usage_count }} / {{ instruction.max_usage or '&#8734;' }}</span>
+            <span><strong>Created:</strong> {{ instruction.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            {% if instruction.expires_at %}
+            <span><strong>Expires:</strong> {{ instruction.expires_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <p>No instructions found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

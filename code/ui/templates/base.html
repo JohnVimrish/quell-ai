@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Communicator-Copilot{% endblock %}</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="{{ url_for('dashboard') }}"><i class="fas fa-robot"></i> Communicator-Copilot</a>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
+            <a href="{{ url_for('feed') }}" class="{{ 'active' if request.endpoint == 'feed' else '' }}">Activity Feed</a>
+            <a href="{{ url_for('calls') }}" class="{{ 'active' if request.endpoint == 'calls' else '' }}">Calls</a>
+            <a href="{{ url_for('texts') }}" class="{{ 'active' if request.endpoint == 'texts' else '' }}">Texts</a>
+            <a href="{{ url_for('contacts') }}" class="{{ 'active' if request.endpoint == 'contacts' else '' }}">Contacts</a>
+            <a href="{{ url_for('instructions') }}" class="{{ 'active' if request.endpoint == 'instructions' else '' }}">AI Instructions</a>
+            <a href="{{ url_for('reports') }}" class="{{ 'active' if request.endpoint == 'reports' else '' }}">Reports</a>
+        </nav>
+        <div class="auth-links">
+            {% if session.user %}
+                <span class="username">Welcome, {{ session.user.name }}</span>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+            {% endif %}
+        </div>
+    </header>
+    
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Communicator-Copilot. All rights reserved.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
