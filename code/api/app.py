@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit
 from api.utils.config import Config
 from api.utils.logging import LoggerManager
 from api.db.connection import DatabaseManager
-from api.models.spam_detector import SpamDetector
+from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
 from api.controllers import (

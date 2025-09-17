@@ -8,7 +8,7 @@ from datetime import datetime
 Base = declarative_base()
 
 class Contact(Base):
-    __tablename__ = 'contacts'
+    __tablename__ = 'user_management.contacts'
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
