@@ -1,6 +1,36 @@
 {
-  "users_create": "INSERT INTO users(email, password_hash) VALUES ($1,$2) RETURNING id, email, password_hash, created_at",
-  "users_by_email": "SELECT id, email, password_hash, created_at FROM users WHERE email=$1",
-  "feed_create": "INSERT INTO feed_items(user_id, title, body, tags, status, created_at, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
-  "feed_active_by_user": "SELECT id, title, body, tags, status, created_at, expires_at FROM feed_items WHERE user_id=$1 AND status='active' AND expires_at > NOW() ORDER BY created_at DESC"
+    "users_create": "INSERT INTO users(email, password_hash) VALUES ($1,$2) RETURNING id, email, password_hash, created_at",
+    "users_by_email": "SELECT id, email, password_hash, created_at FROM users WHERE email=$1",
+    "feed_create": "INSERT INTO feed_items(user_id, title, body, tags, status, created_at, expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+    "feed_active_by_user": "SELECT id, title, body, tags, status, created_at, expires_at FROM feed_items WHERE user_id=$1 AND status='active' AND expires_at > NOW() ORDER BY created_at DESC",
+    "texts": {
+        "get_message": "SELECT * FROM messages WHERE id = %(message_id)s",
+        "get_message_for_user": "SELECT * FROM messages WHERE id = %(message_id)s AND user_id = %(user_id)s",
+        "create_message": "INSERT INTO messages (user_id, contact_id, phone_number, message_body, direction, status, is_spam, sent_at, received_at) VALUES (%(user_id)s, %(contact_id)s, %(phone_number)s, %(message_body)s, %(direction)s, %(status)s, %(is_spam)s, %(sent_at)s, %(received_at)s) RETURNING id",
+        "update_message_status": "UPDATE messages SET status = %(status)s, sent_at = %(sent_at)s WHERE id = %(message_id)s",
+        "update_message_spam_status": "UPDATE messages SET is_spam = %(is_spam)s WHERE id = %(message_id)s",
+        "get_user_by_phone": "SELECT u.id, u.phone_number FROM users u JOIN user_settings us ON u.id = us.user_id WHERE us.sms_forwarding_number = %(phone_number)s",
+        "get_conversations": "SELECT c.id as contact_id, c.display_name, c.phone_number, c.avatar_url, m.message_body as last_message, m.received_at as last_message_at, (SELECT COUNT(*) FROM messages WHERE contact_id = c.id AND is_read = false AND direction = 'incoming') as unread_count FROM contacts c JOIN (SELECT DISTINCT ON (contact_id) * FROM messages ORDER BY contact_id, received_at DESC) m ON c.id = m.contact_id WHERE c.user_id = %(user_id)s AND (%(include_archived)s OR c.is_archived = false) ORDER BY m.received_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+        "count_conversations": "SELECT COUNT(*) FROM contacts WHERE user_id = %(user_id)s AND (%(include_archived)s OR is_archived = false)",
+        "get_conversation_messages": "SELECT * FROM messages WHERE user_id = %(user_id)s AND contact_id = %(contact_id)s ORDER BY sent_at DESC, received_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+        "count_conversation_messages": "SELECT COUNT(*) FROM messages WHERE user_id = %(user_id)s AND contact_id = %(contact_id)s",
+        "mark_messages_as_read": "UPDATE messages SET is_read = true WHERE user_id = %(user_id)s AND contact_id = %(contact_id)s AND direction = 'incoming'",
+        "search_messages": "SELECT m.*, c.display_name as contact_name FROM messages m LEFT JOIN contacts c ON m.contact_id = c.id WHERE m.user_id = %(user_id)s AND m.message_body ILIKE %(query)s AND (%(contact_id)s IS NULL OR m.contact_id = %(contact_id)s) ORDER BY m.received_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+        "count_search_results": "SELECT COUNT(*) FROM messages WHERE user_id = %(user_id)s AND message_body ILIKE %(query)s AND (%(contact_id)s IS NULL OR contact_id = %(contact_id)s)",   
+        "get_recent_messages": "SELECT * FROM messages WHERE user_id = %(user_id)s ORDER BY received_at DESC LIMIT %(limit)s",
+        "delete_message": "DELETE FROM messages WHERE id = %(message_id)s AND user_id = %(user_id)s"
+    
+    },
+    "contacts": {
+        "get_contact": "SELECT * FROM contacts WHERE id = %(contact_id)s AND user_id = %(user_id)s",
+        "get_contact_by_phone": "SELECT * FROM contacts WHERE phone_number = %(phone_number)s AND user_id = %(user_id)s",
+        "create_contact": "INSERT INTO contacts (user_id, phone_number, display_name) VALUES (%(user_id)s, %(phone_number)s, %(display_name)s) RETURNING id",
+        "update_contact": "UPDATE contacts SET display_name = COALESCE(%(display_name)s, display_name), is_blocked = COALESCE(%(is_blocked)s, is_blocked), is_archived = COALESCE(%(is_archived)s, is_archived) WHERE id = %(contact_id)s"
+    },
+    "feed": {
+        "list_active": "SELECT id, user_id, content, priority, created_at, expires_at FROM feed_items WHERE user_id = %s AND expires_at > CURRENT_TIMESTAMP ORDER BY priority DESC, created_at DESC"
+    },
+    "analytics": {
+        "create_weekly_report": "INSERT INTO weekly_reports (user_id, start_date, end_date, total_calls, total_duration_seconds, spam_calls_blocked, peak_call_hours) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id"
+    }
 }

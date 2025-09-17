@@ -2,6 +2,7 @@
 from flask import Blueprint, current_app, request, jsonify
 from api.repositories.feed_repo import FeedRepository
 from api.utils.validation import contains_sensitive
+from api.controllers.texts_controller import require_auth  
 import logging
 from datetime import datetime
 

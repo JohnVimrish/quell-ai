@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, request, current_app, session
 from datetime import datetime, timedelta
 from api.repositories.calls_repo import CallsRepository
-from api.models.spam_detector import SpamDetector
+from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
 from api.utils.validation import contains_sensitive
 import logging
 

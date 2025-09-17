@@ -20,3 +20,5 @@ joblib
 phonenumbers
 pgvector
 gunicorn
+librosa
+soundfile

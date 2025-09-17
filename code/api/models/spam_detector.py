@@ -12,8 +12,8 @@ import logging
 from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from ..models.vector_store import SpamPattern, MLModelMetrics
-from ..utils.config import Config
+from api.db.vector_store import SpamPattern, MLModelMetrics
+from api.utils.config import Config
 
 logger = logging.getLogger(__name__)
 

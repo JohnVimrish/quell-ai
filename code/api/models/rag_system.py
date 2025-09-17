@@ -12,8 +12,8 @@ import json
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 import logging
-from ..models.vector_store import DocumentEmbedding, ConversationContext, SpamPattern
-from ..utils.config import Config
+from api.db.vector_store import DocumentEmbedding, ConversationContext, SpamPattern
+from api.utils.config import Config
 
 logger = logging.getLogger(__name__)
 
