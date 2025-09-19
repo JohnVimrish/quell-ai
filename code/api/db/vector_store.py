@@ -15,7 +15,7 @@ class DocumentEmbedding(Base):
     document_id = Column(Integer, nullable=True)  # Reference to original document
     content = Column(Text, nullable=False)
     embedding = Column(Vector(384))  # 384-dimensional embeddings
-    metadata = Column(JSON, nullable=True)
+    document_metadata = Column(JSON, nullable=True)
     relevance_score = Column(Float, default=0.0)
     usage_count = Column(Integer, default=0)
     last_used = Column(DateTime, nullable=True)
@@ -27,7 +27,7 @@ class DocumentEmbedding(Base):
             'document_type': self.document_type,
             'document_id': self.document_id,
             'content': self.content,
-            'metadata': self.metadata,
+            'document_metadata': self.document_metadata,
             'relevance_score': self.relevance_score,
             'usage_count': self.usage_count,
             'last_used': self.last_used.isoformat() if self.last_used else None,

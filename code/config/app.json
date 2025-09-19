@@ -1,6 +1,6 @@
 {
   "debug": false,
   "database": {
-    "url": "postgresql://postgres:postgres@localhost:5432/quell"
+    "url": "postgresql://user_ai:Abc$12345@localhost:15433/quell_ai"
   }
 }

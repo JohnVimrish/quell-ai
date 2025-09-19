@@ -299,22 +299,75 @@ class LoggerManager:
         self._is_configured = False
         self._config: Dict[str, Any] = {}
     
+
+    def _configure_file_logging(self) -> None:
+        """Configure file logging with rotation"""
+        try:
+            import os
+            from datetime import datetime
+            from logging.handlers import RotatingFileHandler
+            
+            # Get log directory from config or use default
+            log_dir = self._config.get("log_directory", "logs")
+            
+            # Create absolute path
+            if not os.path.isabs(log_dir):
+                # Create logs directory relative to project root
+                project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                log_dir = os.path.join(project_root, log_dir)
+            
+            os.makedirs(log_dir, exist_ok=True)
+            
+            # Create log filename
+            service_name = self._config.get("service_name", "quell-ai")
+            log_filename = f"{service_name}.log"
+            log_filepath = os.path.join(log_dir, log_filename)
+            
+            # Create rotating file handler (10MB max, keep 5 files)
+            file_handler = RotatingFileHandler(
+                log_filepath,
+                maxBytes=10*1024*1024,  # 10MB
+                backupCount=5
+            )
+            
+            # Set level
+            level = getattr(logging, self._config.get("level", "INFO").upper())
+            file_handler.setLevel(level)
+            
+            # Create formatter
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            file_handler.setFormatter(formatter)
+            
+            # Add to root logger
+            logging.getLogger().addHandler(file_handler)
+            
+            print(f"File logging configured: {log_filepath}")
+            
+        except Exception as e:
+            print(f"Failed to configure file logging: {e}")
+
     def configure(self, config: Optional[Dict[str, Any]] = None) -> None:
-        """Configure logging with the provided configuration."""
+        """Configure logging with console and file output"""
         try:
             self._config = config or {}
             self._validate_config()
             self._reset_logging()
             self._configure_levels()
             self._configure_console_logging()
-            self._configure_graylog()
+            self._configure_file_logging()  # Add this line
+            
+            if self._config.get("graylog"):
+                self._configure_graylog()
+            
             self._configure_squelching()
             self._is_configured = True
             
-            # Log successful configuration
-            logger = self.get_logger("logging.manager")
-            sanitized_config = self._sanitize_config_for_logging()
-            logger.info("Logging configured successfully", extra={"config": sanitized_config})
+            # Log configuration summary
+            sanitized = self._sanitize_config_for_logging()
+            logging.info(f"Logging configured: {sanitized}")
             
         except Exception as e:
             raise LoggingError(f"Failed to configure logging: {e}")

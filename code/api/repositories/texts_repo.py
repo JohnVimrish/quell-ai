@@ -1,7 +1,7 @@
 
 from typing import List, Dict, Optional
 from api.repositories.base import BaseRepository
-from ...functionalities.text_message import TextMessage
+from functionalities.text_message import TextMessage
 
 class TextsRepository(BaseRepository):
     """Repository for handling text messages."""

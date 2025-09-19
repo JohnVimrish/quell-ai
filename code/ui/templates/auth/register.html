@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Quell AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="logo-section">
+                <i class="fas fa-robot"></i>
+                <h1>Quell AI</h1>
+                <p>Your Privacy-First AI Copilot</p>
+            </div>
+        </div>
+        
+        <div class="auth-form-container">
+            <h2>Create Your Account</h2>
+            <p class="auth-subtitle">Join Quell AI and take control of your communications</p>
+            
+            <form id="register-form" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="name" name="name" required 
+                               placeholder="Enter your full name" class="form-control">
+                    </div>
+                    <div class="field-error" id="name-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-group">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="email" name="email" required 
+                               placeholder="Enter your email address" class="form-control">
+                    </div>
+                    <div class="field-error" id="email-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Create a strong password" class="form-control">
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="fas fa-eye" id="password-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength" id="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <span class="strength-text" id="strength-text">Password strength</span>
+                    </div>
+                    <div class="field-error" id="password-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="confirm-password" name="confirm-password" required 
+                               placeholder="Confirm your password" class="form-control">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm-password')">
+                            <i class="fas fa-eye" id="confirm-password-eye"></i>
+                        </button>
+                    </div>
+                    <div class="field-error" id="confirm-password-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number (Optional)</label>
+                    <div class="input-group">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input type="tel" id="phone" name="phone" 
+                               placeholder="+1 (555) 123-4567" class="form-control">
+                    </div>
+                    <small class="form-help">We'll use this for call management features</small>
+                    <div class="field-error" id="phone-error"></div>
+                </div>
+                
+                <div class="privacy-section">
+                    <h4><i class="fas fa-shield-alt"></i> Privacy & Terms</h4>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="terms-agreement" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="/terms" target="_blank">Terms of Service</a> and 
+                            <a href="/privacy" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="privacy-consent" required>
+                            <span class="checkmark"></span>
+                            I understand that Quell AI processes communications data to provide AI assistance, 
+                            and I consent to this processing as described in the Privacy Policy
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="data-retention-consent">
+                            <span class="checkmark"></span>
+                            I understand that feed items auto-delete after 7 days and recordings are opt-in only
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="marketing-consent">
+                            <span class="checkmark"></span>
+                            I'd like to receive updates about new features and improvements (optional)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="ai-preferences">
+                    <h4><i class="fas fa-robot"></i> AI Preferences</h4>
+                    
+                    <div class="preference-group">
+                        <label for="ai-mode">Default AI Mode</label>
+                        <select id="ai-mode" name="ai-mode" class="form-control">
+                            <option value="screening">Call Screening Only</option>
+                            <option value="assistant" selected>Full AI Assistant</option>
+                            <option value="emergency">Emergency Calls Only</option>
+                            <option value="disabled">Disabled (Manual Control)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="voice-cloning-consent">
+                            <span class="checkmark"></span>
+                            Enable voice cloning for AI responses (AI will always disclose itself)
+                        </label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="transcript-recording" checked>
+                            <span class="checkmark"></span>
+                            Enable call transcription and recording (can be changed later)
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full" id="register-btn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Create Account</span>
+                    <div class="btn-spinner" id="register-spinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{{ url_for('auth.login_page') }}">Sign in here</a></p>
+            </div>
+        </div>
+        
+        <div class="privacy-highlights">
+            <h4><i class="fas fa-lock"></i> Your Privacy Matters</h4>
+            <ul class="privacy-list">
+                <li><i class="fas fa-check"></i> Open-source and transparent</li>
+                <li><i class="fas fa-check"></i> Data auto-deletion after 7 days</li>
+                <li><i class="fas fa-check"></i> Whitelisted contacts never intercepted</li>
+                <li><i class="fas fa-check"></i> AI always discloses itself on calls</li>
+                <li><i class="fas fa-check"></i> Bring-your-own-provider support</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setupFormValidation();
+    setupPasswordStrength();
+    setupPhoneFormatting();
+});
+
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+        return;
+    }
+    
+    const formData = new FormData(e.target);
+    const data = {
+        name: formData.get('name').trim(),
+        email: formData.get('email').trim().toLowerCase(),
+        password: formData.get('password'),
+        phone: formData.get('phone')?.trim() || null,
+        ai_mode: formData.get('ai-mode'),
+        preferences: {
+            voice_cloning: document.getElementById('voice-cloning-consent').checked,
+            transcript_recording: document.getElementById('transcript-recording').checked,
+            marketing_consent: document.getElementById('marketing-consent').checked,
+            data_retention_acknowledged: document.getElementById('data-retention-consent').checked
+        }
+    };
+    
+    const registerBtn = document.getElementById('register-btn');
+    const registerSpinner = document.getElementById('register-spinner');
+    const btnText = registerBtn.querySelector('span');
+    
+    try {
+        // Show loading state
+        registerBtn.disabled = true;
+        registerSpinner.style.display = 'inline-block';
+        btnText.textContent = 'Creating Account...';
+        
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            // Registration successful
+            showNotification('Account created successfully! Redirecting...', 'success');
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1500);
+        } else {
+            // Registration failed
+            showNotification(result.error || 'Registration failed. Please try again.', 'error');
+            
+            // Show field-specific errors
+            if (result.field_errors) {
+                Object.keys(result.field_errors).forEach(field => {
+                    showFieldError(field, result.field_errors[field]);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        showNotification('Network error. Please check your connection and try again.', 'error');
+    } finally {
+        // Reset button state
+        registerBtn.disabled = false;
+        registerSpinner.style.display = 'none';
+        btnText.textContent = 'Create Account';
+    }
+});
+
+function validateForm() {
+    let isValid = true;
+    
+    // Clear previous errors
+    clearAllErrors();
+    
+    // Name validation
+    const name = document.getElementById('name').value.trim();
+    if (!name) {
+        showFieldError('name', 'Name is required');
+        isValid = false;
+    } else if (name.length < 2) {
+        showFieldError('name', 'Name must be at least 2 characters');
+        isValid = false;
+    }
+    
+    // Email validation
+    const email = document.getElementById('email').value.trim();
+    if (!email) {
+        showFieldError('email', 'Email is required');
+        isValid = false;
+    } else if (!isValidEmail(email)) {
+        showFieldError('email', 'Please enter a valid email address');
+        isValid = false;
+    }
+    
+    // Password validation
+    const password = document.getElementById('password').value;
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+        showFieldError('password', passwordValidation.message);
+        isValid = false;
+    }
+    
+    // Confirm password validation
+    const confirmPassword = document.getElementById('confirm-password').value;
+    if (password !== confirmPassword) {
+        showFieldError('confirm-password', 'Passwords do not match');
+        isValid = false;
+    }
+    
+    // Phone validation
+    const phone = document.getElementById('phone').value.trim();
+    if (phone && !isValidPhone(phone)) {
+        showFieldError('phone', 'Please enter a valid phone number');
+        isValid = false;
+    }
+    
+    // Terms agreement validation
+    if (!document.getElementById('terms-agreement').checked) {
+        showFieldError('terms-agreement', 'You must agree to the terms and privacy policy');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function isValidPhone(phone) {
+    // Remove all non-digit characters
+    const digitsOnly = phone.replace(/\D/g, '');
+    // Check if it's a valid US phone number (10 or 11 digits)
+    return digitsOnly.length === 10 || (digitsOnly.length === 11 && digitsOnly[0] === '1');
+}
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const eyeIcon = document.getElementById(fieldId + '-eye');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        eyeIcon.classList.remove('fa-eye');
+        eyeIcon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eyeIcon.classList.remove('fa-eye-slash');
+        eyeIcon.classList.add('fa-eye');
+    }
+}
+
+function setupPasswordStrength() {
+    const passwordField = document.getElementById('password');
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthText = document.getElementById('strength-text');
+    
+    passwordField.addEventListener('input', function() {
+        const password = this.value;
+        const strength = calculatePasswordStrength(password);
+        
+        // Update strength bar
+        strengthFill.style.width = strength.percentage + '%';
+        strengthFill.className = 'strength-fill strength-' + strength.level;
+        
+        // Update strength text
+        strengthText.textContent = strength.text;
+    });
+}
+
+function calculatePasswordStrength(password) {
+    let score = 0;
+    let text = '';
+    let percentage = 0;
+    let level = 'weak';
+    
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    
+    if (score <= 2) {
+        text = 'Weak';
+        percentage = Math.min(30, score * 10);
+        level = 'weak';
+    } else if (score <= 4) {
+        text = 'Medium';
+        percentage = Math.min(60, score * 15);
+        level = 'medium';
+    } else if (score <= 6) {
+        text = 'Strong';
+        percentage = Math.min(90, score * 15);
+        level = 'strong';
+    } else {
+        text = 'Very Strong';
+        percentage = 100;
+        level = 'very-strong';
+    }
+    
+    return { score, text, percentage, level };
+}
+
+function validatePassword(password) {
+    if (password.length < 8) {
+        return { isValid: false, message: 'Password must be at least 8 characters long' };
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+        return { isValid: false, message: 'Password must contain at least one uppercase letter' };
+    }
+    
+    if (!/[a-z]/.test(password)) {
+        return { isValid: false, message: 'Password must contain at least one lowercase letter' };
+    }
+    
+    if (!/[0-9]/.test(password)) {
+        return { isValid: false, message: 'Password must contain at least one number' };
+    }
+    
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        return { isValid: false, message: 'Password must contain at least one special character' };
+    }
+    
+    return { isValid: true, message: '' };
+}
+
+function setupPhoneFormatting() {
+    const phoneField = document.getElementById('phone');
+    
+    phoneField.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        
+        if (value.length > 10) {
+            value = value.substring(0, 10);
+        }
+        
+        if (value.length > 6) {
+            e.target.value = `+1 (${value.substring(0, 3)}) ${value.substring(3, 6)}-${value.substring(6, 10)}`;
+        } else if (value.length > 3) {
+            e.target.value = `+1 (${value.substring(0, 3)}) ${value.substring(3, 6)}`;
+        } else if (value.length > 0) {
+            e.target.value = `+1 (${value}`;
+        } else {
+            e.target.value = '+1 (';
+        }
+    });
+}
+
+function setupFormValidation() {
+    const form = document.getElementById('register-form');
+    const inputs = form.querySelectorAll('input, select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && !this.value.trim()) {
+                showFieldError(this.id, this.getAttribute('placeholder'));
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            clearFieldError(this.id);
+        });
+    });
+}
+
+function showFieldError(fieldId, message) {
+    const errorElement = document.getElementById(fieldId + '-error');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+    
+    const inputElement = document.getElementById(fieldId);
+    if (inputElement) {
+        inputElement.classList.add('error');
+    }
+}
+
+function clearFieldError(fieldId) {
+    const errorElement = document.getElementById(fieldId + '-error');
+    if (errorElement) {
+        errorElement.style.display = 'none';
+    }
+    
+    const inputElement = document.getElementById(fieldId);
+    if (inputElement) {
+        inputElement.classList.remove('error');
+    }
+}
+
+function clearAllErrors() {
+    const errorElements = document.querySelectorAll('.field-error');
+    errorElements.forEach(el => el.style.display = 'none');
+    
+    const inputElements = document.querySelectorAll('.form-control');
+    inputElements.forEach(el => el.classList.remove('error'));
+}
+
+function showNotification(message, type) {
+    // Simple notification implementation
+    alert(message); // In production, replace with a proper notification system
+}
+</script>
+{% endblock %}

@@ -22,3 +22,5 @@ pgvector
 gunicorn
 librosa
 soundfile
+Flask-Cors 
+Flask-SocketIO

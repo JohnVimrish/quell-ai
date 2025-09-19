@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Communicator-Copilot{% endblock %}</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -15,19 +14,19 @@
         </div>
         <nav class="nav-links">
             <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
-            <a href="{{ url_for('feed') }}" class="{{ 'active' if request.endpoint == 'feed' else '' }}">Activity Feed</a>
-            <a href="{{ url_for('calls') }}" class="{{ 'active' if request.endpoint == 'calls' else '' }}">Calls</a>
-            <a href="{{ url_for('texts') }}" class="{{ 'active' if request.endpoint == 'texts' else '' }}">Texts</a>
-            <a href="{{ url_for('contacts') }}" class="{{ 'active' if request.endpoint == 'contacts' else '' }}">Contacts</a>
-            <a href="{{ url_for('instructions') }}" class="{{ 'active' if request.endpoint == 'instructions' else '' }}">AI Instructions</a>
-            <a href="{{ url_for('reports') }}" class="{{ 'active' if request.endpoint == 'reports' else '' }}">Reports</a>
+            <a href="{{ url_for('feed_page') }}" class="{{ 'active' if request.endpoint == 'feed_page' else '' }}">Activity Feed</a>
+            <a href="{{ url_for('calls_page') }}" class="{{ 'active' if request.endpoint == 'calls_page' else '' }}">Calls</a>
+            <a href="{{ url_for('texts_page') }}" class="{{ 'active' if request.endpoint == 'texts_page' else '' }}">Texts</a>
+            <a href="{{ url_for('contacts_page') }}" class="{{ 'active' if request.endpoint == 'contacts_page' else '' }}">Contacts</a>
+            <a href="{{ url_for('instructions_page') }}" class="{{ 'active' if request.endpoint == 'instructions_page' else '' }}">AI Instructions</a>
+            <a href="{{ url_for('reports_page') }}" class="{{ 'active' if request.endpoint == 'reports_page' else '' }}">Reports</a>
         </nav>
         <div class="auth-links">
             {% if session.user %}
                 <span class="username">Welcome, {{ session.user.name }}</span>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('login_page') }}">Login</a>
             {% endif %}
         </div>
     </header>

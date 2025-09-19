@@ -81,7 +81,7 @@ class RAGSystem:
                 document_id=document_id,
                 content=content,
                 embedding=embedding.tolist(),
-                metadata=metadata or {}
+                document_metadata=metadata or {}
             )
             
             self.session.add(doc_embedding)
@@ -131,7 +131,7 @@ class RAGSystem:
                     'document_type': row.document_type,
                     'document_id': row.document_id,
                     'content': row.content,
-                    'metadata': row.metadata,
+                    'document_metadata': row.metadata,
                     'similarity_score': float(row.similarity_score)
                 })
                 

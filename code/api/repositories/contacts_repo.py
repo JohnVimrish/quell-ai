@@ -25,7 +25,7 @@ class Contact(Base):
     contact_count = Column(Integer, default=0)  # Number of interactions
     last_contact_at = Column(DateTime, nullable=True)
     last_contact_type = Column(String(20), nullable=True)  # 'call', 'text', 'email'
-    metadata = Column(JSON, nullable=True)  # Additional contact metadata
+    contact_metadata = Column(JSON, nullable=True)  # Additional contact metadata
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -62,7 +62,7 @@ class ContactsRepository(BaseRepository):
                     is_favorite=contact_data.get('is_favorite', False),
                     notes=contact_data.get('notes'),
                     tags=contact_data.get('tags', []),
-                    metadata=contact_data.get('metadata', {})
+                    contact_metadata=contact_data.get('metadata', {})
                 )
                 
                 session.add(contact)

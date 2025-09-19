@@ -31,6 +31,7 @@ class Call(Base):
     
     contact = relationship("Contact")
     transcript = relationship("CallTranscript", back_populates="call", uselist=False)
+    participants = relationship("CallParticipant", back_populates="call")
     
     def to_dict(self):
         return {
@@ -75,4 +76,30 @@ class CallTranscript(Base):
             'language_detected': self.language_detected,
             'processing_time_ms': self.processing_time_ms,
             'created_at': self.created_at.isoformat()
+        }
+
+class CallParticipant(Base):
+    __tablename__ = 'call_participants'
+    
+    id = Column(Integer, primary_key=True)
+    call_id = Column(Integer, ForeignKey('calls.id'), nullable=False)
+    phone_number = Column(String(20), nullable=False)
+    name = Column(String(100), nullable=True)
+    role = Column(String(20), default='participant')  # 'participant', 'host', 'moderator'
+    joined_at = Column(DateTime, nullable=False)
+    left_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    call = relationship("Call", back_populates="participants")
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'call_id': self.call_id,
+            'phone_number': self.phone_number,
+            'name': self.name,
+            'role': self.role,
+            'joined_at': self.joined_at.isoformat() if self.joined_at else None,
+            'left_at': self.left_at.isoformat() if self.left_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

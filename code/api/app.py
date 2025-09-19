@@ -24,7 +24,21 @@ from api.controllers import (
 
 def create_app(config_override=None):
     """Create and configure the Flask application"""
-    app = Flask(__name__)
+        # Get the correct paths
+    current_dir = os.path.dirname(os.path.abspath(__file__))  # api/
+    project_root = os.path.dirname(current_dir)  # code/
+    template_dir = os.path.join(project_root, 'ui', 'templates')
+    static_dir = os.path.join(project_root, 'ui', 'static')
+    
+    print(f"Template dir: {template_dir}")  # Debug
+    print(f"Static dir: {static_dir}")      # Debug
+    print(f"Template dir exists: {os.path.exists(template_dir)}")
+    print(f"Static dir exists: {os.path.exists(static_dir)}")
+    
+    app = Flask(__name__, 
+                template_folder=template_dir,
+                static_folder=static_dir,
+                static_url_path='/static')
     
     # Initialize SocketIO for real-time features
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -79,8 +93,8 @@ def create_app(config_override=None):
     
     # Initialize logging
     try:
-        logger_manager = LoggerManager(cfg.logging)
-        logger_manager.setup_logging()
+        logger_manager = LoggerManager()  # No arguments
+        logger_manager.configure(cfg.logging)  # Configure separately
         logger = logging.getLogger(__name__)
         logger.info("Application starting up")
         
@@ -111,10 +125,13 @@ def create_app(config_override=None):
         app.config["DB_MANAGER"] = None
     
     # Initialize AI Models
+# Around line 105-130, replace the AI Models initialization section:
+
+    # Initialize AI Models
     try:
         # Initialize spam detector
         if app.config["SPAM_DETECTION_ENABLED"]:
-            spam_detector = SpamDetector()
+            spam_detector = SpamDetector(cfg)  # Pass config here
             app.config["SPAM_DETECTOR"] = spam_detector
             logger.info("Spam detector initialized")
         else:
@@ -122,7 +139,7 @@ def create_app(config_override=None):
             logger.info("Spam detection disabled by configuration")
         
         # Initialize RAG system for AI instructions
-        rag_system = RAGSystem()
+        rag_system = RAGSystem(cfg)
         app.config["RAG_SYSTEM"] = rag_system
         
         # Initialize voice model if voice cloning is enabled
@@ -386,7 +403,7 @@ def create_app(config_override=None):
         if session.get("user_id"):
             return redirect("/")
         return render_template("auth/login.html")
-    
+        
     @app.route("/register")
     def register_page():
         """Registration page"""
@@ -400,56 +417,70 @@ def create_app(config_override=None):
         """Important contacts management page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("contacts/index.html")
+        return render_template("contacts.html")
     
     @app.route("/feed")
     def feed_page():
         """AI instruction feed page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("feed/index.html")
+        return render_template("feed.html")
     
     @app.route("/calls")
     def calls_page():
         """Call logs and transcripts page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("calls/index.html")
+        return render_template("calls.html")
     
     @app.route("/texts")
     def texts_page():
         """Text messages page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("texts/index.html")
+        return render_template("texts.html")
+    
+    @app.route("/instructions")
+    def instructions_page():
+        """AI instructions page"""
+        if not session.get("user_id"):
+            return redirect("/login")
+        return render_template("instructions.html")
     
     @app.route("/analytics")
     def analytics_page():
         """Analytics and insights page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("analytics/index.html")
+        return render_template("analytics.html")
     
     @app.route("/reports")
     def reports_page():
         """Weekly reports page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("reports/index.html")
+        return render_template("reports.html")
     
     @app.route("/voice-training")
     def voice_training_page():
         """Voice training page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("voice/training.html")
+        return render_template("voice_training.html")
     
     @app.route("/settings")
     def settings_page():
         """Settings and preferences page"""
         if not session.get("user_id"):
             return redirect("/login")
-        return render_template("settings/index.html")
+        return render_template("settings.html")
+        
+    
+    @app.route("/logout")
+    def logout():
+        """Logout and clear session"""
+        session.clear()
+        return redirect("/login")
     
     # API status endpoint
     @app.route("/api/status")

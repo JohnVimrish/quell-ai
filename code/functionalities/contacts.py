@@ -35,7 +35,7 @@ class Contact(Base):
     preferred_contact_method = Column(String(20), default='call')  # 'call', 'text', 'email'
     do_not_disturb_start = Column(String(5), nullable=True)  # HH:MM format
     do_not_disturb_end = Column(String(5), nullable=True)  # HH:MM format
-    metadata = Column(JSON, nullable=True)  # Additional contact metadata
+    conctact_metadata = Column(JSON, nullable=True)  # Additional contact metadata
     is_deleted = Column(Boolean, default=False)  # Soft delete
     deleted_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -83,7 +83,7 @@ class Contact(Base):
             'preferred_contact_method': self.preferred_contact_method,
             'do_not_disturb_start': self.do_not_disturb_start,
             'do_not_disturb_end': self.do_not_disturb_end,
-            'metadata': self.metadata or {},
+            'contact_metadata': self.contact_metadata or {},
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -133,7 +133,7 @@ class ContactNote(Base):
     is_private = Column(Boolean, default=False)  # Private notes not shared with AI
     reminder_date = Column(DateTime, nullable=True)
     tags = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    group_metadata = Column(JSON, nullable=True)
     created_by = Column(String(50), default='user')  # 'user', 'ai', 'system'
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -152,7 +152,7 @@ class ContactNote(Base):
             'is_private': self.is_private,
             'reminder_date': self.reminder_date.isoformat() if self.reminder_date else None,
             'tags': self.tags or [],
-            'metadata': self.metadata or {},
+            'group_metadata': self.group_metadata or {},
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
@@ -169,7 +169,7 @@ class ContactGroup(Base):
     is_smart_group = Column(Boolean, default=False)  # Auto-populated based on rules
     smart_rules = Column(JSON, nullable=True)  # Rules for smart groups
     notification_settings = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    member_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
@@ -187,7 +187,7 @@ class ContactGroup(Base):
             'is_smart_group': self.is_smart_group,
             'smart_rules': self.smart_rules or {},
             'notification_settings': self.notification_settings or {},
-            'metadata': self.metadata or {},
+            'member_metadata': self.member_metadata or {},
             'member_count': len(self.members) if self.members else 0,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
@@ -238,7 +238,7 @@ class ContactInteraction(Base):
     follow_up_required = Column(Boolean, default=False)
     follow_up_date = Column(DateTime, nullable=True)
     tags = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)  # Additional interaction data
+    interaction_metadata = Column(JSON, nullable=True)  # Additional interaction data
     external_id = Column(String(100), nullable=True)  # ID from external system (Twilio, etc.)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -268,7 +268,7 @@ class ContactInteraction(Base):
             'follow_up_required': self.follow_up_required,
             'follow_up_date': self.follow_up_date.isoformat() if self.follow_up_date else None,
             'tags': self.tags or [],
-            'metadata': self.metadata or {},
+            'interaction_metadata': self.interaction_metadata or {},
             'external_id': self.external_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
