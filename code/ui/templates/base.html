@@ -22,6 +22,10 @@
             <a href="{{ url_for('reports_page') }}" class="{{ 'active' if request.endpoint == 'reports_page' else '' }}">Reports</a>
         </nav>
         <div class="auth-links">
+            <div class="ai-toggle" title="AI Mode">
+                <span class="ai-dot" id="ai-dot"></span>
+                <button id="ai-mode-toggle" class="btn btn-sm btn-secondary" onclick="toggleAIMode()">Enable AI Mode</button>
+            </div>
             {% if session.user %}
                 <span class="username">Welcome, {{ session.user.name }}</span>
                 <a href="{{ url_for('logout') }}">Logout</a>
@@ -32,6 +36,9 @@
     </header>
     
     <main class="container">
+        <div class="hero" aria-hidden="true">
+            <div class="hero-accent"></div>
+        </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">

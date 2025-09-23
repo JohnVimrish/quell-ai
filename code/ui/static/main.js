@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeComponents() {
-    // Add any JavaScript functionality here
+    // Initialize AI mode status
+    initAIModeStatus();
     console.log('Components initialized');
 }
 
@@ -40,19 +41,34 @@ async function toggleAIMode() {
         const result = await apiCall('/ai-mode/toggle', {
             method: 'POST'
         });
-        
-        console.log('AI Mode toggled:', result);
         updateAIModeUI(result.ai_mode_active);
-        
     } catch (error) {
         console.error('Failed to toggle AI mode:', error);
     }
 }
 
+async function initAIModeStatus() {
+    try {
+        const status = await apiCall('/ai-mode/status');
+        updateAIModeUI(status.ai_mode_active);
+    } catch (e) {
+        // Not logged in or endpoint error
+        updateAIModeUI(false);
+    }
+}
+
 function updateAIModeUI(isActive) {
     const toggleButton = document.getElementById('ai-mode-toggle');
+    const dot = document.getElementById('ai-dot');
     if (toggleButton) {
         toggleButton.textContent = isActive ? 'Disable AI Mode' : 'Enable AI Mode';
-        toggleButton.className = isActive ? 'btn btn-danger' : 'btn btn-primary';
+        toggleButton.className = isActive ? 'btn btn-danger' : 'btn btn-secondary';
+    }
+    if (dot) {
+        if (isActive) {
+            dot.classList.add('on');
+        } else {
+            dot.classList.remove('on');
+        }
     }
 }
