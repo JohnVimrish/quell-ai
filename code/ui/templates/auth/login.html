@@ -1,12 +1,20 @@
 
 {% extends "base.html" %}
 
-{% block title %}Login - Quell AI{% endblock %}
+{% block title %}Login - Quell-Ai{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-form">
-        <h2>Login to Quell AI</h2>
+        <div class="auth-header">
+            <div class="agent-viz">
+                <div class="agent-head"></div>
+                <div class="agent-body"></div>
+                <div class="agent-glow"></div>
+            </div>
+            <h2>Welcome to Quell-Ai</h2>
+            <p>Sign in to your account</p>
+        </div>
         <form id="login-form">
             <div class="form-group">
                 <label for="email">Email:</label>

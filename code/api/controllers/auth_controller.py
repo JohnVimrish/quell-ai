@@ -3,8 +3,8 @@ from flask import Blueprint, current_app, request, jsonify, session, render_temp
 from functools import wraps
 import re
 import logging
-import hashlib
-import secrets
+from api.utils.security import PasswordManager
+from api.repositories.users_repo import UsersRepository
 
 logger = logging.getLogger(__name__)
 
@@ -45,31 +45,9 @@ def validate_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
     return re.match(pattern, email) is not None
 
-def validate_password(password):
-    """Validate password strength"""
-    if len(password) < 8:
-        return False, "Password must be at least 8 characters long"
-    if not re.search(r'[A-Z]', password):
-        return False, "Password must contain at least one uppercase letter"
-    if not re.search(r'[a-z]', password):
-        return False, "Password must contain at least one lowercase letter"
-    if not re.search(r'\d', password):
-        return False, "Password must contain at least one number"
-    return True, "Password is valid"
-
-def hash_password(password):
-    """Hash password with salt"""
-    salt = secrets.token_hex(16)
-    password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-    return f"{salt}:{password_hash.hex()}"
-
-def verify_password(password, hashed_password):
-    """Verify password against hash"""
-    try:
-        salt, password_hash = hashed_password.split(':')
-        return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000).hex() == password_hash
-    except:
-        return False
+def get_user_repository():
+    """Get user repository instance"""
+    return UsersRepository()
 
 # Web Routes (for rendering templates)
 @bp.route("/login")
@@ -99,6 +77,7 @@ def register():
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
         name = data.get('name', '').strip()
+        phone = data.get('phone', '').strip() or None
         
         # Validation
         if not email or not password or not name:
@@ -107,16 +86,38 @@ def register():
         if not validate_email(email):
             return jsonify({"error": "Invalid email format"}), 400
         
-        is_valid, message = validate_password(password)
+        # Validate password strength
+        is_valid, message = PasswordManager.validate_password_strength(password)
         if not is_valid:
             return jsonify({"error": message}), 400
         
-        # Check if user already exists (simplified - you'd check database)
-        # For now, we'll just create a session
-        user_id = f"user_{hash(email)}"
+        # Get user repository
+        user_repo = get_user_repository()
         
-        # In a real app, you'd save to database here
-        # user_repo.create_user(email, hash_password(password), name)
+        # Check if user already exists
+        if user_repo.check_email_exists(email):
+            return jsonify({"error": "Email already registered"}), 409
+        
+        # Check phone if provided
+        if phone and user_repo.check_phone_exists(phone):
+            return jsonify({"error": "Phone number already registered"}), 409
+        
+        # Hash password
+        password_hash = PasswordManager.hash_password(password)
+        
+        # Create user in database
+        user_data = user_repo.create_user(email, password_hash, phone)
+        if not user_data:
+            return jsonify({"error": "Failed to create user account"}), 500
+        
+        user_id = user_data['id']
+        
+        # Create default user settings
+        try:
+            user_repo.create_user_settings(user_id)
+        except Exception as e:
+            logger.warning(f"Failed to create user settings: {e}")
+            # Continue without settings - they can be created later
         
         # Create session
         session["user_id"] = user_id
@@ -124,7 +125,7 @@ def register():
         session["user_name"] = name
         session.permanent = True
         
-        logger.info(f"User registered: {email}")
+        logger.info(f"User registered successfully: {email} (ID: {user_id})")
         
         return jsonify({
             "success": True,
@@ -133,12 +134,13 @@ def register():
                 "id": user_id,
                 "email": email,
                 "name": name
-            }
+            },
+            "redirect_url": "/dashboard"
         })
         
     except Exception as e:
         logger.error(f"Registration failed: {e}")
-        return jsonify({"error": "Registration failed"}), 500
+        return jsonify({"error": "Registration failed. Please try again."}), 500
 
 @bp.post("/login")
 @handle_auth_errors
@@ -158,43 +160,59 @@ def login():
         if not validate_email(email):
             return jsonify({"error": "Invalid email format"}), 400
         
-        # In a real app, you'd verify against database
-        # For demo purposes, accept any valid email/password combo
-        if len(password) >= 6:  # Simple validation for demo
-            user_id = f"user_{hash(email)}"
-            
-            # Create session
-            session["user_id"] = user_id
-            session["user_email"] = email
-            session["user_name"] = email.split('@')[0].title()
-            session.permanent = True
-            
-            # Initialize AI mode settings
-            session['ai_mode_settings'] = {
-                'active': False,
-                'auto_disable_time': None,
-                'voice_model_id': None,
-                'spam_sensitivity': current_app.config.get("SPAM_SENSITIVITY_DEFAULT", "medium"),
-                'recording_enabled': current_app.config.get("CALL_RECORDING_ENABLED", False)
-            }
-            
-            logger.info(f"User logged in: {email}")
-            
-            return jsonify({
-                "success": True,
-                "message": "Login successful",
-                "user": {
-                    "id": user_id,
-                    "email": email,
-                    "name": session["user_name"]
-                }
-            })
-        else:
+        # Get user repository
+        user_repo = get_user_repository()
+        
+        # Get user from database
+        user_data = user_repo.get_user_by_email_for_login(email)
+        if not user_data:
+            logger.warning(f"Login attempt with non-existent email: {email}")
             return jsonify({"error": "Invalid credentials"}), 401
+        
+        # Verify password
+        if not PasswordManager.verify_password(password, user_data['password_hash']):
+            logger.warning(f"Login attempt with invalid password for: {email}")
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        user_id = user_data['id']
+        
+        # Update last login timestamp
+        user_repo.update_last_login(user_id)
+        
+        # Get user settings
+        user_settings = user_repo.get_user_settings(user_id)
+        
+        # Create session
+        session["user_id"] = user_id
+        session["user_email"] = email
+        session["user_name"] = email.split('@')[0].title()
+        session.permanent = True
+        
+        # Initialize AI mode settings from database or defaults
+        session['ai_mode_settings'] = {
+            'active': user_settings.get('ai_mode_enabled', False) if user_settings else False,
+            'auto_disable_time': user_settings.get('ai_mode_expires_at') if user_settings else None,
+            'voice_model_id': None,  # Will be set when voice model is trained
+            'spam_sensitivity': current_app.config.get("SPAM_SENSITIVITY_DEFAULT", "medium"),
+            'recording_enabled': user_settings.get('recording_enabled', False) if user_settings else False
+        }
+        
+        logger.info(f"User logged in successfully: {email} (ID: {user_id})")
+        
+        return jsonify({
+            "success": True,
+            "message": "Login successful",
+            "user": {
+                "id": user_id,
+                "email": email,
+                "name": session["user_name"]
+            },
+            "redirect_url": "/dashboard"
+        })
             
     except Exception as e:
         logger.error(f"Login failed: {e}")
-        return jsonify({"error": "Login failed"}), 500
+        return jsonify({"error": "Login failed. Please try again."}), 500
 
 @bp.post("/logout")
 def logout():
@@ -245,15 +263,32 @@ def change_password():
         if not current_password or not new_password:
             return jsonify({"error": "Current and new passwords are required"}), 400
         
-        # Validate new password
-        is_valid, message = validate_password(new_password)
+        # Validate new password strength
+        is_valid, message = PasswordManager.validate_password_strength(new_password)
         if not is_valid:
             return jsonify({"error": message}), 400
         
-        # In a real app, you'd verify current password and update in database
-        # For demo, just return success
+        # Get user repository
+        user_repo = get_user_repository()
+        user_id = session.get("user_id")
         
-        logger.info(f"Password changed for user: {session.get('user_email')}")
+        # Get current user data
+        user_data = user_repo.get_user_by_id(user_id)
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Verify current password
+        if not PasswordManager.verify_password(current_password, user_data['password_hash']):
+            return jsonify({"error": "Current password is incorrect"}), 401
+        
+        # Hash new password
+        new_password_hash = PasswordManager.hash_password(new_password)
+        
+        # Update password in database
+        if not user_repo.update_password(user_id, new_password_hash):
+            return jsonify({"error": "Failed to update password"}), 500
+        
+        logger.info(f"Password changed successfully for user: {session.get('user_email')}")
         
         return jsonify({
             "success": True,

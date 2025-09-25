@@ -4,6 +4,8 @@ import logging.handlers
 import json
 import time
 import socket
+import os
+import glob
 from typing import Any, Dict, Optional, Union
 from datetime import datetime
 
@@ -18,6 +20,155 @@ RESERVED_FIELDS = {
 class LoggingError(Exception):
     """Custom exception for logging-related errors."""
     pass
+
+
+class TimestampedRotatingFileHandler(logging.handlers.RotatingFileHandler):
+    """
+    A rotating file handler that creates timestamped log files.
+    
+    Features:
+    - Creates a new log file with timestamp on startup
+    - Handles rollovers with iteration numbers
+    - Format: service_name_YYYYMMDD_HHMMSS_N.log
+    - Where N is the iteration number (0, 1, 2, etc.)
+    """
+    
+    def __init__(self, filename, maxBytes=0, backupCount=0, encoding=None, delay=False):
+        """
+        Initialize the timestamped rotating file handler.
+        
+        Args:
+            filename: Base filename pattern (without extension)
+            maxBytes: Maximum file size before rotation (0 = no limit)
+            backupCount: Number of backup files to keep
+            encoding: File encoding
+            delay: Whether to delay file creation until first write
+        """
+        self.base_filename = filename
+        self.maxBytes = maxBytes
+        self.backupCount = backupCount
+        self.encoding = encoding
+        self.delay = delay
+        
+        # Generate initial timestamped filename
+        self.current_filename = self._generate_filename()
+        
+        # Initialize parent with the timestamped filename
+        super().__init__(
+            self.current_filename,
+            maxBytes=maxBytes,
+            backupCount=backupCount,
+            encoding=encoding,
+            delay=delay
+        )
+    
+    def _generate_filename(self, iteration=0):
+        """
+        Generate a timestamped filename with iteration number.
+        
+        Args:
+            iteration: Iteration number for rollovers
+            
+        Returns:
+            str: Generated filename
+        """
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        if iteration == 0:
+            return f"{self.base_filename}_{timestamp}.log"
+        else:
+            return f"{self.base_filename}_{timestamp}_{iteration}.log"
+    
+    def _get_next_iteration(self):
+        """
+        Get the next iteration number for rollover.
+        
+        Returns:
+            int: Next iteration number
+        """
+        # Extract timestamp from current filename
+        base_name = os.path.splitext(self.current_filename)[0]
+        timestamp_part = base_name.split('_')[-2] + '_' + base_name.split('_')[-1]
+        
+        # Find all existing files with the same timestamp
+        pattern = f"{self.base_filename}_{timestamp_part}_*.log"
+        existing_files = glob.glob(os.path.join(os.path.dirname(self.current_filename), pattern))
+        
+        # Find the highest iteration number
+        max_iteration = -1
+        for file_path in existing_files:
+            filename = os.path.basename(file_path)
+            parts = filename.split('_')
+            if len(parts) >= 4:  # base_timestamp_iteration.log
+                try:
+                    iteration = int(parts[-2])
+                    max_iteration = max(max_iteration, iteration)
+                except (ValueError, IndexError):
+                    continue
+        
+        return max_iteration + 1
+    
+    def doRollover(self):
+        """
+        Perform rollover when file size limit is reached.
+        Creates a new file with incremented iteration number.
+        """
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+        
+        # Generate new filename with incremented iteration
+        next_iteration = self._get_next_iteration()
+        new_filename = self._generate_filename(next_iteration)
+        
+        # Update current filename
+        self.current_filename = new_filename
+        
+        # Clean up old files if backupCount is set
+        if self.backupCount > 0:
+            self._cleanup_old_files()
+        
+        # Open new file
+        if not self.delay:
+            self.stream = self._open()
+    
+    def _cleanup_old_files(self):
+        """
+        Clean up old log files based on backupCount.
+        Keeps the most recent files and removes older ones.
+        """
+        try:
+            # Get all log files for this service
+            log_dir = os.path.dirname(self.current_filename)
+            pattern = f"{self.base_filename}_*.log"
+            all_files = glob.glob(os.path.join(log_dir, pattern))
+            
+            # Sort by modification time (newest first)
+            all_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            
+            # Remove files beyond backupCount
+            files_to_remove = all_files[self.backupCount:]
+            for file_path in files_to_remove:
+                try:
+                    os.remove(file_path)
+                except OSError:
+                    pass  # Ignore errors when removing files
+                    
+        except Exception:
+            pass  # Ignore cleanup errors
+    
+    def emit(self, record):
+        """
+        Emit a log record.
+        Override to ensure we're using the current filename.
+        """
+        try:
+            if self.shouldRollover(record):
+                self.doRollover()
+            
+            super().emit(record)
+        except Exception:
+            self.handleError(record)
 
 
 class RequestContextFilter(logging.Filter):
@@ -301,12 +452,8 @@ class LoggerManager:
     
 
     def _configure_file_logging(self) -> None:
-        """Configure file logging with rotation"""
+        """Configure file logging with timestamped rotation"""
         try:
-            import os
-            from datetime import datetime
-            from logging.handlers import RotatingFileHandler
-            
             # Get log directory from config or use default
             log_dir = self._config.get("log_directory", "logs")
             
@@ -318,16 +465,20 @@ class LoggerManager:
             
             os.makedirs(log_dir, exist_ok=True)
             
-            # Create log filename
+            # Create base log filename (without extension)
             service_name = self._config.get("service_name", "quell-ai")
-            log_filename = f"{service_name}.log"
-            log_filepath = os.path.join(log_dir, log_filename)
+            log_base_filename = os.path.join(log_dir, service_name)
             
-            # Create rotating file handler (10MB max, keep 5 files)
-            file_handler = RotatingFileHandler(
-                log_filepath,
-                maxBytes=10*1024*1024,  # 10MB
-                backupCount=5
+            # Get configuration for file logging
+            max_bytes = self._config.get("log_max_bytes", 10 * 1024 * 1024)  # 10MB default
+            backup_count = self._config.get("log_backup_count", 5)  # Keep 5 files default
+            
+            # Create timestamped rotating file handler
+            file_handler = TimestampedRotatingFileHandler(
+                log_base_filename,
+                maxBytes=max_bytes,
+                backupCount=backup_count,
+                encoding='utf-8'
             )
             
             # Set level
@@ -344,7 +495,9 @@ class LoggerManager:
             # Add to root logger
             logging.getLogger().addHandler(file_handler)
             
-            print(f"File logging configured: {log_filepath}")
+            # Log the configuration
+            print(f"Timestamped file logging configured: {file_handler.current_filename}")
+            print(f"Max file size: {max_bytes} bytes, Backup count: {backup_count}")
             
         except Exception as e:
             print(f"Failed to configure file logging: {e}")
@@ -477,12 +630,63 @@ class LoggerManager:
         """Check if logging is configured."""
         return self._is_configured
     
+    def get_current_log_file(self) -> Optional[str]:
+        """Get the current active log file path."""
+        try:
+            for handler in logging.getLogger().handlers:
+                if isinstance(handler, TimestampedRotatingFileHandler):
+                    return handler.current_filename
+        except Exception:
+            pass
+        return None
+    
+    def get_log_files_info(self) -> Dict[str, Any]:
+        """Get information about all log files."""
+        try:
+            log_dir = self._config.get("log_directory", "logs")
+            if not os.path.isabs(log_dir):
+                project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                log_dir = os.path.join(project_root, log_dir)
+            
+            service_name = self._config.get("service_name", "quell-ai")
+            pattern = f"{service_name}_*.log"
+            log_files = glob.glob(os.path.join(log_dir, pattern))
+            
+            # Sort by modification time (newest first)
+            log_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+            
+            files_info = []
+            for file_path in log_files:
+                try:
+                    stat = os.stat(file_path)
+                    files_info.append({
+                        "filename": os.path.basename(file_path),
+                        "path": file_path,
+                        "size_bytes": stat.st_size,
+                        "size_mb": round(stat.st_size / (1024 * 1024), 2),
+                        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                        "is_current": file_path == self.get_current_log_file()
+                    })
+                except OSError:
+                    continue
+            
+            return {
+                "log_directory": log_dir,
+                "service_name": service_name,
+                "total_files": len(files_info),
+                "files": files_info
+            }
+        except Exception as e:
+            return {"error": str(e)}
+    
     def health_check(self) -> Dict[str, Any]:
         """Perform health check on logging system."""
         health = {
             "configured": self._is_configured,
             "graylog_available": False,
-            "handlers_count": len(logging.getLogger().handlers)
+            "handlers_count": len(logging.getLogger().handlers),
+            "current_log_file": self.get_current_log_file(),
+            "log_files_info": self.get_log_files_info()
         }
         
         if self._graylog_handler:
@@ -512,3 +716,15 @@ def configure_logging(config: Dict[str, Any]) -> None:
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance."""
     return logger_manager.get_logger(name)
+
+def get_current_log_file() -> Optional[str]:
+    """Get the current active log file path."""
+    return logger_manager.get_current_log_file()
+
+def get_log_files_info() -> Dict[str, Any]:
+    """Get information about all log files."""
+    return logger_manager.get_log_files_info()
+
+def get_logging_health() -> Dict[str, Any]:
+    """Get logging system health information."""
+    return logger_manager.health_check()

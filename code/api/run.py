@@ -59,7 +59,7 @@ def setup_signal_handlers(app):
 def validate_environment():
     """Validate required environment variables and configuration"""
     required_vars = [
-        'DATABASE_URL',
+        # DATABASE_URL is enforced via code/api/.env (loaded by Config), not from process env
         'SECRET_KEY'
     ]
     

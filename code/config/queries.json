@@ -2,14 +2,19 @@
   "users": {
     "create": "INSERT INTO user_management.users (email, password_hash, phone_number) VALUES ($1, $2, $3) RETURNING id, email, created_at",
     "get_by_id": "SELECT id, email, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE id = $1",
-    "get_by_email": "SELECT id, email, password_hash, phone_number, is_active FROM user_management.users WHERE email = $1",
+    "get_by_email": "SELECT id, email, password_hash, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE email = $1",
+    "get_by_email_for_login": "SELECT id, email, password_hash, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE email = $1 AND is_active = true",
     "get_by_phone": "SELECT id, email, phone_number, is_active FROM user_management.users WHERE phone_number = $1",
     "update_last_login": "UPDATE user_management.users SET last_login_at = now(), updated_at = now() WHERE id = $1",
     "update_profile": "UPDATE user_management.users SET email = $2, phone_number = $3, updated_at = now() WHERE id = $1",
+    "update_password": "UPDATE user_management.users SET password_hash = $2, updated_at = now() WHERE id = $1",
     "verify_email": "UPDATE user_management.users SET email_verified = true, updated_at = now() WHERE id = $1",
     "verify_phone": "UPDATE user_management.users SET phone_verified = true, updated_at = now() WHERE id = $1",
     "deactivate": "UPDATE user_management.users SET is_active = false, updated_at = now() WHERE id = $1",
-    "delete": "DELETE FROM user_management.users WHERE id = $1"
+    "activate": "UPDATE user_management.users SET is_active = true, updated_at = now() WHERE id = $1",
+    "delete": "DELETE FROM user_management.users WHERE id = $1",
+    "check_email_exists": "SELECT COUNT(*) FROM user_management.users WHERE email = $1",
+    "check_phone_exists": "SELECT COUNT(*) FROM user_management.users WHERE phone_number = $1"
   },
   "user_settings": {
     "create": "INSERT INTO user_management.user_settings (user_id, sms_forwarding_number, call_forwarding_number, ai_mode_enabled, spam_filtering_enabled, recording_enabled, transcript_enabled, voice_cloning_enabled, timezone, language_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",

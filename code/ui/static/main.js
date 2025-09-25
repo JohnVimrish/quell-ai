@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeComponents() {
-    // Initialize AI mode status
-    initAIModeStatus();
+    // Initialize user menu functionality
+    initUserMenu();
+    initPhoneParallax();
     console.log('Components initialized');
 }
 
@@ -35,40 +36,59 @@ async function apiCall(endpoint, options = {}) {
     }
 }
 
-// AI Mode toggle functionality
-async function toggleAIMode() {
-    try {
-        const result = await apiCall('/ai-mode/toggle', {
-            method: 'POST'
-        });
-        updateAIModeUI(result.ai_mode_active);
-    } catch (error) {
-        console.error('Failed to toggle AI mode:', error);
-    }
-}
-
-async function initAIModeStatus() {
-    try {
-        const status = await apiCall('/ai-mode/status');
-        updateAIModeUI(status.ai_mode_active);
-    } catch (e) {
-        // Not logged in or endpoint error
-        updateAIModeUI(false);
-    }
-}
-
-function updateAIModeUI(isActive) {
-    const toggleButton = document.getElementById('ai-mode-toggle');
-    const dot = document.getElementById('ai-dot');
-    if (toggleButton) {
-        toggleButton.textContent = isActive ? 'Disable AI Mode' : 'Enable AI Mode';
-        toggleButton.className = isActive ? 'btn btn-danger' : 'btn btn-secondary';
-    }
-    if (dot) {
-        if (isActive) {
-            dot.classList.add('on');
-        } else {
-            dot.classList.remove('on');
+// User menu functionality
+function initUserMenu() {
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const userMenu = document.getElementById('user-menu');
+        const userMenuButton = document.querySelector('.user-menu button');
+        
+        if (userMenu && userMenuButton && !userMenu.contains(event.target) && !userMenuButton.contains(event.target)) {
+            userMenu.classList.remove('show');
         }
+    });
+}
+
+function toggleUserMenu() {
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu) {
+        userMenu.classList.toggle('show');
     }
+}
+
+// Lightweight toast/notification
+function showToast(message, type = 'info', duration = 3000) {
+    try {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    } catch (e) {
+        console.log(message);
+    }
+}
+
+// Subtle 3D phone tilt
+function initPhoneParallax() {
+    const phone = document.getElementById('phone-outer');
+    if (!phone) return;
+    const damp = 30;
+    const onMove = (e) => {
+        const rect = phone.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        const rotY = (x - 0.5) * 2 * 8; // ±8deg
+        const rotX = -(y - 0.5) * 2 * 8;
+        phone.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    };
+    const onLeave = () => {
+        phone.style.transform = 'rotateX(8deg) rotateY(-8deg)';
+    };
+    phone.addEventListener('mousemove', onMove);
+    phone.addEventListener('mouseleave', onLeave);
 }

@@ -64,7 +64,7 @@ def create_app(config_override=None):
         app.config["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
         
         # Database configuration
-        app.config["DATABASE_URL"] = cfg.database_url
+        app.config["DATABASE_URL"] = os.getenv("DATABASE_URL")
         app.config["DEBUG"] = cfg.debug
         
         # Feed configuration (7-day active, 7-day archive)
