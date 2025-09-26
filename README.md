@@ -138,28 +138,81 @@ code/
 >>>>>>> 5b1bea6 (Initial commit: add all project files)
 ```
 
-⚙️ Setup (Local Dev)
-1. Clone & Install
-git clone https://github.com/<your-username>/quell-ai.git
-cd quell-ai
-python -m venv .venv
-source .venv/bin/activate   # (or .venv\Scripts\Activate.ps1 on Windows)
-pip install -r requirements.txt
-2. Configure .env
-FLASK_ENV=development
-DATABASE_URL=postgres://<your-neon-db-connection>
-EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
+# Quell AI
 
+Personal Communicator-Copilot: An AI assistant for calls and texts.
 
-# Optional provider keys
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-DEEPGRAM_API_KEY=
-ELEVENLABS_API_KEY=
-3. Run the App
-uvicorn api.app:create_app --host 0.0.0.0 --port 8080
+## Project Layout
 
-Visit http://localhost:8080/healthz → should return { "status": "ok" }.
+```
+quell-ai/
+├─ backend/          # Flask application (APIs, Socket.IO, database models)
+│  ├─ api/
+│  ├─ app/
+│  ├─ static/        # Production frontend build lives here (dist/)
+│  └─ templates/     # Jinja base shell which loads the Vite bundle
+├─ frontend/         # Vite + React SPA (JS/TS, CSS, assets)
+│  ├─ src/
+│  ├─ public/
+│  └─ dist/          # Generated build output (gitignored)
+├─ extras/           # Docker compose files, helper scripts
+└─ documents/, reference_images/, ...
+```
+
+## Prerequisites
+
+- Python 3.11+
+- Node 18+
+- Docker (for optional dev containers)
+
+## Local Development
+
+1. **Backend environment**
+   ```bash
+   cd backend
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows PowerShell
+   pip install -r extras/requirements.txt
+   cp .env.example .env      # ensure DATABASE_URL etc.
+   ```
+
+2. **Frontend dependencies** (packages install inside the `node-frontend` container)
+   ```bash
+   docker compose -f extras/node.yml up -d
+   docker exec -it node-frontend bash -lc "cd /app && npm install"
+   ```
+
+3. **Run dev servers**
+   - Flask API: `flask --app api.app:create_app --debug run`
+   - Vite dev (already running in container): `docker logs -f node-frontend`
+
+   The React app proxies `/api` calls to `http://127.0.0.1:5000`. Visit http://localhost:5173.
+
+## Production Build
+
+```bash
+# Frontend
+docker exec node-frontend bash -lc "cd /app && npm run build"
+cp -r frontend/dist backend/static/dist
+
+# Backend (e.g. gunicorn)
+cd backend
+pip install -r extras/requirements.txt
+FLASK_ENV=production gunicorn "api.app:create_app()"
+```
+
+## Docker Image
+
+A multi-stage Dockerfile (node build -> copy dist -> install Python deps) is planned. For now, run the commands above in CI or locally before building any images.
+
+## Tests
+
+- Python: `cd backend && pytest`
+- Frontend: `docker exec node-frontend bash -lc "cd /app && npm test"` (configure playwright/cypress as needed).
+
+## Asset Manifest Integration
+
+Flask consumes `backend/static/dist/.vite/manifest.json` via `backend/app/asset_loader.py`. Ensure the manifest exists before running in production (`npm run build`).
 
 🔐 Privacy by Design
 

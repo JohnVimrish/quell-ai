@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Contacts - Quell AI{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px,4vw,48px); display:grid; gap:32px;">
+        <header class="hero" style="margin-bottom:0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Contact Management</h1>
+                <p class="subheadline">Maintain whitelists, block lists, and keep every conversation route under your control.</p>
+            </div>
+        </header>
+    </div>
+</section>
+<div class="glass-panel" style="margin: 0 clamp(24px,6vw,120px); padding: clamp(24px,4vw,40px);">
+<div class="contacts-container">
+    <div class="contacts-header">
+        <h1><i class="fas fa-address-book"></i> Contact Management</h1>
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" id="contact-search" placeholder="Search contacts..." class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="filter-container">
+                <select id="contact-filter" class="filter-select">
+                    <option value="all">All Contacts</option>
+                    <option value="whitelisted">Whitelisted</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="recent">Recent Activity</option>
+                    <option value="favorites">Favorites</option>
+                    <option value="no-activity">No Recent Activity</option>
+                </select>
+            </div>
+            <div class="sort-container">
+                <select id="contact-sort" class="sort-select">
+                    <option value="name">Sort by Name</option>
+                    <option value="recent">Recent Activity</option>
+                    <option value="calls">Most Calls</option>
+                    <option value="messages">Most Messages</option>
+                    <option value="created">Date Added</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="openAddContactModal()">
+                <i class="fas fa-plus"></i> Add Contact
+            </button>
+            <button class="btn btn-secondary" onclick="importContacts()">
+                <i class="fas fa-upload"></i> Import
+            </button>
+        </div>
+    </div>
+
+    <!-- Contact Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="total-contacts">--</h3>
+                <p>Total Contacts</p>
+                <span class="stat-change" id="total-contacts-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon whitelisted">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="whitelisted-contacts">--</h3>
+                <p>Whitelisted</p>
+                <span class="stat-change" id="whitelisted-contacts-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blocked">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="blocked-contacts">--</h3>
+                <p>Blocked</p>
+                <span class="stat-change" id="blocked-contacts-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon active">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="active-contacts">--</h3>
+                <p>Active (30 days)</p>
+                <span class="stat-change" id="active-contacts-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon similarity">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="duplicate-contacts">--</h3>
+                <p>Potential Duplicates</p>
+                <span class="stat-change" id="duplicate-contacts-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon new">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="new-contacts">--</h3>
+                <p>New This Week</p>
+                <span class="stat-change" id="new-contacts-change">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-card">
+        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div class="quick-actions-grid">
+            <button class="quick-action-btn" onclick="findDuplicates()">
+                <i class="fas fa-search"></i>
+                <span>Find Duplicates</span>
+            </button>
+            <button class="quick-action-btn" onclick="bulkWhitelist()">
+                <i class="fas fa-shield-alt"></i>
+                <span>Bulk Whitelist</span>
+            </button>
+            <button class="quick-action-btn" onclick="exportContacts()">
+                <i class="fas fa-download"></i>
+                <span>Export All</span>
+            </button>
+            <button class="quick-action-btn" onclick="cleanupContacts()">
+                <i class="fas fa-broom"></i>
+                <span>Cleanup</span>
+            </button>
+            <button class="quick-action-btn" onclick="mergeContacts()">
+                <i class="fas fa-compress-alt"></i>
+                <span>Merge Duplicates</span>
+            </button>
+            <button class="quick-action-btn" onclick="analyzeActivity()">
+                <i class="fas fa-chart-line"></i>
+                <span>Activity Analysis</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Contact List -->
+    <div class="contacts-list-container">
+        <div class="contacts-list-header">
+            <h3>Contacts</h3>
+            <div class="list-controls">
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="switchView('grid')" id="grid-view-btn">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" onclick="switchView('list')" id="list-view-btn">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="selectAllContacts()">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                <button class="btn btn-sm btn-outline" onclick="openBulkActions()" disabled id="bulk-actions-btn">
+                    <i class="fas fa-cog"></i> Bulk Actions
+                </button>
+            </div>
+        </div>
+
+        <div class="contacts-list grid-view" id="contacts-list">
+            <div class="loading-spinner" id="contacts-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading contacts...
+            </div>
+        </div>
+
+        <div class="pagination" id="contacts-pagination" style="display: none;">
+            <button class="btn btn-sm btn-outline" onclick="previousPage()" id="prev-page-btn" disabled>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span class="page-info" id="page-info">Page 1 of 1</span>
+            <button class="btn btn-sm btn-outline" onclick="nextPage()" id="next-page-btn" disabled>
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Add/Edit Contact Modal -->
+<div class="modal-overlay" id="contact-modal" style="display: none;">
+    <div class="modal-content contact-modal">
+        <div class="modal-header">
+            <h3 id="contact-modal-title"><i class="fas fa-user-plus"></i> Add Contact</h3>
+            <button class="modal-close" onclick="closeContactModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="contact-form">
+                <input type="hidden" id="contact-id" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-name">Name *</label>
+                        <input type="text" id="contact-name" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-phone">Phone Number *</label>
+                        <input type="tel" id="contact-phone" required class="form-control" placeholder="+1234567890">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-email">Email</label>
+                        <input type="email" id="contact-email" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-company">Company</label>
+                        <input type="text" id="contact-company" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contact-notes">Notes</label>
+                    <textarea id="contact-notes" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="contact-tags">Tags</label>
+                        <input type="text" id="contact-tags" class="form-control" placeholder="family, work, friend (comma separated)">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-priority">Priority</label>
+                        <select id="contact-priority" class="form-control">
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="contact-whitelisted">
+                            <span class="checkmark"></span>
+                            Whitelisted (Always allow calls/messages)
+                        </label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="contact-blocked">
+                            <span class="checkmark"></span>
+                            Blocked (Block all communications)
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="contact-favorite">
+                        <span class="checkmark"></span>
+                        Add to Favorites
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveContact()">
+                <i class="fas fa-save"></i> Save Contact
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Details Modal -->
+<div class="modal-overlay" id="contact-details-modal" style="display: none;">
+    <div class="modal-content contact-details-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user"></i> Contact Details</h3>
+            <button class="modal-close" onclick="closeContactDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="contact-details-content">
+                <div class="contact-header">
+                    <div class="contact-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="contact-info">
+                        <h2 id="detail-contact-name">-</h2>
+                        <p id="detail-contact-phone">-</p>
+                        <p id="detail-contact-email">-</p>
+                        <p id="detail-contact-company">-</p>
+                    </div>
+                </div>
+                
+                <div class="contact-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <span id="detail-total-calls">0 calls</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-envelope"></i>
+                        <span id="detail-total-messages">0 messages</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span id="detail-last-activity">Never</span>
+                    </div>
+                </div>
+                
+                <div class="contact-actions">
+                    <button class="btn btn-primary" onclick="editContact()">
+                        <i class="fas fa-edit"></i> Edit Contact
+                    </button>
+                    <button class="btn btn-secondary" onclick="toggleWhitelist()">
+                        <i class="fas fa-user-check"></i> <span id="whitelist-btn-text">Whitelist</span>
+                    </button>
+                    <button class="btn btn-danger" onclick="toggleBlock()">
+                        <i class="fas fa-user-slash"></i> <span id="block-btn-text">Block</span>
+                    </button>
+                </div>
+                
+                <div class="contact-notes">
+                    <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+                    <p id="detail-contact-notes">No notes available.</p>
+                </div>
+                
+                <div class="contact-tags">
+                    <h4><i class="fas fa-tags"></i> Tags</h4>
+                    <div id="detail-contact-tags" class="tags-container">
+                        <!-- Tags will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="contact-activity">
+                    <h4><i class="fas fa-history"></i> Recent Activity</h4>
+                    <div id="detail-contact-activity" class="activity-list">
+                        <!-- Activity items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeContactDetailsModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/contacts.js') }}"></script>
+{% endblock %}

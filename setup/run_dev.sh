@@ -1,14 +1,27 @@
 #!/bin/bash
+set -euo pipefail
 
-# Development runner script
-echo "🚀 Starting Quell AI Development Server..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Source the environment setup
-source "$(dirname "${BASH_SOURCE[0]}")/setup_env.sh"
+source "$SCRIPT_DIR/setup_env.sh"
 
-# Change to the code directory
-cd "$PROJECT_ROOT/code"
+start_frontend() {
+  echo "🎨 Starting Vite dev server via node-frontend container..."
+  docker compose -f "$PROJECT_ROOT/extras/node.yml" up -d
+  docker exec node-frontend bash -lc 'cd /app && npm install'
+}
 
-# Start the development server with auto-reload
-echo "🌐 Starting server at http://localhost:8080"
-"$PROJECT_ROOT/pvenv/Scripts/python" api/run.py
+start_backend() {
+  echo "🧠 Starting Flask backend on http://127.0.0.1:5000"
+  cd "$PROJECT_ROOT/backend"
+  flask run --reload --port 5000
+}
+
+start_frontend &
+FRONTEND_PID=$!
+
+trap 'echo "🛑 Shutting down..."; docker compose -f "$PROJECT_ROOT/extras/node.yml" down' EXIT
+
+wait $FRONTEND_PID || true
+start_backend

@@ -1,0 +1,153 @@
+{
+  "users": {
+    "create": "INSERT INTO user_management.users (email, password_hash, phone_number) VALUES ($1, $2, $3) RETURNING id, email, created_at",
+    "get_by_id": "SELECT id, email, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE id = $1",
+    "get_by_email": "SELECT id, email, password_hash, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE email = $1",
+    "get_by_email_for_login": "SELECT id, email, password_hash, phone_number, is_active, email_verified, phone_verified, created_at, last_login_at FROM user_management.users WHERE email = $1 AND is_active = true",
+    "get_by_phone": "SELECT id, email, phone_number, is_active FROM user_management.users WHERE phone_number = $1",
+    "update_last_login": "UPDATE user_management.users SET last_login_at = now(), updated_at = now() WHERE id = $1",
+    "update_profile": "UPDATE user_management.users SET email = $2, phone_number = $3, updated_at = now() WHERE id = $1",
+    "update_password": "UPDATE user_management.users SET password_hash = $2, updated_at = now() WHERE id = $1",
+    "verify_email": "UPDATE user_management.users SET email_verified = true, updated_at = now() WHERE id = $1",
+    "verify_phone": "UPDATE user_management.users SET phone_verified = true, updated_at = now() WHERE id = $1",
+    "deactivate": "UPDATE user_management.users SET is_active = false, updated_at = now() WHERE id = $1",
+    "activate": "UPDATE user_management.users SET is_active = true, updated_at = now() WHERE id = $1",
+    "delete": "DELETE FROM user_management.users WHERE id = $1",
+    "check_email_exists": "SELECT COUNT(*) FROM user_management.users WHERE email = $1",
+    "check_phone_exists": "SELECT COUNT(*) FROM user_management.users WHERE phone_number = $1"
+  },
+  "user_settings": {
+    "create": "INSERT INTO user_management.user_settings (user_id, sms_forwarding_number, call_forwarding_number, ai_mode_enabled, spam_filtering_enabled, recording_enabled, transcript_enabled, voice_cloning_enabled, timezone, language_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+    "get_by_user": "SELECT * FROM user_management.user_settings WHERE user_id = $1",
+    "update": "UPDATE user_management.user_settings SET sms_forwarding_number = $2, call_forwarding_number = $3, ai_mode_enabled = $4, ai_mode_expires_at = $5, spam_filtering_enabled = $6, recording_enabled = $7, transcript_enabled = $8, voice_cloning_enabled = $9, timezone = $10, language_code = $11, updated_at = now() WHERE user_id = $1",
+    "toggle_ai_mode": "UPDATE user_management.user_settings SET ai_mode_enabled = $2, ai_mode_expires_at = $3, updated_at = now() WHERE user_id = $1",
+    "check_ai_mode_expired": "SELECT user_id FROM user_management.user_settings WHERE ai_mode_enabled = true AND ai_mode_expires_at < now()"
+  },
+  "contacts": {
+    "create": "INSERT INTO user_management.contacts (user_id, phone_number, display_name, first_name, last_name, email, is_whitelisted, is_blocked, trust_level) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id",
+    "get_by_id": "SELECT * FROM user_management.contacts WHERE id = $1 AND user_id = $2",
+    "get_by_phone": "SELECT * FROM user_management.contacts WHERE user_id = $1 AND phone_number = $2",
+    "get_all_by_user": "SELECT * FROM user_management.contacts WHERE user_id = $1 AND is_archived = false ORDER BY display_name ASC",
+    "get_whitelisted": "SELECT * FROM user_management.contacts WHERE user_id = $1 AND is_whitelisted = true",
+    "get_blocked": "SELECT * FROM user_management.contacts WHERE user_id = $1 AND is_blocked = true",
+    "update": "UPDATE user_management.contacts SET display_name = $3, first_name = $4, last_name = $5, email = $6, is_whitelisted = $7, is_blocked = $8, trust_level = $9, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "update_interaction": "UPDATE user_management.contacts SET last_interaction_at = $3, updated_at = now() WHERE user_id = $1 AND phone_number = $2",
+    "block": "UPDATE user_management.contacts SET is_blocked = true, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "unblock": "UPDATE user_management.contacts SET is_blocked = false, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "whitelist": "UPDATE user_management.contacts SET is_whitelisted = true, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "remove_whitelist": "UPDATE user_management.contacts SET is_whitelisted = false, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "archive": "UPDATE user_management.contacts SET is_archived = true, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "delete": "DELETE FROM user_management.contacts WHERE id = $1 AND user_id = $2",
+    "search": "SELECT * FROM user_management.contacts WHERE user_id = $1 AND (display_name ILIKE $2 OR first_name ILIKE $2 OR last_name ILIKE $2 OR phone_number ILIKE $2) AND is_archived = false ORDER BY display_name ASC"
+  },
+   "calls": {
+    "create": "INSERT INTO communication.calls (user_id, contact_id, from_number, to_number, direction, status, started_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+    "get_by_id": "SELECT c.*, ct.display_name as contact_name FROM communication.calls c LEFT JOIN user_management.contacts ct ON c.contact_id = ct.id WHERE c.id = $1 AND c.user_id = $2",
+    "get_all_by_user": "SELECT c.*, ct.display_name as contact_name FROM communication.calls c LEFT JOIN user_management.contacts ct ON c.contact_id = ct.id WHERE c.user_id = $1 ORDER BY c.started_at DESC LIMIT $2 OFFSET $3",
+    "get_recent": "SELECT c.*, ct.display_name as contact_name FROM communication.calls c LEFT JOIN user_management.contacts ct ON c.contact_id = ct.id WHERE c.user_id = $1 ORDER BY c.started_at DESC LIMIT $2",
+    "get_by_status": "SELECT c.*, ct.display_name as contact_name FROM communication.calls c LEFT JOIN user_management.contacts ct ON c.contact_id = ct.id WHERE c.user_id = $1 AND c.status = $2 ORDER BY c.started_at DESC",
+    "get_spam": "SELECT c.*, ct.display_name as contact_name FROM communication.calls c LEFT JOIN user_management.contacts ct ON c.contact_id = ct.id WHERE c.user_id = $1 AND c.is_spam = true ORDER BY c.started_at DESC",
+    "update_status": "UPDATE communication.calls SET status = $3, answered_at = $4, ended_at = $5, duration_seconds = $6, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "update_analysis": "UPDATE communication.calls SET intent = $3, urgency = $4, outcome = $5, transcript = $6, transcript_confidence = $7, spam_score = $8, is_spam = $9, ai_handled = $10, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "update_recording": "UPDATE communication.calls SET recording_uri = $3, recording_duration_seconds = $4, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "mark_spam": "UPDATE communication.calls SET is_spam = true, spam_score = $3, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "get_stats": "SELECT COUNT(*) as total_calls, SUM(duration_seconds) as total_duration, COUNT(*) FILTER (WHERE is_spam = true) as spam_calls, COUNT(*) FILTER (WHERE ai_handled = true) as ai_handled_calls FROM communication.calls WHERE user_id = $1 AND started_at >= $2 AND started_at <= $3",
+    "delete": "DELETE FROM communication.calls WHERE id = $1 AND user_id = $2"
+  },
+ "messages": {
+    "create": "INSERT INTO communication.messages (user_id, contact_id, conversation_id, phone_number, direction, message_body, message_type, status, sent_at, received_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
+    "get_by_id": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.id = $1 AND m.user_id = $2",
+    "get_all_by_user": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 ORDER BY m.received_at DESC LIMIT $2 OFFSET $3",
+    "get_conversation": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 AND m.conversation_id = $2 ORDER BY m.received_at ASC",
+    "get_by_phone": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 AND m.phone_number = $2 ORDER BY m.received_at DESC LIMIT $3",
+    "get_unread": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 AND m.is_read = false ORDER BY m.received_at DESC",
+    "get_spam": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 AND m.is_spam = true ORDER BY m.received_at DESC",
+    "update_status": "UPDATE communication.messages SET status = $3, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "mark_read": "UPDATE communication.messages SET is_read = true, read_at = now() WHERE id = $1 AND user_id = $2",
+    "mark_unread": "UPDATE communication.messages SET is_read = false, read_at = NULL WHERE id = $1 AND user_id = $2",
+    "update_analysis": "UPDATE communication.messages SET intent = $3, sentiment = $4, ai_response = $5, spam_score = $6, is_spam = $7 WHERE id = $1 AND user_id = $2",
+    "mark_spam": "UPDATE communication.messages SET is_spam = true, spam_score = $3 WHERE id = $1 AND user_id = $2",
+    "search": "SELECT m.*, ct.display_name as contact_name FROM communication.messages m LEFT JOIN user_management.contacts ct ON m.contact_id = ct.id WHERE m.user_id = $1 AND m.message_body ILIKE $2 ORDER BY m.received_at DESC LIMIT $3",
+    "get_stats": "SELECT COUNT(*) as total_messages, COUNT(*) FILTER (WHERE is_spam = true) as spam_messages, COUNT(*) FILTER (WHERE direction = 'inbound') as received_messages, COUNT(*) FILTER (WHERE direction = 'outbound') as sent_messages, COUNT(*) FILTER (WHERE ai_response IS NOT NULL) as ai_responses FROM communication.messages WHERE user_id = $1 AND received_at >= $2 AND received_at <= $3",
+    "delete": "DELETE FROM communication.messages WHERE id = $1 AND user_id = $2"
+  },
+  
+  "feed_items": {
+    "create": "INSERT INTO ai_intelligence.feed_items (user_id, title, body, tags, priority, is_sensitive, embedding) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+    "get_by_id": "SELECT * FROM ai_intelligence.feed_items WHERE id = $1 AND user_id = $2",
+    "get_all_by_user": "SELECT * FROM ai_intelligence.feed_items WHERE user_id = $1 AND status = 'active' AND expires_at > now() ORDER BY priority DESC, created_at DESC LIMIT $2 OFFSET $3",
+    "get_active": "SELECT * FROM ai_intelligence.feed_items WHERE user_id = $1 AND status = 'active' AND expires_at > now() ORDER BY priority DESC, created_at DESC",
+    "get_by_tags": "SELECT * FROM ai_intelligence.feed_items WHERE user_id = $1 AND tags && $2 AND status = 'active' AND expires_at > now() ORDER BY priority DESC, created_at DESC",
+    "update": "UPDATE ai_intelligence.feed_items SET title = $3, body = $4, tags = $5, priority = $6, is_sensitive = $7, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "update_embedding": "UPDATE ai_intelligence.feed_items SET embedding = $3, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "archive": "UPDATE ai_intelligence.feed_items SET status = 'archived', updated_at = now() WHERE id = $1 AND user_id = $2",
+    "expire": "UPDATE ai_intelligence.feed_items SET status = 'expired', updated_at = now() WHERE id = $1 AND user_id = $2",
+    "cleanup_expired": "UPDATE ai_intelligence.feed_items SET status = 'expired' WHERE expires_at <= now() AND status = 'active'",
+    "delete_expired": "DELETE FROM ai_intelligence.feed_items WHERE status = 'expired' AND updated_at < now() - INTERVAL '30 days'",
+    "get_statistics": "SELECT COUNT(*) as total_items, COUNT(*) FILTER (WHERE status = 'active') as active_items, COUNT(*) FILTER (WHERE status = 'archived') as archived_items, array_length(array_agg(DISTINCT unnest(tags)), 1) as tags_count, MAX(updated_at) as last_updated FROM ai_intelligence.feed_items WHERE user_id = $1",
+    "search_similar": "SELECT *, (embedding <=> $2) as distance FROM ai_intelligence.feed_items WHERE user_id = $1 AND status = 'active' AND expires_at > now() ORDER BY embedding <=> $2 LIMIT $3",
+    "delete": "DELETE FROM ai_intelligence.feed_items WHERE id = $1 AND user_id = $2"
+  },
+  "policies": {
+    "create": "INSERT INTO ai_intelligence.policies (user_id, title, body_text, policy_type, tags, priority, embedding) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+    "get_by_id": "SELECT * FROM ai_intelligence.policies WHERE id = $1 AND user_id = $2",
+    "get_all_by_user": "SELECT * FROM ai_intelligence.policies WHERE user_id = $1 AND is_active = true ORDER BY priority DESC, created_at DESC",
+    "get_by_type": "SELECT * FROM ai_intelligence.policies WHERE user_id = $1 AND policy_type = $2 AND is_active = true ORDER BY priority DESC, created_at DESC",
+    "get_by_tags": "SELECT * FROM ai_intelligence.policies WHERE user_id = $1 AND tags && $2 AND is_active = true ORDER BY priority DESC, created_at DESC",
+    "update": "UPDATE ai_intelligence.policies SET title = $3, body_text = $4, policy_type = $5, tags = $6, priority = $7, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "update_embedding": "UPDATE ai_intelligence.policies SET embedding = $3, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "activate": "UPDATE ai_intelligence.policies SET is_active = true, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "deactivate": "UPDATE ai_intelligence.policies SET is_active = false, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "search_similar": "SELECT *, (embedding <=> $2) as distance FROM ai_intelligence.policies WHERE user_id = $1 AND is_active = true ORDER BY embedding <=> $2 LIMIT $3",
+    "delete": "DELETE FROM ai_intelligence.policies WHERE id = $1 AND user_id = $2"
+  },
+  "embeddings": {
+    "create": "INSERT INTO ai_intelligence.embeddings (user_id, content_type, content_id, content_text, embedding, model_name, model_version) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (user_id, content_type, content_id) DO UPDATE SET content_text = EXCLUDED.content_text, embedding = EXCLUDED.embedding, model_name = EXCLUDED.model_name, model_version = EXCLUDED.model_version, created_at = now() RETURNING id",
+    "get_by_content": "SELECT * FROM ai_intelligence.embeddings WHERE user_id = $1 AND content_type = $2 AND content_id = $3",
+    "search_similar": "SELECT *, (embedding <=> $2) as distance FROM ai_intelligence.embeddings WHERE user_id = $1 AND content_type = ANY($3) ORDER BY embedding <=> $2 LIMIT $4",
+    "delete_by_content": "DELETE FROM ai_intelligence.embeddings WHERE user_id = $1 AND content_type = $2 AND content_id = $3",
+    "cleanup_orphaned": "DELETE FROM ai_intelligence.embeddings WHERE created_at < now() - INTERVAL '90 days'"
+  },
+  "spam_patterns": {
+    "create": "INSERT INTO ai_intelligence.spam_patterns (pattern_type, pattern_value, confidence_score, source, created_by) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+    "get_active": "SELECT * FROM ai_intelligence.spam_patterns WHERE is_active = true ORDER BY confidence_score DESC",
+    "get_by_type": "SELECT * FROM ai_intelligence.spam_patterns WHERE pattern_type = $1 AND is_active = true ORDER BY confidence_score DESC",
+    "update": "UPDATE ai_intelligence.spam_patterns SET pattern_value = $2, confidence_score = $3, updated_at = now() WHERE id = $1",
+    "deactivate": "UPDATE ai_intelligence.spam_patterns SET is_active = false, updated_at = now() WHERE id = $1",
+    "delete": "DELETE FROM ai_intelligence.spam_patterns WHERE id = $1"
+  },
+
+  "voice_models": {
+    "create": "INSERT INTO ai_intelligence.voice_models (user_id, model_name, voice_sample_uri, training_status) VALUES ($1, $2, $3, $4) RETURNING id",
+    "get_by_user": "SELECT * FROM ai_intelligence.voice_models WHERE user_id = $1 ORDER BY created_at DESC",
+    "get_active": "SELECT * FROM ai_intelligence.voice_models WHERE user_id = $1 AND is_active = true ORDER BY quality_score DESC",
+    "update_status": "UPDATE ai_intelligence.voice_models SET training_status = $3, model_uri = $4, quality_score = $5, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "activate": "UPDATE ai_intelligence.voice_models SET is_active = true, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "deactivate": "UPDATE ai_intelligence.voice_models SET is_active = false, updated_at = now() WHERE id = $1 AND user_id = $2",
+    "delete": "DELETE FROM ai_intelligence.voice_models WHERE id = $1 AND user_id = $2"
+  },
+
+  "analytics": {
+    "create_weekly_report": "INSERT INTO analytics.weekly_reports (user_id, report_week, start_date, end_date, total_calls, total_messages, total_call_duration_seconds, spam_calls_blocked, spam_messages_blocked, ai_interactions, peak_call_hours, top_contacts, sentiment_summary) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id",
+    "get_weekly_report": "SELECT * FROM analytics.weekly_reports WHERE user_id = $1 AND report_week = $2",
+    "get_recent_weekly_reports": "SELECT * FROM analytics.weekly_reports WHERE user_id = $1 ORDER BY report_week DESC LIMIT $2",
+    "create_monthly_report": "INSERT INTO analytics.monthly_reports (user_id, report_month, start_date, end_date, total_calls, total_messages, total_call_duration_seconds, spam_calls_blocked, spam_messages_blocked, ai_interactions, most_contacted_numbers, call_patterns, message_patterns, ai_effectiveness_score, cost_savings_estimate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id",
+    "get_monthly_report": "SELECT * FROM analytics.monthly_reports WHERE user_id = $1 AND report_month = $2",
+    "log_activity": "INSERT INTO analytics.user_activity_logs (user_id, activity_type, activity_details, ip_address, user_agent, session_id, duration_seconds, success) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
+    "get_activity_logs": "SELECT * FROM analytics.user_activity_logs WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+    "create_call_analytics": "INSERT INTO analytics.call_analytics (user_id, call_id, analysis_type, analysis_result, confidence_score, model_used, processing_time_ms, tokens_processed, cost_estimate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (call_id, analysis_type) DO UPDATE SET analysis_result = EXCLUDED.analysis_result, confidence_score = EXCLUDED.confidence_score, model_used = EXCLUDED.model_used, processing_time_ms = EXCLUDED.processing_time_ms, tokens_processed = EXCLUDED.tokens_processed, cost_estimate = EXCLUDED.cost_estimate, created_at = now() RETURNING id",
+    "get_call_analytics": "SELECT * FROM analytics.call_analytics WHERE user_id = $1 AND call_id = $2",
+    "create_message_analytics": "INSERT INTO analytics.message_analytics (user_id, message_id, analysis_type, analysis_result, confidence_score, model_used, processing_time_ms, tokens_processed, cost_estimate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (message_id, analysis_type) DO UPDATE SET analysis_result = EXCLUDED.analysis_result, confidence_score = EXCLUDED.confidence_score, model_used = EXCLUDED.model_used, processing_time_ms = EXCLUDED.processing_time_ms, tokens_processed = EXCLUDED.tokens_processed, cost_estimate = EXCLUDED.cost_estimate, created_at = now() RETURNING id",
+    "get_message_analytics": "SELECT * FROM analytics.message_analytics WHERE user_id = $1 AND message_id = $2",
+    "get_dashboard_stats": "SELECT (SELECT COUNT(*) FROM communication.calls WHERE user_id = $1 AND started_at >= $2) as total_calls, (SELECT COUNT(*) FROM communication.messages WHERE user_id = $1 AND received_at >= $2) as total_messages, (SELECT COUNT(*) FROM communication.calls WHERE user_id = $1 AND is_spam = true AND started_at >= $2) as spam_calls_blocked, (SELECT COUNT(*) FROM communication.messages WHERE user_id = $1 AND is_spam = true AND received_at >= $2) as spam_messages_blocked, (SELECT COUNT(*) FROM communication.calls WHERE user_id = $1 AND ai_handled = true AND started_at >= $2) as ai_handled_calls, (SELECT COUNT(*) FROM communication.calls WHERE user_id = $1 AND status = 'missed' AND started_at >= $2) as missed_calls"
+  },
+
+  "sessions": {
+    "create": "INSERT INTO user_management.user_sessions (user_id, session_token, ip_address, user_agent, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+    "get_by_token": "SELECT s.*, u.id as user_id, u.email, u.is_active FROM user_management.user_sessions s JOIN user_management.users u ON s.user_id = u.id WHERE s.session_token = $1 AND s.expires_at > now() AND s.is_active = true",
+    "update_last_used": "UPDATE user_management.user_sessions SET last_used_at = now() WHERE session_token = $1",
+    "invalidate": "UPDATE user_management.user_sessions SET is_active = false WHERE session_token = $1",
+    "invalidate_all_user": "UPDATE user_management.user_sessions SET is_active = false WHERE user_id = $1",
+    "cleanup_expired": "DELETE FROM user_management.user_sessions WHERE expires_at <= now() OR is_active = false"
+  }
+}

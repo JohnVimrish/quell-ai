@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+  <div class="glass-panel" style="padding: clamp(32px,4vw,48px); display:grid; gap:32px;">
+    <header class="hero" style="margin-bottom:0;">
+      <div>
+        <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Your communicator command center</h1>
+        <p class="subheadline">Monitor AI-handled calls, texts, and priorities in one vibrant glass workspace.</p>
+      </div>
+    </header>
+    <div class="features-grid">
+      <article class="glass-tile">
+        <div class="activity-card-header">
+          <div class="activity-icon"><i class="fas fa-robot"></i></div>
+          <div class="activity-meta">
+            <h3>Copilot Mode</h3>
+            <span class="activity-time">Toggle AI handling & see uptime</span>
+          </div>
+        </div>
+        <div class="activity-body">
+          <p>Switch AI mode, adjust sensitivity, and review escalation rules from a single control.</p>
+          <div class="activity-actions">
+            <a class="button-primary" href="{{ url_for('settings_page') }}">Manage AI Mode</a>
+          </div>
+        </div>
+      </article>
+      <article class="glass-tile">
+        <div class="activity-card-header">
+          <div class="activity-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="activity-meta">
+            <h3>Recent Insights</h3>
+            <span class="activity-time">Mind-map summaries & transcripts</span>
+          </div>
+        </div>
+        <div class="activity-body">
+          <p>Skim conversations handled by Quell-Ai with visual mind maps and searchable transcripts.</p>
+          <div class="activity-actions">
+            <a class="button-primary" href="{{ url_for('reports_page') }}">View Reports</a>
+          </div>
+        </div>
+      </article>
+      <article class="glass-tile">
+        <div class="activity-card-header">
+          <div class="activity-icon"><i class="fas fa-shield-alt"></i></div>
+          <div class="activity-meta">
+            <h3>Spam Defense</h3>
+            <span class="activity-time">Blockers and flagged numbers</span>
+          </div>
+        </div>
+        <div class="activity-body">
+          <p>Track blocked spam, tune keyword filters, and review whitelists to stay in control.</p>
+          <div class="activity-actions">
+            <a class="button-primary" href="{{ url_for('contacts_page') }}">Open Protection Settings</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}

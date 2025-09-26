@@ -1,0 +1,2440 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Communicator-Copilot{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px, 4vw, 48px); display: grid; gap: 32px;">
+        <header class="hero" style="margin-bottom: 0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem, 3vw, 2.8rem);">Analytics & Insights</h1>
+                <p class="subheadline">Monitor AI performance, communication volumes, and security signals from one glass dashboard.</p>
+            </div>
+        </header>
+        <div class="glass-panel" style="padding: 24px; box-shadow: none; display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+            <div style="flex: 1 1 260px;">
+                <label class="label" for="analytics-start-date">Start Date</label>
+                <input type="date" id="analytics-start-date" class="input-control">
+            </div>
+            <div style="flex: 1 1 260px;">
+                <label class="label" for="analytics-end-date">End Date</label>
+                <input type="date" id="analytics-end-date" class="input-control">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="button-primary" onclick="refreshAnalytics()"><i class="fas fa-sync"></i>&nbsp;Refresh</button>
+                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;" onclick="exportAnalytics()"><i class="fas fa-download"></i>&nbsp;Export</button>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h1><i class="fas fa-chart-bar"></i> Analytics Dashboard</h1>
+        <p>Comprehensive insights into your communication patterns and AI performance</p>
+    </div>
+
+    <!-- Time Range Selector -->
+    <div class="time-range-selector">
+        <div class="range-buttons">
+            <button class="range-btn active" data-range="today">Today</button>
+            <button class="range-btn" data-range="week">This Week</button>
+            <button class="range-btn" data-range="month">This Month</button>
+            <button class="range-btn" data-range="quarter">This Quarter</button>
+            <button class="range-btn" data-range="year">This Year</button>
+            <button class="range-btn" data-range="custom">Custom Range</button>
+        </div>
+        
+        <div class="custom-range-inputs" id="custom-range" style="display: none;">
+            <input type="date" id="analytics-start-date" class="date-input">
+            <span>to</span>
+            <input type="date" id="analytics-end-date" class="date-input">
+            <button class="btn btn-primary" onclick="applyCustomRange()">Apply</button>
+        </div>
+    </div>
+
+    <!-- Key Metrics Overview -->
+    <div class="metrics-overview">
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-phone"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="total-calls-metric">--</h3>
+                <p>Total Calls</p>
+                <span class="metric-trend" id="calls-trend">--</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="spam-blocked-metric">--</h3>
+                <p>Spam Blocked</p>
+                <span class="metric-trend" id="spam-trend">--</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="ai-accuracy-metric">--</h3>
+                <p>AI Accuracy</p>
+                <span class="metric-trend" id="accuracy-trend">--</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="avg-response-metric">--</h3>
+                <p>Avg Response Time</p>
+                <span class="metric-trend" id="response-trend">--</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="active-contacts-metric">--</h3>
+                <p>Active Contacts</p>
+                <span class="metric-trend" id="contacts-trend">--</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="metric-content">
+                <h3 id="system-uptime-metric">--</h3>
+                <p>System Uptime</p>
+                <span class="metric-trend" id="uptime-trend">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tabs -->
+    <div class="analytics-tabs">
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="communication">Communication</button>
+            <button class="tab-btn" data-tab="ai-performance">AI Performance</button>
+            <button class="tab-btn" data-tab="security">Security</button>
+            <button class="tab-btn" data-tab="usage">Usage Patterns</button>
+            <button class="tab-btn" data-tab="trends">Trends</button>
+        </div>
+
+        <!-- Communication Analytics Tab -->
+        <div class="tab-content active" id="communication-tab">
+            <div class="analytics-grid">
+                <!-- Call Volume Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Call Volume Over Time</h3>
+                        <div class="chart-controls">
+                            <select id="call-volume-type">
+                                <option value="daily">Daily</option>
+                                <option value="hourly">Hourly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-loading" id="call-volume-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="call-volume-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Call Types Distribution -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Call Types Distribution</h3>
+                    </div>
+                    <div class="chart-loading" id="call-types-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="call-types-distribution" style="display: none;"></canvas>
+                </div>
+
+                <!-- Peak Hours Heatmap -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Peak Communication Hours</h3>
+                    </div>
+                    <div class="chart-loading" id="peak-hours-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div id="peak-hours-heatmap" style="display: none;"></div>
+                </div>
+
+                <!-- Top Contacts -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Most Active Contacts</h3>
+                    </div>
+                    <div class="chart-loading" id="top-contacts-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="top-contacts-list" id="top-contacts-list" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Performance Analytics Tab -->
+        <div class="tab-content" id="ai-performance-tab">
+            <div class="analytics-grid">
+                <!-- AI Accuracy Trends -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>AI Accuracy Trends</h3>
+                        <div class="chart-controls">
+                            <select id="accuracy-metric">
+                                <option value="overall">Overall</option>
+                                <option value="spam-detection">Spam Detection</option>
+                                <option value="intent-recognition">Intent Recognition</option>
+                                <option value="sentiment-analysis">Sentiment Analysis</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-loading" id="ai-accuracy-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="ai-accuracy-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Response Time Distribution -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>AI Response Time Distribution</h3>
+                    </div>
+                    <div class="chart-loading" id="response-time-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="response-time-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Model Performance Comparison -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Model Performance Comparison</h3>
+                    </div>
+                    <div class="chart-loading" id="model-performance-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="model-performance-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- AI Usage Statistics -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>AI Feature Usage</h3>
+                    </div>
+                    <div class="chart-loading" id="ai-usage-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="ai-usage-stats" id="ai-usage-stats" style="display: none;">
+                        <div class="usage-item">
+                            <span class="feature-name">Voice Synthesis</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="voice-synthesis-usage"></div>
+                            </div>
+                            <span class="usage-percentage" id="voice-synthesis-percent">--</span>
+                        </div>
+                        <div class="usage-item">
+                            <span class="feature-name">Spam Detection</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="spam-detection-usage"></div>
+                            </div>
+                            <span class="usage-percentage" id="spam-detection-percent">--</span>
+                        </div>
+                        <div class="usage-item">
+                            <span class="feature-name">Intent Recognition</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="intent-recognition-usage"></div>
+                            </div>
+                            <span class="usage-percentage" id="intent-recognition-percent">--</span>
+                        </div>
+                        <div class="usage-item">
+                            <span class="feature-name">Conversation Summary</span>
+                            <div class="usage-bar">
+                                <div class="usage-fill" id="conversation-summary-usage"></div>
+                            </div>
+                            <span class="usage-percentage" id="conversation-summary-percent">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Analytics Tab -->
+        <div class="tab-content" id="security-tab">
+            <div class="analytics-grid">
+                <!-- Threat Detection Timeline -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Threat Detection Timeline</h3>
+                    </div>
+                    <div class="chart-loading" id="threat-timeline-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="threat-timeline-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Spam Sources -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Spam Sources</h3>
+                    </div>
+                    <div class="chart-loading" id="spam-sources-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="spam-sources-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Security Score Trend -->
+                                <!-- Security Score Trend -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Security Score Trend</h3>
+                    </div>
+                    <div class="chart-loading" id="security-score-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="security-score-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Blocked Attempts Map -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Blocked Attempts by Location</h3>
+                    </div>
+                    <div class="chart-loading" id="blocked-attempts-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div id="blocked-attempts-map" style="display: none; height: 400px;"></div>
+                </div>
+
+                <!-- Security Alerts -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Recent Security Alerts</h3>
+                    </div>
+                    <div class="chart-loading" id="security-alerts-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="security-alerts-list" id="security-alerts-list" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Patterns Tab -->
+        <div class="tab-content" id="usage-tab">
+            <div class="analytics-grid">
+                <!-- Daily Usage Pattern -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Daily Usage Pattern</h3>
+                    </div>
+                    <div class="chart-loading" id="daily-usage-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="daily-usage-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Feature Adoption -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Feature Adoption Rate</h3>
+                    </div>
+                    <div class="chart-loading" id="feature-adoption-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="feature-adoption-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- User Engagement -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>User Engagement Metrics</h3>
+                    </div>
+                    <div class="chart-loading" id="user-engagement-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="engagement-metrics" id="engagement-metrics" style="display: none;">
+                        <div class="engagement-item">
+                            <div class="engagement-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="engagement-content">
+                                <h4 id="avg-session-duration">--</h4>
+                                <p>Avg Session Duration</p>
+                            </div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-icon">
+                                <i class="fas fa-mouse-pointer"></i>
+                            </div>
+                            <div class="engagement-content">
+                                <h4 id="daily-active-sessions">--</h4>
+                                <p>Daily Active Sessions</p>
+                            </div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="engagement-content">
+                                <h4 id="feature-interactions">--</h4>
+                                <p>Feature Interactions</p>
+                            </div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="engagement-content">
+                                <h4 id="user-satisfaction">--</h4>
+                                <p>User Satisfaction</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Usage -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Device Usage Distribution</h3>
+                    </div>
+                    <div class="chart-loading" id="device-usage-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="device-usage-chart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trends Tab -->
+        <div class="tab-content" id="trends-tab">
+            <div class="analytics-grid">
+                <!-- Growth Trends -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Growth Trends</h3>
+                        <div class="chart-controls">
+                            <select id="growth-metric">
+                                <option value="calls">Call Volume</option>
+                                <option value="contacts">Contact Growth</option>
+                                <option value="ai-usage">AI Usage</option>
+                                <option value="spam-blocked">Spam Blocked</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-loading" id="growth-trends-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="growth-trends-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Predictive Analytics -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Predictive Analytics</h3>
+                    </div>
+                    <div class="chart-loading" id="predictive-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="predictive-insights" id="predictive-insights" style="display: none;">
+                        <div class="prediction-item">
+                            <div class="prediction-icon">
+                                <i class="fas fa-arrow-up text-success"></i>
+                            </div>
+                            <div class="prediction-content">
+                                <h5>Expected Call Volume</h5>
+                                <p id="predicted-calls">-- calls next week</p>
+                                <small class="confidence">Confidence: <span id="calls-confidence">--%</span></small>
+                            </div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-icon">
+                                <i class="fas fa-shield-alt text-warning"></i>
+                            </div>
+                            <div class="prediction-content">
+                                <h5>Spam Risk Level</h5>
+                                <p id="predicted-spam">-- risk level</p>
+                                <small class="confidence">Confidence: <span id="spam-confidence">--%</span></small>
+                            </div>
+                        </div>
+                        <div class="prediction-item">
+                            <div class="prediction-icon">
+                                <i class="fas fa-robot text-info"></i>
+                            </div>
+                            <div class="prediction-content">
+                                <h5>AI Performance</h5>
+                                <p id="predicted-ai">-- accuracy trend</p>
+                                <small class="confidence">Confidence: <span id="ai-confidence">--%</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seasonal Patterns -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Seasonal Patterns</h3>
+                    </div>
+                    <div class="chart-loading" id="seasonal-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <canvas id="seasonal-chart" style="display: none;"></canvas>
+                </div>
+
+                <!-- Anomaly Detection -->
+                <div class="chart-container full-width">
+                    <div class="chart-header">
+                        <h3>Anomaly Detection</h3>
+                    </div>
+                    <div class="chart-loading" id="anomaly-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                    <div class="anomaly-alerts" id="anomaly-alerts" style="display: none;">
+                        <div class="anomaly-item">
+                            <div class="anomaly-severity high">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="anomaly-content">
+                                <h5>Unusual Call Spike</h5>
+                                <p>300% increase in call volume detected at 2:30 PM</p>
+                                <small>Detected 2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="anomaly-item">
+                            <div class="anomaly-severity medium">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="anomaly-content">
+                                <h5>AI Response Delay</h5>
+                                <p>Average response time increased by 150ms</p>
+                                <small>Detected 4 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="anomaly-item">
+                            <div class="anomaly-severity low">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="anomaly-content">
+                                <h5>Spam Detection Improvement</h5>
+                                <p>Accuracy increased by 5% over baseline</p>
+                                <small>Detected 6 hours ago</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export and Actions -->
+    <div class="analytics-actions">
+        <button class="btn btn-primary" onclick="exportAnalytics()">
+            <i class="fas fa-download"></i> Export Data
+        </button>
+        <button class="btn btn-secondary" onclick="scheduleReport()">
+            <i class="fas fa-calendar"></i> Schedule Report
+        </button>
+        <button class="btn btn-info" onclick="shareAnalytics()">
+            <i class="fas fa-share"></i> Share
+        </button>
+        <button class="btn btn-outline" onclick="refreshAnalytics()">
+            <i class="fas fa-sync"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="export-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Export Analytics Data</h3>
+            <button class="modal-close" onclick="closeExportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="export-options">
+                <h4>Select Data to Export:</h4>
+                <label>
+                    <input type="checkbox" checked> Communication Analytics
+                </label>
+                <label>
+                    <input type="checkbox" checked> AI Performance Metrics
+                </label>
+                <label>
+                    <input type="checkbox"> Security Reports
+                </label>
+                <label>
+                    <input type="checkbox"> Usage Patterns
+                </label>
+                                <label>
+                    <input type="checkbox"> Trend Analysis
+                </label>
+            </div>
+            
+            <div class="export-format">
+                <h4>Export Format:</h4>
+                <label>
+                    <input type="radio" name="format" value="csv" checked> CSV
+                </label>
+                <label>
+                    <input type="radio" name="format" value="json"> JSON
+                </label>
+                <label>
+                    <input type="radio" name="format" value="pdf"> PDF Report
+                </label>
+                <label>
+                    <input type="radio" name="format" value="excel"> Excel
+                </label>
+            </div>
+            
+            <div class="export-range">
+                <h4>Date Range:</h4>
+                <select id="export-date-range">
+                    <option value="current">Current Selection</option>
+                    <option value="week">Last Week</option>
+                    <option value="month">Last Month</option>
+                    <option value="quarter">Last Quarter</option>
+                    <option value="year">Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmExport()">
+                <i class="fas fa-download"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Report Modal -->
+<div class="modal-overlay" id="schedule-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Schedule Analytics Report</h3>
+            <button class="modal-close" onclick="closeScheduleModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="schedule-frequency">
+                <h4>Frequency:</h4>
+                <label>
+                    <input type="radio" name="frequency" value="daily"> Daily
+                </label>
+                <label>
+                    <input type="radio" name="frequency" value="weekly" checked> Weekly
+                </label>
+                <label>
+                    <input type="radio" name="frequency" value="monthly"> Monthly
+                </label>
+                <label>
+                    <input type="radio" name="frequency" value="quarterly"> Quarterly
+                </label>
+            </div>
+            
+            <div class="schedule-time">
+                <h4>Delivery Time:</h4>
+                <input type="time" id="schedule-time" value="09:00">
+            </div>
+            
+            <div class="schedule-email">
+                <h4>Email Recipients:</h4>
+                <input type="email" id="schedule-email" placeholder="Enter email addresses (comma separated)">
+            </div>
+            
+            <div class="schedule-format">
+                <h4>Report Format:</h4>
+                <select id="schedule-format">
+                    <option value="pdf">PDF Summary</option>
+                    <option value="excel">Excel Detailed</option>
+                    <option value="both">Both PDF & Excel</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeScheduleModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmSchedule()">
+                <i class="fas fa-calendar-plus"></i> Schedule
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Analytics JavaScript functionality
+let currentTimeRange = 'today';
+let currentTab = 'communication';
+let analyticsData = {};
+
+// Initialize analytics on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeAnalytics();
+    setupEventListeners();
+    loadAnalyticsData();
+});
+
+function initializeAnalytics() {
+    // Set default date range
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 7);
+    
+    document.getElementById('analytics-start-date').value = startDate.toISOString().split('T')[0];
+    document.getElementById('analytics-end-date').value = today.toISOString().split('T')[0];
+}
+
+function setupEventListeners() {
+    // Time range buttons
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const range = this.dataset.range;
+            currentTimeRange = range;
+            
+            if (range === 'custom') {
+                document.getElementById('custom-range').style.display = 'flex';
+            } else {
+                document.getElementById('custom-range').style.display = 'none';
+                updateDateRange(range);
+                loadAnalyticsData();
+            }
+        });
+    });
+
+    // Tab navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            this.classList.add('active');
+            currentTab = this.dataset.tab;
+            document.getElementById(currentTab + '-tab').classList.add('active');
+            
+            loadTabData(currentTab);
+        });
+    });
+
+    // Chart control listeners
+    document.getElementById('call-volume-type')?.addEventListener('change', function() {
+        loadCallVolumeChart(this.value);
+    });
+
+    document.getElementById('accuracy-metric')?.addEventListener('change', function() {
+        loadAIAccuracyChart(this.value);
+    });
+
+    document.getElementById('growth-metric')?.addEventListener('change', function() {
+        loadGrowthTrendsChart(this.value);
+    });
+}
+
+function updateDateRange(range) {
+    const today = new Date();
+    let startDate = new Date(today);
+    
+    switch(range) {
+        case 'today':
+            startDate = new Date(today);
+            break;
+        case 'week':
+            startDate.setDate(today.getDate() - 7);
+            break;
+        case 'month':
+            startDate.setMonth(today.getMonth() - 1);
+            break;
+        case 'quarter':
+            startDate.setMonth(today.getMonth() - 3);
+            break;
+        case 'year':
+            startDate.setFullYear(today.getFullYear() - 1);
+            break;
+    }
+    
+    document.getElementById('analytics-start-date').value = startDate.toISOString().split('T')[0];
+    document.getElementById('analytics-end-date').value = today.toISOString().split('T')[0];
+}
+
+function applyCustomRange() {
+    const startDate = document.getElementById('analytics-start-date').value;
+    const endDate = document.getElementById('analytics-end-date').value;
+    
+    if (!startDate || !endDate) {
+        showNotification('Please select both start and end dates', 'error');
+        return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+        showNotification('Start date must be before end date', 'error');
+        return;
+    }
+    
+    loadAnalyticsData();
+}
+
+async function loadAnalyticsData() {
+    try {
+        showLoading();
+        
+        const startDate = document.getElementById('analytics-start-date').value;
+        const endDate = document.getElementById('analytics-end-date').value;
+        
+        const response = await fetch(`/api/analytics?start_date=${startDate}&end_date=${endDate}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load analytics data');
+        }
+        
+        analyticsData = await response.json();
+        
+        updateMetricsOverview(analyticsData.overview);
+        loadTabData(currentTab);
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        showNotification('Failed to load analytics data', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function updateMetricsOverview(overview) {
+    if (!overview) return;
+    
+    // Update metric values
+    document.getElementById('total-calls-metric').textContent = overview.total_calls || '--';
+    document.getElementById('spam-blocked-metric').textContent = overview.spam_blocked || '--';
+    document.getElementById('ai-accuracy-metric').textContent = (overview.ai_accuracy || 0) + '%';
+    document.getElementById('avg-response-metric').textContent = (overview.avg_response_time || '--') + 'ms';
+    document.getElementById('active-contacts-metric').textContent = overview.active_contacts || '--';
+    document.getElementById('system-uptime-metric').textContent = (overview.system_uptime || 0) + '%';
+    
+    // Update trends
+    updateTrendIndicator('calls-trend', overview.calls_trend);
+    updateTrendIndicator('spam-trend', overview.spam_trend);
+    updateTrendIndicator('accuracy-trend', overview.accuracy_trend);
+    updateTrendIndicator('response-trend', overview.response_trend);
+    updateTrendIndicator('contacts-trend', overview.contacts_trend);
+    updateTrendIndicator('uptime-trend', overview.uptime_trend);
+}
+
+function updateTrendIndicator(elementId, trend) {
+    const element = document.getElementById(elementId);
+    if (!element || !trend) return;
+    
+    const value = trend.value || 0;
+    const direction = trend.direction || 'neutral';
+    
+    element.textContent = `${value > 0 ? '+' : ''}${value}%`;
+    element.className = `metric-trend ${direction}`;
+    
+    const icon = direction === 'up' ? 'fa-arrow-up' : 
+                 direction === 'down' ? 'fa-arrow-down' : 'fa-minus';
+    element.innerHTML = `<i class="fas ${icon}"></i> ${element.textContent}`;
+}
+
+function loadTabData(tab) {
+    switch(tab) {
+        case 'communication':
+            loadCommunicationAnalytics();
+            break;
+        case 'ai-performance':
+            loadAIPerformanceAnalytics();
+            break;
+        case 'security':
+            loadSecurityAnalytics();
+            break;
+        case 'usage':
+            loadUsageAnalytics();
+            break;
+        case 'trends':
+            loadTrendsAnalytics();
+            break;
+    }
+}
+
+async function loadCommunicationAnalytics() {
+    try {
+        loadCallVolumeChart();
+        loadCallTypesDistribution();
+        loadPeakHoursHeatmap();
+        loadTopContacts();
+    } catch (error) {
+        console.error('Error loading communication analytics:', error);
+    }
+}
+
+async function loadCallVolumeChart(type = 'daily') {
+    const loading = document.getElementById('call-volume-loading');
+    const chart = document.getElementById('call-volume-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/call-volume?type=${type}&start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderCallVolumeChart(data.data, type);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading call volume chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderCallVolumeChart(data, type) {
+    const ctx = document.getElementById('call-volume-chart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (window.callVolumeChart) {
+        window.callVolumeChart.destroy();
+    }
+    
+    window.callVolumeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Total Calls',
+                data: data.total_calls,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Incoming Calls',
+                data: data.incoming_calls,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Outgoing Calls',
+                data: data.outgoing_calls,
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: `Call Volume (${type.charAt(0).toUpperCase() + type.slice(1)})`
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadCallTypesDistribution() {
+    const loading = document.getElementById('call-types-loading');
+    const chart = document.getElementById('call-types-distribution');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/call-types?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderCallTypesChart(data.data);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading call types chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderCallTypesChart(data) {
+    const ctx = document.getElementById('call-types-distribution').getContext('2d');
+    
+    if (window.callTypesChart) {
+        window.callTypesChart.destroy();
+    }
+    
+    window.callTypesChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: [
+                    '#007bff',
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6f42c1',
+                    '#fd7e14'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+async function loadPeakHoursHeatmap() {
+    const loading = document.getElementById('peak-hours-loading');
+    const heatmap = document.getElementById('peak-hours-heatmap');
+    
+    loading.style.display = 'block';
+    heatmap.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/peak-hours?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderPeakHoursHeatmap(data.data);
+            loading.style.display = 'none';
+            heatmap.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading peak hours heatmap:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load heatmap';
+    }
+}
+
+function renderPeakHoursHeatmap(data) {
+    const container = document.getElementById('peak-hours-heatmap');
+    container.innerHTML = '';
+    
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const hours = Array.from({length: 24}, (_, i) => i);
+    
+    const heatmapContainer = document.createElement('div');
+    heatmapContainer.className = 'heatmap-container';
+    
+    // Create header with hours
+    const header = document.createElement('div');
+    header.className = 'heatmap-header';
+    header.innerHTML = '<div class="heatmap-corner"></div>';
+    hours.forEach(hour => {
+        const hourCell = document.createElement('div');
+        hourCell.className = 'heatmap-hour';
+        hourCell.textContent = hour.toString().padStart(2, '0');
+        header.appendChild(hourCell);
+    });
+    heatmapContainer.appendChild(header);
+    
+    // Create rows for each day
+    days.forEach((day, dayIndex) => {
+        const row = document.createElement('div');
+        row.className = 'heatmap-row';
+        
+        const dayLabel = document.createElement('div');
+        dayLabel.className = 'heatmap-day';
+        dayLabel.textContent = day;
+        row.appendChild(dayLabel);
+        
+        hours.forEach(hour => {
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            
+            const value = data.matrix[dayIndex][hour] || 0;
+            const intensity = Math.min(value / data.max_value, 1);
+            
+            cell.style.backgroundColor = `rgba(0, 123, 255, ${intensity})`;
+            cell.title = `${day} ${hour}:00 - ${value} calls`;
+            cell.textContent = value > 0 ? value : '';
+            
+            row.appendChild(cell);
+        });
+        
+        heatmapContainer.appendChild(row);
+    });
+    
+    container.appendChild(heatmapContainer);
+}
+
+async function loadTopContacts() {
+    const loading = document.getElementById('top-contacts-loading');
+    const list = document.getElementById('top-contacts-list');
+    
+    loading.style.display = 'block';
+    list.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/top-contacts?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderTopContacts(data.data);
+            loading.style.display = 'none';
+            list.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading top contacts:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load contacts';
+    }
+}
+
+function renderTopContacts(contacts) {
+    const list = document.getElementById('top-contacts-list');
+    list.innerHTML = '';
+    
+    contacts.forEach((contact, index) => {
+        const item = document.createElement('div');
+        item.className = 'contact-item';
+        item.innerHTML = `
+            <div class="contact-rank">${index + 1}</div>
+            <div class="contact-info">
+                <div class="contact-name">${contact.name || contact.phone}</div>
+                <div class="contact-stats">
+                    <span class="stat">
+                        <i class="fas fa-phone"></i> ${contact.call_count} calls
+                    </span>
+                    <span class="stat">
+                        <i class="fas fa-clock"></i> ${contact.total_duration}
+                    </span>
+                </div>
+            </div>
+            <div class="contact-trend ${contact.trend}">
+                <i class="fas fa-arrow-${contact.trend === 'up' ? 'up' : contact.trend === 'down' ? 'down' : 'right'}"></i>
+                ${contact.change}%
+            </div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+async function loadAIPerformanceAnalytics() {
+    try {
+        loadAIAccuracyChart();
+        loadResponseTimeChart();
+        loadModelPerformanceChart();
+        loadAIUsageStats();
+    } catch (error) {
+        console.error('Error loading AI performance analytics:', error);
+    }
+}
+
+async function loadAIAccuracyChart(metric = 'overall') {
+    const loading = document.getElementById('ai-accuracy-loading');
+    const chart = document.getElementById('ai-accuracy-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/ai-accuracy?metric=${metric}&start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderAIAccuracyChart(data.data, metric);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading AI accuracy chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderAIAccuracyChart(data, metric) {
+    const ctx = document.getElementById('ai-accuracy-chart').getContext('2d');
+    
+    if (window.aiAccuracyChart) {
+        window.aiAccuracyChart.destroy();
+    }
+    
+    window.aiAccuracyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Accuracy %',
+                data: data.accuracy,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Target %',
+                data: data.target,
+                borderColor: '#dc3545',
+                borderDash: [5, 5],
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `AI Accuracy - ${metric.replace('-', ' ').toUpperCase()}`
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Export and utility functions
+function exportAnalytics() {
+    document.getElementById('export-modal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('export-modal').style.display = 'none';
+}
+
+function confirmExport() {
+    const selectedData = [];
+    const checkboxes = document.querySelectorAll('#export-modal input[type="checkbox"]:checked');
+    checkboxes.forEach(cb => selectedData.push(cb.parentElement.textContent.trim()));
+    
+    const format = document.querySelector('#export-modal input[name="format"]:checked').value;
+        const dateRange = document.getElementById('export-date-range').value;
+    
+    // Create export request
+    const exportData = {
+        data_types: selectedData,
+        format: format,
+        date_range: dateRange,
+        start_date: document.getElementById('analytics-start-date').value,
+        end_date: document.getElementById('analytics-end-date').value
+    };
+    
+    // Send export request
+    fetch('/api/analytics/export', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(exportData)
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `analytics_export_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showNotification('Analytics data exported successfully', 'success');
+        closeExportModal();
+    })
+    .catch(error => {
+        console.error('Export error:', error);
+        showNotification('Failed to export analytics data', 'error');
+    });
+}
+
+function scheduleReport() {
+    document.getElementById('schedule-modal').style.display = 'flex';
+}
+
+function closeScheduleModal() {
+    document.getElementById('schedule-modal').style.display = 'none';
+}
+
+function confirmSchedule() {
+    const frequency = document.querySelector('#schedule-modal input[name="frequency"]:checked').value;
+    const time = document.getElementById('schedule-time').value;
+    const email = document.getElementById('schedule-email').value;
+    const format = document.getElementById('schedule-format').value;
+    
+    if (!email) {
+        showNotification('Please enter at least one email address', 'error');
+        return;
+    }
+    
+    const scheduleData = {
+        frequency: frequency,
+        time: time,
+        recipients: email.split(',').map(e => e.trim()),
+        format: format
+    };
+    
+    fetch('/api/analytics/schedule', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(scheduleData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            showNotification('Report scheduled successfully', 'success');
+            closeScheduleModal();
+        } else {
+            showNotification(data.message || 'Failed to schedule report', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Schedule error:', error);
+        showNotification('Failed to schedule report', 'error');
+    });
+}
+
+function shareAnalytics() {
+    const shareUrl = `${window.location.origin}/analytics/share?start=${document.getElementById('analytics-start-date').value}&end=${document.getElementById('analytics-end-date').value}&tab=${currentTab}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Analytics Dashboard',
+            text: 'Check out these analytics insights',
+            url: shareUrl
+        });
+    } else {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showNotification('Share link copied to clipboard', 'success');
+        }).catch(() => {
+            showNotification('Failed to copy share link', 'error');
+        });
+    }
+}
+
+function refreshAnalytics() {
+    showNotification('Refreshing analytics data...', 'info');
+    loadAnalyticsData();
+}
+
+async function loadSecurityAnalytics() {
+    try {
+        loadThreatDetectionChart();
+        loadSecurityScoreChart();
+        loadBlockedAttemptsMap();
+        loadSecurityAlerts();
+    } catch (error) {
+        console.error('Error loading security analytics:', error);
+    }
+}
+
+async function loadUsageAnalytics() {
+    try {
+        loadDailyUsageChart();
+        loadFeatureAdoptionChart();
+        loadUserEngagementMetrics();
+        loadDeviceUsageChart();
+    } catch (error) {
+        console.error('Error loading usage analytics:', error);
+    }
+}
+
+async function loadTrendsAnalytics() {
+    try {
+        loadGrowthTrendsChart();
+        loadPredictiveAnalytics();
+        loadSeasonalChart();
+        loadAnomalyDetection();
+    } catch (error) {
+        console.error('Error loading trends analytics:', error);
+    }
+}
+
+async function loadGrowthTrendsChart(metric = 'calls') {
+    const loading = document.getElementById('growth-trends-loading');
+    const chart = document.getElementById('growth-trends-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/growth-trends?metric=${metric}&start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderGrowthTrendsChart(data.data, metric);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading growth trends chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderGrowthTrendsChart(data, metric) {
+    const ctx = document.getElementById('growth-trends-chart').getContext('2d');
+    
+    if (window.growthTrendsChart) {
+        window.growthTrendsChart.destroy();
+    }
+    
+    window.growthTrendsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Actual',
+                data: data.actual,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Trend Line',
+                data: data.trend,
+                borderColor: '#28a745',
+                borderDash: [5, 5],
+                fill: false
+            }, {
+                label: 'Forecast',
+                data: data.forecast,
+                borderColor: '#ffc107',
+                borderDash: [10, 5],
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: `Growth Trends - ${metric.charAt(0).toUpperCase() + metric.slice(1)}`
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+async function loadPredictiveAnalytics() {
+    const loading = document.getElementById('predictive-loading');
+    const insights = document.getElementById('predictive-insights');
+    
+    loading.style.display = 'block';
+    insights.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/predictive?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            updatePredictiveInsights(data.data);
+            loading.style.display = 'none';
+            insights.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading predictive analytics:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load predictions';
+    }
+}
+
+function updatePredictiveInsights(data) {
+    document.getElementById('predicted-calls').textContent = `${data.predicted_calls} calls next week`;
+    document.getElementById('calls-confidence').textContent = `${data.calls_confidence}%`;
+    
+    document.getElementById('predicted-spam').textContent = data.spam_risk_level;
+    document.getElementById('spam-confidence').textContent = `${data.spam_confidence}%`;
+    
+    document.getElementById('predicted-ai').textContent = data.ai_performance_trend;
+    document.getElementById('ai-confidence').textContent = `${data.ai_confidence}%`;
+}
+
+async function loadAnomalyDetection() {
+    const loading = document.getElementById('anomaly-loading');
+    const alerts = document.getElementById('anomaly-alerts');
+    
+    loading.style.display = 'block';
+    alerts.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/anomalies?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderAnomalyAlerts(data.data);
+            loading.style.display = 'none';
+            alerts.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading anomaly detection:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load anomalies';
+    }
+}
+
+function renderAnomalyAlerts(anomalies) {
+    const container = document.getElementById('anomaly-alerts');
+    container.innerHTML = '';
+    
+    if (anomalies.length === 0) {
+        container.innerHTML = '<div class="no-anomalies"><i class="fas fa-check-circle"></i> No anomalies detected</div>';
+        return;
+    }
+    
+    anomalies.forEach(anomaly => {
+        const item = document.createElement('div');
+        item.className = 'anomaly-item';
+        item.innerHTML = `
+            <div class="anomaly-severity ${anomaly.severity}">
+                <i class="fas ${getSeverityIcon(anomaly.severity)}"></i>
+            </div>
+            <div class="anomaly-content">
+                <h5>${anomaly.title}</h5>
+                <p>${anomaly.description}</p>
+                <small>Detected ${anomaly.detected_at}</small>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function getSeverityIcon(severity) {
+    switch(severity) {
+        case 'high': return 'fa-exclamation-triangle';
+        case 'medium': return 'fa-info-circle';
+        case 'low': return 'fa-check-circle';
+        default: return 'fa-info-circle';
+    }
+}
+
+// Utility functions
+function showLoading() {
+    document.querySelectorAll('.chart-loading').forEach(loader => {
+        loader.style.display = 'block';
+    });
+    document.querySelectorAll('canvas, .chart-content').forEach(chart => {
+        chart.style.display = 'none';
+    });
+}
+
+function hideLoading() {
+    // Loading will be hidden individually by each chart load function
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${getNotificationIcon(type)}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function getNotificationIcon(type) {
+    switch(type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        case 'info': return 'fa-info-circle';
+        default: return 'fa-info-circle';
+    }
+}
+
+// Additional chart loading functions
+async function loadResponseTimeChart() {
+    const loading = document.getElementById('response-time-loading');
+    const chart = document.getElementById('response-time-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/response-time?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderResponseTimeChart(data.data);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading response time chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderResponseTimeChart(data) {
+    const ctx = document.getElementById('response-time-chart').getContext('2d');
+    
+    if (window.responseTimeChart) {
+        window.responseTimeChart.destroy();
+    }
+    
+    window.responseTimeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Average Response Time (ms)',
+                data: data.avg_response_time,
+                backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                borderColor: '#007bff',
+                borderWidth: 1
+            }, {
+                label: 'Target Response Time (ms)',
+                data: data.target_response_time,
+                type: 'line',
+                borderColor: '#dc3545',
+                borderDash: [5, 5],
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'AI Response Time Performance'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'ms';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadModelPerformanceChart() {
+    const loading = document.getElementById('model-performance-loading');
+    const chart = document.getElementById('model-performance-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/model-performance?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderModelPerformanceChart(data.data);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading model performance chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderModelPerformanceChart(data) {
+    const ctx = document.getElementById('model-performance-chart').getContext('2d');
+    
+    if (window.modelPerformanceChart) {
+        window.modelPerformanceChart.destroy();
+    }
+    
+    window.modelPerformanceChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: data.metrics,
+            datasets: [{
+                label: 'Current Performance',
+                data: data.current_scores,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                pointBackgroundColor: '#007bff'
+            }, {
+                label: 'Target Performance',
+                data: data.target_scores,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                pointBackgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'AI Model Performance Metrics'
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadAIUsageStats() {
+    const loading = document.getElementById('ai-usage-loading');
+    const stats = document.getElementById('ai-usage-stats');
+    
+    loading.style.display = 'block';
+    stats.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/ai-usage?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            updateAIUsageStats(data.data);
+            loading.style.display = 'none';
+            stats.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading AI usage stats:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load stats';
+    }
+}
+
+function updateAIUsageStats(data) {
+    document.getElementById('total-ai-interactions').textContent = data.total_interactions || '--';
+    document.getElementById('successful-responses').textContent = data.successful_responses || '--';
+    document.getElementById('avg-processing-time').textContent = (data.avg_processing_time || '--') + 'ms';
+    document.getElementById('cost-per-interaction').textContent = '$' + (data.cost_per_interaction || '0.00');
+}
+
+async function loadThreatDetectionChart() {
+    const loading = document.getElementById('threat-detection-loading');
+    const chart = document.getElementById('threat-detection-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/threat-detection?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderThreatDetectionChart(data.data);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading threat detection chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderThreatDetectionChart(data) {
+    const ctx = document.getElementById('threat-detection-chart').getContext('2d');
+    
+    if (window.threatDetectionChart) {
+        window.threatDetectionChart.destroy();
+    }
+    
+    window.threatDetectionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Threats Detected',
+                data: data.threats_detected,
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Threats Blocked',
+                data: data.threats_blocked,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Threat Detection & Blocking'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadDailyUsageChart() {
+    const loading = document.getElementById('daily-usage-loading');
+    const chart = document.getElementById('daily-usage-chart');
+    
+    loading.style.display = 'block';
+    chart.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/analytics/daily-usage?start_date=${document.getElementById('analytics-start-date').value}&end_date=${document.getElementById('analytics-end-date').value}`);
+        const data = await response.json();
+        
+        if (data.ok) {
+            renderDailyUsageChart(data.data);
+            loading.style.display = 'none';
+            chart.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading daily usage chart:', error);
+        loading.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Failed to load chart';
+    }
+}
+
+function renderDailyUsageChart(data) {
+    const ctx = document.getElementById('daily-usage-chart').getContext('2d');
+    
+    if (window.dailyUsageChart) {
+        window.dailyUsageChart.destroy();
+    }
+    
+    window.dailyUsageChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+            datasets: [{
+                label: 'Active Users',
+                data: data.hourly_usage,
+                backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                borderColor: '#007bff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Daily Usage Pattern (24 Hours)'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize tooltips and other UI enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltips to metric cards
+    const metricCards = document.querySelectorAll('.metric-card');
+    metricCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            const tooltip = this.querySelector('.metric-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'block';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            const tooltip = this.querySelector('.metric-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        });
+    });
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'r':
+                    e.preventDefault();
+                    refreshAnalytics();
+                    break;
+                case 'e':
+                    e.preventDefault();
+                    exportAnalytics();
+                    break;
+                case 's':
+                    e.preventDefault();
+                    shareAnalytics();
+                    break;
+            }
+        }
+    });
+});
+
+// Auto-refresh functionality
+let autoRefreshInterval;
+
+function toggleAutoRefresh() {
+    const button = document.querySelector('.auto-refresh-btn');
+    
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        button.innerHTML = '<i class="fas fa-play"></i> Auto Refresh';
+        button.classList.remove('active');
+        showNotification('Auto-refresh disabled', 'info');
+    } else {
+        autoRefreshInterval = setInterval(() => {
+            refreshAnalytics();
+        }, 30000); // Refresh every 30 seconds
+        
+        button.innerHTML = '<i class="fas fa-pause"></i> Auto Refresh';
+        button.classList.add('active');
+        showNotification('Auto-refresh enabled (30s interval)', 'success');
+    }
+}
+
+// Real-time updates using WebSocket (if available)
+function initializeRealTimeUpdates() {
+    if (typeof WebSocket !== 'undefined') {
+        const ws = new WebSocket(`ws://${window.location.host}/ws/analytics`);
+        
+        ws.onopen = function() {
+            console.log('Real-time analytics connection established');
+        };
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            handleRealTimeUpdate(data);
+        };
+        
+        ws.onclose = function() {
+            console.log('Real-time analytics connection closed');
+            // Attempt to reconnect after 5 seconds
+            setTimeout(initializeRealTimeUpdates, 5000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+    }
+}
+
+function handleRealTimeUpdate(data) {
+    switch(data.type) {
+        case 'metric_update':
+            updateMetricCard(data.metric, data.value);
+            break;
+        case 'new_call':
+            incrementMetric('total-calls');
+            break;
+        case 'new_message':
+            incrementMetric('total-messages');
+            break;
+        case 'spam_detected':
+            incrementMetric('spam-blocked');
+            break;
+        case 'ai_interaction':
+            incrementMetric('ai-interactions');
+            break;
+    }
+}
+
+function updateMetricCard(metricId, value) {
+    const element = document.getElementById(metricId);
+    if (element) {
+        element.textContent = value;
+        element.parentElement.classList.add('updated');
+        setTimeout(() => {
+            element.parentElement.classList.remove('updated');
+        }, 1000);
+    }
+}
+
+function incrementMetric(metricId) {
+    const element = document.getElementById(metricId);
+    if (element) {
+        const currentValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+        element.textContent = (currentValue + 1).toLocaleString();
+        element.parentElement.classList.add('updated');
+        setTimeout(() => {
+            element.parentElement.classList.remove('updated');
+        }, 1000);
+    }
+}
+
+// Performance optimization
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Debounced resize handler for responsive charts
+const debouncedResize = debounce(() => {
+    Object.values(window).forEach(chart => {
+        if (chart && typeof chart.resize === 'function') {
+            chart.resize();
+        }
+    });
+}, 250);
+
+window.addEventListener('resize', debouncedResize);
+
+// Error handling and retry logic
+function retryRequest(url, options = {}, maxRetries = 3) {
+    return new Promise((resolve, reject) => {
+        const attempt = (retryCount) => {
+            fetch(url, options)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(resolve)
+                .catch(error => {
+                    if (retryCount < maxRetries) {
+                        console.warn(`Request failed, retrying... (${retryCount + 1}/${maxRetries})`);
+                        setTimeout(() => attempt(retryCount + 1), 1000 * Math.pow(2, retryCount));
+                    } else {
+                        reject(error);
+                    }
+                });
+        };
+        attempt(0);
+    });
+}
+
+// Cleanup function
+function cleanup() {
+    // Clear intervals
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    // Destroy charts
+    Object.values(window).forEach(chart => {
+        if (chart && typeof chart.destroy === 'function') {
+            chart.destroy();
+        }
+    });
+    
+    // Close WebSocket connections
+    if (window.analyticsWebSocket) {
+        window.analyticsWebSocket.close();
+    }
+}
+
+// Initialize everything when page loads
+window.addEventListener('load', () => {
+    initializeRealTimeUpdates();
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', cleanup);
+
+// Additional utility functions for data formatting
+function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
+}
+
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function formatPercentage(value, total) {
+    if (total === 0) return '0%';
+    return ((value / total) * 100).toFixed(1) + '%';
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
+}
+
+// Export all functions for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        initializeAnalytics,
+        loadAnalyticsData,
+        exportAnalytics,
+        scheduleReport,
+        shareAnalytics,
+        refreshAnalytics,
+        toggleAutoRefresh,
+        formatDuration,
+        formatBytes,
+        formatPercentage,
+        formatCurrency
+    };
+}
+</script>
+
+<style>
+/* Additional CSS for analytics enhancements */
+.metric-card.updated {
+    animation: pulse 1s ease-in-out;
+    border-color: #28a745;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    color: white;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+.notification button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.heatmap-container {
+    display: grid;
+    gap: 1px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.heatmap-header {
+    display: grid;
+    grid-template-columns: 60px repeat(24, 1fr);
+    gap: 1px;
+}
+
+.heatmap-row {
+    display: grid;
+    grid-template-columns: 60px repeat(24, 1fr);
+    gap: 1px;
+}
+
+.heatmap-corner,
+.heatmap-hour,
+.heatmap-day,
+.heatmap-cell {
+    padding: 4px;
+    text-align: center;
+    font-size: 12px;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.heatmap-hour,
+.heatmap-day {
+    font-weight: bold;
+    background-color: #e9ecef;
+}
+
+.heatmap-cell {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.contact-item:hover {
+    background-color: #f8f9fa;
+}
+
+.contact-rank {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.contact-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.contact-trend {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.contact-trend.up {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.contact-trend.down {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.contact-trend.stable {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.anomaly-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    border-left: 4px solid #007bff;
+    background-color: #f8f9fa;
+    margin-bottom: 8px;
+    border-radius: 0 4px 4px 0;
+}
+
+.anomaly-severity {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: white;
+}
+
+.anomaly-severity.high {
+    background-color: #dc3545;
+}
+
+.anomaly-severity.medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+.anomaly-severity.low {
+    background-color: #28a745;
+}
+
+.anomaly-content {
+    flex: 1;
+}
+
+.anomaly-content h5 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.anomaly-content p {
+    margin: 0 0 4px 0;
+    font-size: 13px;
+    color: #495057;
+}
+
+.anomaly-content small {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.no-anomalies {
+    text-align: center;
+    padding: 20px;
+    color: #28a745;
+    font-size: 16px;
+}
+
+.no-anomalies i {
+    margin-right: 8px;
+}
+
+.auto-refresh-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auto-refresh-btn:hover {
+    background-color: #5a6268;
+}
+
+.auto-refresh-btn.active {
+    background-color: #28a745;
+}
+
+.auto-refresh-btn.active:hover {
+    background-color: #218838;
+}
+
+@media (max-width: 768px) {
+    .analytics-container {
+        padding: 10px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .heatmap-container {
+        overflow-x: auto;
+    }
+    
+    .contact-stats {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .notification {
+        right: 10px;
+        left: 10px;
+        min-width: auto;
+    }
+}
+</style>
+{% endblock %}

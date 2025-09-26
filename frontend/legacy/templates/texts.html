@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Text Messages - Quell AI{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px,4vw,48px); display:grid; gap:32px;">
+        <header class="hero" style="margin-bottom:0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Text Messages</h1>
+                <p class="subheadline">Scan real-time conversations, AI auto-replies, and spam intercepts in a single glass workspace.</p>
+            </div>
+        </header>
+    </div>
+</section>
+<section class="section-padding" style="padding-top:0;">
+    <div class="glass-panel" style="padding: clamp(24px,4vw,40px); display:grid; gap:32px;">
+        <div class="glass-panel" style="padding:18px 22px; box-shadow:none; display:flex; flex-wrap:wrap; gap:18px; align-items:center;">
+            <div style="flex:1 1 220px;">
+                <label class="label" for="message-search">Search</label>
+                <div style="position:relative;">
+                    <input type="text" id="message-search" placeholder="Search messages..." class="input-control">
+                    <i class="fas fa-search" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgba(233,244,255,0.4);"></i>
+                </div>
+            </div>
+            <div style="flex:1 1 200px;">
+                <label class="label" for="message-filter">Filter</label>
+                <select id="message-filter" class="select-control">
+                    <option value="all">All Messages</option>
+                    <option value="unread">Unread</option>
+                    <option value="spam">Spam</option>
+                    <option value="ai-handled">AI Handled</option>
+                    <option value="important">Important</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+            <div style="flex:1 1 260px; display:grid; gap:10px;">
+                <label class="label">Date Range</label>
+                <div style="display:flex; gap:12px;">
+                    <input type="date" id="date-from" class="input-control" style="flex:1;">
+                    <input type="date" id="date-to" class="input-control" style="flex:1;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="button-primary" onclick="composeMessage()"><i class="fas fa-plus"></i>&nbsp;New Message</button>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-envelope"></i></div>
+                    <div class="activity-meta">
+                        <h3>Total Messages</h3>
+                        <span class="activity-body"><strong id="total-messages">--</strong></span>
+                        <span class="activity-time">Change: <span id="total-messages-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-envelope-open"></i></div>
+                    <div class="activity-meta">
+                        <h3>Unread Messages</h3>
+                        <span class="activity-body"><strong id="unread-messages">--</strong></span>
+                        <span class="activity-time">Change: <span id="unread-messages-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="activity-meta">
+                        <h3>Spam Blocked</h3>
+                        <span class="activity-body"><strong id="spam-messages">--</strong></span>
+                        <span class="activity-time">Change: <span id="spam-messages-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-robot"></i></div>
+                    <div class="activity-meta">
+                        <h3>AI Handled</h3>
+                        <span class="activity-body"><strong id="ai-handled-messages">--</strong></span>
+                        <span class="activity-time">Change: <span id="ai-handled-messages-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-comments"></i></div>
+                    <div class="activity-meta">
+                        <h3>Active Conversations</h3>
+                        <span class="activity-body"><strong id="active-conversations">--</strong></span>
+                        <span class="activity-time">Change: <span id="active-conversations-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-reply"></i></div>
+                    <div class="activity-meta">
+                        <h3>Response Rate</h3>
+                        <span class="activity-body"><strong id="response-rate">--</strong></span>
+                        <span class="activity-time">Change: <span id="response-rate-change">--</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="padding:24px; box-shadow:none;">
+            <div class="texts-main" style="display:grid; gap:24px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                <div class="glass-tile" style="margin:0;">
+                    <div class="activity-card-header" style="align-items:center;">
+                        <div class="activity-meta">
+                            <h3 style="margin-bottom:0;">Conversations</h3>
+                            <span class="activity-time">Live threads with AI annotations</span>
+                        </div>
+                        <div class="activity-actions" style="margin:0;">
+                            <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="markAllAsRead()"><i class="fas fa-check-double"></i></button>
+                            <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="archiveSelected()" disabled id="archive-btn"><i class="fas fa-archive"></i></button>
+                        </div>
+                    </div>
+                    <div class="conversations-list" id="conversations-list" style="max-height:480px; overflow-y:auto; margin-top:18px;">
+                        <div class="loading-spinner" id="conversations-loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading conversations...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-tile" style="margin:0;">
+                    <div class="activity-card-header" id="thread-header" style="display:none; align-items:center;">
+                        <div class="activity-meta">
+                            <h3 id="contact-name">Select a conversation</h3>
+                            <span id="contact-phone" class="activity-time"></span>
+                            <div class="activity-actions" style="margin-top:12px;">
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="toggleContactInfo()"><i class="fas fa-info-circle"></i></button>
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="searchInConversation()"><i class="fas fa-search"></i></button>
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="archiveConversation()"><i class="fas fa-archive"></i></button>
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none; padding:10px 14px;" onclick="blockContact()"><i class="fas fa-ban"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-thread" id="message-thread" style="margin-top:18px; max-height:420px; overflow-y:auto;">
+                        <div class="no-conversation-selected">
+                            <div class="empty-state">
+                                <i class="fas fa-comments"></i>
+                                <h3>Select a conversation</h3>
+                                <p>Choose a conversation from the list to view messages</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="message-input-container" id="message-input-container" style="display:none; margin-top:18px;">
+                        <div class="ai-suggestions" id="ai-suggestions" style="display:none;">
+                            <div class="suggestions-header">
+                                <i class="fas fa-robot"></i>
+                                <span>AI Suggestions</span>
+                                <button onclick="dismissSuggestions()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="suggestions-list" id="suggestions-list"></div>
+                        </div>
+                        <div class="message-input-area" style="display:flex; gap:12px; align-items:center;">
+                            <div class="input-actions" style="display:flex; gap:8px;">
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;" onclick="attachFile()" title="Attach file"><i class="fas fa-paperclip"></i></button>
+                                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;" onclick="insertEmoji()" title="Insert emoji"><i class="fas fa-smile"></i></button>
+                            </div>
+                            <textarea id="message-input" class="textarea-control" rows="2" placeholder="Type your reply..."></textarea>
+                            <button class="button-primary" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<script>
+// Add your JavaScript functions here
+function composeMessage() {
+    // Implementation for composing new message
+}
+
+function markAllAsRead() {
+    // Implementation for marking all as read
+}
+
+function archiveSelected() {
+    // Implementation for archiving selected conversations
+}
+
+function toggleContactInfo() {
+    // Implementation for toggling contact info panel
+}
+
+function searchInConversation() {
+    // Implementation for searching in conversation
+}
+
+function archiveConversation() {
+    // Implementation for archiving conversation
+}
+
+function blockContact() {
+    // Implementation for blocking contact
+}
+
+function toggleThreadMenu() {
+    // Implementation for toggling thread menu
+}
+
+function exportConversation() {
+    // Implementation for exporting conversation
+}
+
+function deleteConversation() {
+    // Implementation for deleting conversation
+}
+
+function reportSpam() {
+    // Implementation for reporting spam
+}
+
+function whitelistContact() {
+    // Implementation for whitelisting contact
+}
+
+function getAIAssistance() {
+    // Implementation for getting AI assistance
+}
+
+function dismissSuggestions() {
+    // Implementation for dismissing suggestions
+}
+
+function attachFile() {
+    // Implementation for attaching file
+}
+
+function insertEmoji() {
+    // Implementation for inserting emoji
+}
+
+function useTemplate() {
+    // Implementation for using template
+}
+
+function sendMessage() {
+    // Implementation for sending message
+}
+
+function callContact() {
+    // Implementation for calling contact
+}
+
+function editContact() {
+    // Implementation for editing contact
+}
+
+function viewContactDetails() {
+    // Implementation for viewing contact details
+}
+</script>

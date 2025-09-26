@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding" style="min-height: calc(100vh - 200px); display:grid; place-items:center;">
+    <div class="glass-panel" style="padding: clamp(32px,4vw,48px); max-width: 1100px; width:100%;">
+        <div class="hero" style="gap:48px; align-items: stretch;">
+            <div class="glass-panel" style="padding:32px; box-shadow:none; background:rgba(10,18,36,0.55); overflow:auto; max-height:70vh;">
+                <div class="auth-header">
+                    <h2>Create your Quell-Ai account</h2>
+                    <p>Configure your communicator copilot in minutes.</p>
+                </div>
+                <form id="register-form" class="auth-form" style="background:none; border:none; box-shadow:none; padding:0;">
+                    <div class="form-grid" style="display:grid; gap:18px;">
+                        <div class="form-group">
+                            <label for="name">Full Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+15551234567" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="button-primary" style="width:100%; margin-top:16px;">Sign Up</button>
+                </form>
+                <p class="auth-link" style="margin-top:18px; color:var(--color-text-secondary);">
+                    Already have an account?
+                    <a href="{{ url_for('login_page') }}" style="color:var(--color-accent-a);">Log in</a>
+                </p>
+            </div>
+            <div>
+                <div id="phone-outer"></div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+const registerForm = document.getElementById('register-form');
+if (registerForm) {
+  registerForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('name').value,
+      email: document.getElementById('email').value,
+      phone_number: document.getElementById('phone').value,
+      password: document.getElementById('password').value,
+      confirm_password: document.getElementById('confirm_password').value
+    };
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await response.json();
+      if (result.success) {
+        window.location.href = '/login';
+      } else {
+        alert(result.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      alert('An error occurred during registration. Please try again.');
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px,4vw,48px); display:grid; gap:32px;">
+        <header class="hero" style="margin-bottom:0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Settings & Preferences</h1>
+                <p class="subheadline">Fine-tune the communicator copilot—AI mode, voice privacy, spam defenses, and notifications.</p>
+            </div>
+        </header>
+    </div>
+</section>
+<section class="section-padding" style="padding-top:0;">
+    <div class="glass-panel" style="padding: clamp(24px,4vw,40px); display:grid; gap:32px;">
+        <div class="features-grid">
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-robot"></i></div><div class="activity-meta"><h3>AI Mode Configuration</h3><span class="activity-time">Control runtime and disclosures</span></div></div>
+                <div class="activity-body">
+                    <label class="label" for="ai-mode-toggle">AI Mode Status</label>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <input type="checkbox" id="ai-mode-toggle" class="toggle-switch">
+                        <span class="activity-time">Currently <span id="ai-status">Disabled</span></span>
+                    </div>
+                    <label class="label" for="ai-duration">Auto-disable Duration (minutes)</label>
+                    <select id="ai-duration" class="select-control">
+                        <option value="">No auto-disable</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="240">4 hours</option>
+                        <option value="480">8 hours (max)</option>
+                    </select>
+                    <div class="chip" style="margin-top:12px;">AI Disclosure Always On</div>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-microphone"></i></div><div class="activity-meta"><h3>Voice & Audio</h3><span class="activity-time">Manage voice models</span></div></div>
+                <div class="activity-body">
+                    <label class="label"><input type="checkbox" id="voice-cloning-enabled"> Enable Voice Cloning</label>
+                    <label class="label"><input type="checkbox" id="voice-disclosure" checked> Voice Cloning Disclosure</label>
+                    <label class="label" for="voice-model-select">Active Voice Model</label>
+                    <select id="voice-model-select" class="select-control"><option value="">No voice model selected</option></select>
+                    <a href="{{ url_for('voice_training_page') }}" class="button-primary" style="margin-top:12px; background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;">Train New Model</a>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-phone"></i></div><div class="activity-meta"><h3>Call Management</h3><span class="activity-time">Recording & handling</span></div></div>
+                <div class="activity-body">
+                    <label class="label"><input type="checkbox" id="call-recording"> Enable Call Recording</label>
+                    <label class="label"><input type="checkbox" id="recording-consent" checked> Require Recording Consent</label>
+                    <label class="label" for="call-handling">Default Call Handling</label>
+                    <select id="call-handling" class="select-control">
+                        <option value="screen">Screen unknown calls</option>
+                        <option value="answer">Answer all calls</option>
+                        <option value="whitelist">Whitelist only</option>
+                    </select>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-shield-alt"></i></div><div class="activity-meta"><h3>Spam Protection</h3><span class="activity-time">Sensitivity & actions</span></div></div>
+                <div class="activity-body">
+                    <label class="label"><input type="checkbox" id="spam-detection" checked> Enable Spam Detection</label>
+                    <label class="label" for="spam-sensitivity">Spam Sensitivity</label>
+                    <select id="spam-sensitivity" class="select-control">
+                        <option value="low">Low - Catch obvious spam</option>
+                        <option value="medium" selected>Medium - Balanced protection</option>
+                        <option value="high">High - Aggressive filtering</option>
+                    </select>
+                    <label class="label" for="spam-action">Spam Action</label>
+                    <select id="spam-action" class="select-control">
+                        <option value="block">Block completely</option>
+                        <option value="screen">Screen with AI</option>
+                        <option value="voicemail">Send to voicemail</option>
+                    </select>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-lock"></i></div><div class="activity-meta"><h3>Privacy & Data</h3><span class="activity-time">Retention & analytics</span></div></div>
+                <div class="activity-body">
+                    <label class="label" for="feed-retention">Feed Item Retention</label>
+                    <select id="feed-retention" class="select-control">
+                        <option value="3">3 days</option>
+                        <option value="7" selected>7 days (default)</option>
+                        <option value="14">14 days</option>
+                    </select>
+                    <label class="label" for="transcript-retention">Transcript Retention</label>
+                    <select id="transcript-retention" class="select-control">
+                        <option value="30">30 days</option>
+                        <option value="90" selected>90 days</option>
+                        <option value="365">1 year</option>
+                        <option value="0">Keep forever</option>
+                    </select>
+                    <label class="label"><input type="checkbox" id="analytics-opt-in" checked> Enable Usage Analytics</label>
+                </div>
+            </div>
+            <div class="glass-tile">
+                <div class="activity-card-header"><div class="activity-icon"><i class="fas fa-bell"></i></div><div class="activity-meta"><h3>Notifications</h3><span class="activity-time">Alerts & summaries</span></div></div>
+                <div class="activity-body">
+                    <label class="label"><input type="checkbox" id="email-notifications" checked> Email Notifications</label>
+                    <label class="label"><input type="checkbox" id="weekly-reports" checked> Weekly Summary Reports</label>
+                    <label class="label"><input type="checkbox" id="spam-alerts"> Spam Detection Alerts</label>
+                </div>
+            </div>
+        </div>
+        <div class="activity-actions" style="justify-content:flex-end;">
+            <button id="save-settings" class="button-primary"><i class="fas fa-save"></i>&nbsp;Save Settings</button>
+            <button id="reset-settings" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;"><i class="fas fa-undo"></i>&nbsp;Reset to Defaults</button>
+            <button id="export-data" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;"><i class="fas fa-download"></i>&nbsp;Export My Data</button>
+        </div>
+    </div>
+</section>
+{% endblock %}

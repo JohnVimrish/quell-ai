@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding" style="min-height:calc(100vh - 200px); display:grid; place-items:center;">
+    <div class="glass-panel" style="padding: clamp(32px,5vw,64px); max-width: 640px; text-align:center; display:grid; gap:24px;">
+        <h1 class="headline" style="font-size: clamp(2.4rem,4vw,3rem);">404 – Page Not Found</h1>
+        <p class="subheadline">The page you're looking for drifted out of orbit. Let's navigate you back to calmer communications.</p>
+        <div class="activity-actions" style="justify-content:center;">
+            <a href="{{ url_for('dashboard') }}" class="button-primary">Return to Dashboard</a>
+            <a href="/" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;">About Quell-Ai</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

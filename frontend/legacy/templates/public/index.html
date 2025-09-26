@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Quell-Ai | Calm Your Communications{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px, 5vw, 72px); display:grid; gap:48px;">
+        <div class="hero">
+            <div>
+                <h1 class="headline">Your communicator copilot—always on, always discreet.</h1>
+                <p class="subheadline">Quell-Ai screens calls, replies to texts, and captures every detail so you can stay focused without missing what matters.</p>
+                <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                    <a class="button-primary" href="{{ url_for('register_page') }}">Start for Free</a>
+                    <a class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;" href="{{ url_for('login_page') }}">Sign In</a>
+                </div>
+            </div>
+            <div>
+                <div id="phone-outer"></div>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Smart Call Handling</h3>
+                <p>AI answers politely, verifies callers, and escalates only when needed. Every conversation is summarized for your review.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Instruction Feed</h3>
+                <p>Leave quick briefs for the AI that auto-expire after completion so sensitive guidance never lingers.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Spam Defense</h3>
+                <p>Real-time reputation checks and keyword filters keep noisy robocalls and texts away from your day.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px,5vw,64px); display:flex; flex-direction:column; gap:32px;">
+        <h2>Everything you need to orchestrate calm communication</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Live Dashboards</h3>
+                <p>Track call analytics, AI performance, and engagement in vivid, real-time views.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Transcripts & Mind Maps</h3>
+                <p>Skim every call or text via searchable transcripts and auto-generated mind map summaries.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Weekly Reports</h3>
+                <p>Receive curated highlights showing time saved, top contacts, and emerging trends.</p>
+            </div>
+            <div class="feature-card">
+                <h3>Voice Training</h3>
+                <p>Let the assistant speak in your voice when you opt in—always with transparent disclosure.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

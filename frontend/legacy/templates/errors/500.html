@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding" style="min-height:calc(100vh - 200px); display:grid; place-items:center;">
+    <div class="glass-panel" style="padding: clamp(32px,5vw,64px); max-width: 640px; text-align:center; display:grid; gap:24px;">
+        <h1 class="headline" style="font-size: clamp(2.4rem,4vw,3rem);">500 – Internal Server Error</h1>
+        <p class="subheadline">Something went wrong on our end. The team has been notified—please try again shortly.</p>
+        <div class="activity-actions" style="justify-content:center;">
+            <a href="{{ url_for('dashboard') }}" class="button-primary">Return to Dashboard</a>
+            <a href="{{ url_for('reports_page') }}" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;">View Status</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
