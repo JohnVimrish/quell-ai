@@ -12,7 +12,11 @@ from api.db.connection import DatabaseManager
 from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
-from backend.app.asset_loader import asset_url, asset_css, reset_manifest_cache
+
+try:
+    from backend.app.asset_loader import asset_url, asset_css, reset_manifest_cache
+except ModuleNotFoundError:  # pragma: no cover - fallback for local test runs
+    from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
     copilot_controller,
@@ -22,6 +26,7 @@ from .controllers import (
     report_controller,
     webhooks_controller,
     auth_controller,
+    status_controller,
 )
 
 
@@ -37,6 +42,8 @@ def create_app(config_override=None):
         static_folder=static_dir,
         static_url_path="/static",
     )
+
+    app.config["STARTED_AT"] = datetime.utcnow()
 
     # Make Vite asset helpers available to Jinja templates
     app.jinja_env.globals.update(asset_url=asset_url, asset_css=asset_css)
@@ -184,6 +191,7 @@ def create_app(config_override=None):
     app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
     app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
     app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
+    app.register_blueprint(status_controller.bp, url_prefix="/api/status")
 
     # Simple API status endpoint
     @app.route("/api/status")
@@ -193,5 +201,14 @@ def create_app(config_override=None):
             "service": "communicator-copilot-api",
             "authenticated": bool(session.get("user_id")),
         }
+
+    @app.route("/healthz")
+    def healthz():
+        """Lightweight health probe for container platforms."""
+        from api.controllers.status_controller import build_health_payload
+
+        payload = build_health_payload()
+        payload["status"] = payload.get("status", "ok") or "ok"
+        return jsonify(payload)
 
     return app

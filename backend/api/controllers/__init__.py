@@ -6,6 +6,7 @@ from .contacts_controller import bp as contacts_bp
 from .calls_controller import bp as calls_bp
 from .texts_controller import bp as texts_bp
 from .report_controller import bp as report_bp
+from .status_controller import bp as status_bp
 from .webhooks_controller import bp as webhooks_bp
 from .auth_controller import bp as auth_bp
 
@@ -17,5 +18,6 @@ __all__ = [
     'texts_bp',
     'report_bp',
     'webhooks_bp',
-    'auth_bp'
+    'auth_bp',
+    'status_bp'
 ]
