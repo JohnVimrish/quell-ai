@@ -12,7 +12,10 @@ const routes = [
 export default function NavBar() {
   return (
     <header className="navbar" data-ui="navbar">
-      <div className="brand">Quell-AI</div>
+      <div className="brand">
+        <span>Quell</span>
+        <span className="brand-dot" />
+      </div>
       <nav className="nav-links">
         {routes.map(({ to, label }) => (
           <NavLink key={to} to={to} className={({ isActive }) => (isActive ? "active" : undefined)}>
@@ -21,11 +24,11 @@ export default function NavBar() {
         ))}
       </nav>
       <div className="auth-links">
-        <NavLink className="button-primary" to="/login">
-          Login
+        <NavLink className="button-outline" to="/login">
+          Log in
         </NavLink>
-        <NavLink className="button-primary button-secondary" to="/register">
-          Sign Up
+        <NavLink className="button-primary" to="/register">
+          Start building
         </NavLink>
       </div>
     </header>

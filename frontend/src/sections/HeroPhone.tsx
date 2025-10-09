@@ -1,32 +1,26 @@
 import { useEffect, useRef } from "react";
 
 const PHONE_TEMPLATE = `
-  <div class="phone-outer" role="presentation">
-    <div class="phone-frame">
-      <div class="phone-glare"></div>
-      <div class="phone-screen">
-        <div class="phone-notch">
-          <div class="phone-speaker"></div>
-          <div class="phone-camera"></div>
-        </div>
-        <div class="phone-content">
-          <header class="phone-status">
-            <span class="phone-time"></span>
-            <span class="phone-signal">AI MODE</span>
-          </header>
-          <main class="phone-body">
-            <h3>Quell-AI actively shields your time.</h3>
-            <ul>
-              <li>Screens unknown callers politely.</li>
-              <li>Summarizes conversations instantly.</li>
-              <li>Respects important contact boundaries.</li>
-            </ul>
-          </main>
-          <footer class="phone-action">
-            <button class="phone-button">Enable Copilot</button>
-          </footer>
-        </div>
-      </div>
+  <div class="hero-phone-frame" role="presentation">
+    <div class="hero-phone-display">
+      <header class="hero-phone-status">
+        <span class="phone-time"></span>
+      </header>
+      <main class="hero-phone-content">
+        <section class="hero-phone-card">
+          <h4 style="margin: 0 0 12px; font-size: 1.1rem; font-weight: 700; color: var(--color-grey-900);">Inbox Summary</h4>
+          <ul style="margin: 0; padding: 0 0 0 20px; color: var(--color-grey-700); font-size: 0.95rem; line-height: 1.8;">
+            <li>2 VIP calls connected</li>
+            <li>5 non-urgent calls deferred</li>
+            <li>AI generated 3 quick summaries</li>
+          </ul>
+        </section>
+        <section class="hero-phone-card">
+          <h4 style="margin: 0 0 12px; font-size: 1.1rem; font-weight: 700; color: var(--color-grey-900);">Next Actions</h4>
+          <p style="margin: 0 0 16px; color: var(--color-grey-700); font-size: 0.95rem; line-height: 1.6;">Review meeting notes delivered to your workspace with one tap.</p>
+          <button class="button-primary" style="padding: 10px 20px; font-size: 0.9rem; width: 100%;">Open Copilot</button>
+        </section>
+      </main>
     </div>
   </div>
 `;
@@ -39,28 +33,6 @@ function updateTime(root: HTMLElement | null) {
   timeEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function initParallax(root: HTMLElement | null, reducedMotion: boolean) {
-  if (!root || reducedMotion) return;
-  const handler = (event: MouseEvent) => {
-    const rect = root.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    const rotY = (x - 0.5) * 16;
-    const rotX = -(y - 0.5) * 16;
-    root.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-  };
-  const reset = () => {
-    root.style.transform = "rotateX(8deg) rotateY(-8deg)";
-  };
-  root.addEventListener("mousemove", handler);
-  root.addEventListener("mouseleave", reset);
-  reset();
-  return () => {
-    root.removeEventListener("mousemove", handler);
-    root.removeEventListener("mouseleave", reset);
-  };
-}
-
 export default function HeroPhone() {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,11 +43,7 @@ export default function HeroPhone() {
     const phone = mount.firstElementChild as HTMLElement | null;
     updateTime(phone);
     const interval = window.setInterval(() => updateTime(phone), 30000);
-    const cleanParallax = initParallax(phone, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    return () => {
-      window.clearInterval(interval);
-      if (cleanParallax) cleanParallax();
-    };
+    return () => window.clearInterval(interval);
   }, []);
 
   return <div ref={containerRef} className="phone-mount" />;
