@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+
+{% block title %}Calls - Quell AI{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px, 4vw, 48px); display:grid; gap:32px;">
+        <header class="hero" style="margin-bottom:0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Call Management</h1>
+                <p class="subheadline">Review every conversation Quell-Ai handles, from spam blocks to VIP escalations.</p>
+            </div>
+        </header>
+    </div>
+</section>
+<div class="glass-panel" style="margin: 0 clamp(24px,6vw,120px); padding: clamp(24px,4vw,40px);">
+<div class="calls-container">
+    <div class="calls-header" style="display:flex; flex-direction:column; gap:24px;">
+        <div>
+            <h2 style="margin:0;">Live Call Overview</h2>
+            <p style="color:var(--color-text-secondary);">Filter by type, date, or spam status to focus on what matters.</p>
+        </div>
+        <div class="glass-panel" style="padding:18px 22px; box-shadow:none; display:flex; flex-wrap:wrap; gap:18px; align-items:center;">
+            <div style="flex:1 1 220px;">
+                <label class="label" for="call-search">Search</label>
+                <div class="search-container" style="position:relative;">
+                    <input type="text" id="call-search" placeholder="Search calls..." class="input-control">
+                    <i class="fas fa-search" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgba(233,244,255,0.4);"></i>
+                </div>
+            </div>
+            <div style="flex:1 1 180px;">
+                <label class="label" for="call-filter">Filter</label>
+                <select id="call-filter" class="select-control">
+                    <option value="all">All Calls</option>
+                    <option value="incoming">Incoming</option>
+                    <option value="outgoing">Outgoing</option>
+                    <option value="missed">Missed</option>
+                    <option value="spam">Spam</option>
+                    <option value="ai-handled">AI Handled</option>
+                </select>
+            </div>
+            <div style="flex:1 1 240px; display:grid; gap:10px;">
+                <label class="label">Date Range</label>
+                <div style="display:flex; gap:12px;">
+                    <input type="date" id="start-date" class="input-control" style="flex:1;">
+                    <input type="date" id="end-date" class="input-control" style="flex:1;">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="button-primary" onclick="refreshCalls()"><i class="fas fa-sync-alt"></i>&nbsp;Refresh</button>
+                <button class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;" onclick="exportCalls()"><i class="fas fa-download"></i>&nbsp;Export</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="features-grid" style="margin-top:32px;">
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-phone-alt"></i></div>
+                <div class="activity-meta">
+                    <h3>Total Calls</h3>
+                    <span class="activity-body"><strong id="total-calls">--</strong></span>
+                    <span class="activity-time">Change: <span id="total-calls-change">--</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="activity-meta">
+                    <h3>Answered</h3>
+                    <span class="activity-body"><strong id="answered-calls">--</strong></span>
+                    <span class="activity-time">Change: <span id="answered-calls-change">--</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="activity-meta">
+                    <h3>Missed</h3>
+                    <span class="activity-body"><strong id="missed-calls">--</strong></span>
+                    <span class="activity-time">Change: <span id="missed-calls-change">--</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="activity-meta">
+                    <h3>Spam Blocked</h3>
+                    <span class="activity-body"><strong id="spam-blocked">--</strong></span>
+                    <span class="activity-time">Change: <span id="spam-blocked-change">--</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-robot"></i></div>
+                <div class="activity-meta">
+                    <h3>AI Handled</h3>
+                    <span class="activity-body"><strong id="ai-handled">--</strong></span>
+                    <span class="activity-time">Change: <span id="ai-handled-change">--</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="glass-tile">
+            <div class="activity-card-header">
+                <div class="activity-icon"><i class="fas fa-clock"></i></div>
+                <div class="activity-meta">
+                    <h3>Average Duration</h3>
+                    <span class="activity-body"><strong id="avg-duration">--</strong></span>
+                    <span class="activity-time">Change: <span id="avg-duration-change">--</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Copilot Status -->
+    <div class="copilot-status-card">
+        <div class="copilot-header">
+            <h3><i class="fas fa-robot"></i> AI Copilot Status</h3>
+            <div class="copilot-toggle">
+                <label class="switch">
+                    <input type="checkbox" id="copilot-enabled" onchange="toggleCopilot()">
+                    <span class="slider round"></span>
+                </label>
+                <span id="copilot-status-text">Disabled</span>
+            </div>
+        </div>
+        <div class="copilot-info" id="copilot-info" style="display: none;">
+            <div class="copilot-mode">
+                <label for="copilot-mode-select">Mode:</label>
+                <select id="copilot-mode-select" onchange="updateCopilotMode()">
+                    <option value="screening">Call Screening</option>
+                    <option value="assistant">Full Assistant</option>
+                    <option value="emergency">Emergency Only</option>
+                </select>
+            </div>
+            <div class="copilot-timer" id="copilot-timer" style="display: none;">
+                <span>Time remaining: <strong id="timer-display">--</strong></span>
+                <button class="btn btn-sm btn-secondary" onclick="extendCopilotTime()">
+                    <i class="fas fa-plus"></i> Extend
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call List -->
+    <div class="calls-list-container">
+        <div class="calls-list-header">
+            <h3>Recent Calls</h3>
+            <div class="list-controls">
+                <button class="btn btn-sm btn-outline" onclick="selectAllCalls()">
+                    <i class="fas fa-check-square"></i> Select All
+                </button>
+                <button class="btn btn-sm btn-outline" onclick="bulkDeleteCalls()" disabled id="bulk-delete-btn">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+                <button class="btn btn-sm btn-outline" onclick="exportCalls()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <div class="calls-list" id="calls-list">
+            <div class="loading-spinner" id="calls-loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading calls...
+            </div>
+        </div>
+
+        <div class="pagination" id="calls-pagination" style="display: none;">
+            <button class="btn btn-sm btn-outline" onclick="previousPage()" id="prev-page-btn" disabled>
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span class="page-info" id="page-info">Page 1 of 1</span>
+            <button class="btn btn-sm btn-outline" onclick="nextPage()" id="next-page-btn" disabled>
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Call Details Modal -->
+<div class="modal-overlay" id="call-details-modal" style="display: none;">
+    <div class="modal-content call-details-modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-phone"></i> Call Details</h3>
+            <button class="modal-close" onclick="closeCallDetails()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="call-details-content">
+            <!-- Call details will be loaded here -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCallDetails()">Close</button>
+            <button class="btn btn-primary" onclick="downloadTranscript()" id="download-transcript-btn" style="display: none;">
+                <i class="fas fa-download"></i> Download Transcript
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal-overlay" id="bulk-actions-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Bulk Actions</h3>
+            <button class="modal-close" onclick="closeBulkActions()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Select an action for <span id="selected-count">0</span> selected calls:</p>
+            <div class="bulk-action-buttons">
+                <button class="btn btn-outline" onclick="bulkMarkAsSpam()">
+                    <i class="fas fa-ban"></i> Mark as Spam
+                </button>
+                <button class="btn btn-outline" onclick="bulkMarkAsNotSpam()">
+                    <i class="fas fa-check"></i> Mark as Not Spam
+                </button>
+                <button class="btn btn-outline" onclick="bulkAddToWhitelist()">
+                    <i class="fas fa-user-plus"></i> Add to Whitelist
+                </button>
+                <button class="btn btn-danger" onclick="confirmBulkDelete()">
+                    <i class="fas fa-trash"></i> Delete Calls
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeBulkActions()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPage = 1;
+let totalPages = 1;
+let selectedCalls = new Set();
+let copilotTimer = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCalls();
+    setupEventListeners();
+    loadCallStats();
+    loadCalls();
+    checkCopilotStatus();
+});
+
+function initializeCalls() {
+    // Set default date range (last 30 days)
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+    document.getElementById('end-date').value = endDate.toISOString().split('T')[0];
+}
+
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('call-search').addEventListener('input', debounce(filterCalls, 300));
+    
+    // Filter change
+    document.getElementById('call-filter').addEventListener('change', filterCalls);
+    
+    // Date range change
+    document.getElementById('start-date').addEventListener('change', filterCalls);
+    document.getElementById('end-date').addEventListener('change', filterCalls);
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'f':
+                    e.preventDefault();
+                    document.getElementById('call-search').focus();
+                    break;
+                case 'r':
+                    e.preventDefault();
+                    refreshCalls();
+                    break;
+                case 'a':
+                    e.preventDefault();
+                    selectAllCalls();
+                    break;
+            }
+        }
+        
+        if (e.key === 'Escape') {
+            closeCallDetails();
+            closeBulkActions();
+        }
+    });
+}
+
+async function loadCallStats() {
+    try {
+        const params = new URLSearchParams({
+            start_date: document.getElementById('start-date').value,
+            end_date: document.getElementById('end-date').value
+        });
+        
+        const response = await fetch(`/api/calls/stats?${params}`);
+        const data = await response.json();
+        
+        document.getElementById('total-calls').textContent = data.total_calls;
+        document.getElementById('answered-calls').textContent = data.answered_calls;
+        document.getElementById('missed-calls').textContent = data.missed_calls;
+        document.getElementById('spam-blocked').textContent = data.spam_blocked;
+        document.getElementById('ai-handled').textContent = data.ai_handled;
+        document.getElementById('avg-duration').textContent = formatDuration(data.avg_duration);
+        
+        // Update stat changes (simplified for demo)
+        document.getElementById('total-calls-change').textContent = '+5%';
+        document.getElementById('answered-calls-change').textContent = '+2%';
+        document.getElementById('missed-calls-change').textContent = '-1%';
+        document.getElementById('spam-blocked-change').textContent = '+15%';
+        document.getElementById('ai-handled-change').textContent = '+8%';
+        document.getElementById('avg-duration-change').textContent = '+3s';
+    } catch (error) {
+        console.error('Error loading call stats:', error);
+        // Show error message
+        document.getElementById('total-calls').textContent = 'Error';
+    }
+}
+
+async function loadCalls(page = 1) {
+    try {
+        const params = new URLSearchParams({
+            page: page,
+            limit: 20,
+            start_date: document.getElementById('start-date').value,
+            end_date: document.getElementById('end-date').value,
+            search: document.getElementById('call-search').value,
+            filter: document.getElementById('call-filter').value
+        });
+        
+        const response = await fetch(`/api/calls?${params}`);
+        const data = await response.json();
+        
+        displayCalls(data.calls);
+        updatePagination(data.page, data.total_pages, data.total_calls);
+        
+        // Hide loading spinner
+        document.getElementById('calls-loading').style.display = 'none';
+    } catch (error) {
+        console.error('Error loading calls:', error);
+        document.getElementById('calls-loading').innerHTML = '<div class="error-message">Failed to load calls. Please try again.</div>';
+    }
+}
+
+function displayCalls(calls) {
+    const callsList = document.getElementById('calls-list');
+    callsList.innerHTML = '';
+    
+    if (calls.length === 0) {
+        callsList.innerHTML = '<div class="no-calls">No calls found matching your criteria.</div>';
+        return;
+    }
+    
+    calls.forEach(call => {
+        const callElement = createCallElement(call);
+        callsList.appendChild(callElement);
+    });
+}
+
+function createCallElement(call) {
+    const div = document.createElement('div');
+    div.className = 'call-item';
+    div.dataset.callId = call.id;
+    
+    const callTypeIcon = call.type === 'incoming' ? 'fa-phone-alt' : 
+                        call.type === 'outgoing' ? 'fa-phone-arrow-up' : 'fa-phone-slash';
+    
+    const statusClass = call.status === 'missed' ? 'missed' : 
+                       call.status === 'spam' ? 'spam' : 
+                       call.ai_handled ? 'ai-handled' : 'normal';
+    
+    div.innerHTML = `
+        <div class="call-checkbox">
+            <input type="checkbox" id="call-${call.id}" class="call-checkbox-input" value="${call.id}">
+            <label for="call-${call.id}"></label>
+        </div>
+        <div class="call-main">
+            <div class="call-header">
+                <div class="call-type">
+                    <i class="fas ${callTypeIcon}"></i>
+                    <span class="call-number">${call.number}</span>
+                </div>
+                <div class="call-time">${formatTime(call.timestamp)}</div>
+            </div>
+            <div class="call-details">
+                <div class="call-duration">${call.duration ? formatDuration(call.duration) : '--'}</div>
+                <div class="call-status ${statusClass}">
+                    ${call.status === 'missed' ? 'Missed' : 
+                      call.status === 'spam' ? 'Spam' : 
+                      call.ai_handled ? 'AI Handled' : 'Answered'}
+                </div>
+            </div>
+        </div>
+        <div class="call-actions">
+            <button class="btn btn-sm btn-outline" onclick="viewCallDetails('${call.id}')">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+    `;
+    
+    // Add event listener for checkbox
+    const checkbox = div.querySelector('.call-checkbox-input');
+    checkbox.addEventListener('change', function() {
+        toggleCallSelection(this.value, this.checked);
+    });
+    
+    return div;
+}
+
+function updatePagination(currentPage, totalPages, totalCalls) {
+    const pagination = document.getElementById('calls-pagination');
+    const pageInfo = document.getElementById('page-info');
+    const prevBtn = document.getElementById('prev-page-btn');
+    const nextBtn = document.getElementById('next-page-btn');
+    
+    if (totalPages <= 1) {
+        pagination.style.display = 'none';
+        return;
+    }
+    
+    pagination.style.display = 'flex';
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+    
+    document.getElementById('prev-page-btn').onclick = () => {
+        if (currentPage > 1) {
+            loadCalls(currentPage - 1);
+        }
+    };
+    
+    document.getElementById('next-page-btn').onclick = () => {
+        if (currentPage < totalPages) {
+            loadCalls(currentPage + 1);
+        }
+    };
+}
+
+function filterCalls() {
+    currentPage = 1;
+    loadCalls(1);
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function refreshCalls() {
+    loadCallStats();
+    loadCalls(1);
+}
+
+function viewCallDetails(callId) {
+    // In a real implementation, this would fetch call details from the API
+    // For now, we'll just show a mock modal
+    const modal = document.getElementById('call-details-modal');
+    const content = document.getElementById('call-details-content');
+    
+    content.innerHTML = `
+        <div class="call-detail-item">
+            <strong>Call ID:</strong> ${callId}
+        </div>
+        <div class="call-detail-item">
+            <strong>Number:</strong> ${getRandomNumber()}
+        </div>
+        <div class="call-detail-item">
+            <strong>Type:</strong> ${getRandomCallType()}
+        </div>
+        <div class="call-detail-item">
+            <strong>Status:</strong> ${getRandomCallStatus()}
+        </div>
+        <div class="call-detail-item">
+            <strong>Duration:</strong> ${getRandomDuration()}
+        </div>
+        <div class="call-detail-item">
+            <strong>Timestamp:</strong> ${new Date().toLocaleString()}
+        </div>
+        <div class="call-detail-item">
+            <strong>AI Handled:</strong> ${Math.random() > 0.5 ? 'Yes' : 'No'}
+        </div>
+        <div class="call-detail-item">
+            <strong>Transcript:</strong>
+            <div class="transcript-preview">
+                This is a sample transcript for the call. In a real implementation, this would contain the actual conversation.
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'block';
+}
+
+function getRandomNumber() {
+    return Math.floor(Math.random() * 9000000000) + 1000000000;
+}
+
+function getRandomCallType() {
+    const types = ['Incoming', 'Outgoing', 'Missed'];
+    return types[Math.floor(Math.random() * types.length)];
+}
+
+function getRandomCallStatus() {
+    const statuses = ['Answered', 'Missed', 'Spam', 'AI Handled'];
+    return statuses[Math.floor(Math.random() * statuses.length)];
+}
+
+function getRandomDuration() {
+    return `${Math.floor(Math.random() * 10)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
+}
+
+function closeCallDetails() {
+    document.getElementById('call-details-modal').style.display = 'none';
+}
+
+function selectAllCalls() {
+    const checkboxes = document.querySelectorAll('.call-checkbox-input');
+    const selectAll = document.querySelector('.call-select-all');
+    
+    checkboxes.forEach(checkbox => {
+        if (!checkbox.checked) {
+            checkbox.checked = true;
+            toggleCallSelection(checkbox.value, true);
+        }
+    });
+    
+    updateBulkActionsButton();
+}
+
+function toggleCallSelection(callId, isSelected) {
+    if (isSelected) {
+        selectedCalls.add(callId);
+    } else {
+        selectedCalls.delete(callId);
+    }
+    
+    updateBulkActionsButton();
+}
+
+function updateBulkActionsButton() {
+    const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+    bulkDeleteBtn.disabled = selectedCalls.size === 0;
+    document.getElementById('selected-count').textContent = selectedCalls.size;
+}
+
+function bulkDeleteCalls() {
+    if (selectedCalls.size === 0) return;
+    
+    document.getElementById('bulk-actions-modal').style.display = 'block';
+}
+
+function closeBulkActions() {
+    document.getElementById('bulk-actions-modal').style.display = 'none';
+}
+
+function confirmBulkDelete() {
+    if (selectedCalls.size === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedCalls.size} selected calls?`)) {
+        // In a real implementation, this would make an API call to delete the calls
+        console.log('Deleting calls:', Array.from(selectedCalls));
+        closeBulkActions();
+        selectedCalls.clear();
+        updateBulkActionsButton();
+        loadCalls(); // Reload to reflect changes
+    }
+}
+
+function bulkMarkAsSpam() {
+    if (selectedCalls.size === 0) return;
+    alert(`Marked ${selectedCalls.size} calls as spam`);
+    closeBulkActions();
+    selectedCalls.clear();
+    updateBulkActionsButton();
+}
+
+function bulkMarkAsNotSpam() {
+    if (selectedCalls.size === 0) return;
+    alert(`Marked ${selectedCalls.size} calls as not spam`);
+    closeBulkActions();
+    selectedCalls.clear();
+    updateBulkActionsButton();
+}
+
+function bulkAddToWhitelist() {
+    if (selectedCalls.size === 0) return;
+    alert(`Added ${selectedCalls.size} numbers to whitelist`);
+    closeBulkActions();
+    selectedCalls.clear();
+    updateBulkActionsButton();
+}
+
+function exportCalls() {
+    alert('Export functionality would be implemented here');
+}
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+function formatDuration(seconds) {
+    if (!seconds) return '--';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function toggleCopilot() {
+    const enabled = document.getElementById('copilot-enabled').checked;
+    const info = document.getElementById('copilot-info');
+    const statusText = document.getElementById('copilot-status-text');
+    
+    if (enabled) {
+        info.style.display = 'block';
+        statusText.textContent = 'Active';
+    } else {
+        info.style.display = 'none';
+        statusText.textContent = 'Disabled';
+    }
+    
+    // In a real implementation, this would make an API call to update the copilot status
+    console.log('Copilot enabled:', enabled);
+}
+
+function checkCopilotStatus() {
+    // In a real implementation, this would fetch the current copilot status from the API
+    // For now, we'll just set it to disabled
+    document.getElementById('copilot-enabled').checked = false;
+    document.getElementById('copilot-info').style.display = 'none';
+    document.getElementById('copilot-status-text').textContent = 'Disabled';
+}
+
+function updateCopilotMode() {
+    const mode = document.getElementById('copilot-mode-select').value;
+    console.log('Copilot mode updated to:', mode);
+}
+
+function extendCopilotTime() {
+    alert('Copilot time extended');
+}
+
+function downloadTranscript() {
+    alert('Transcript download would be implemented here');
+}
+
+function nextPage() {
+    if (currentPage < totalPages) {
+        loadCalls(currentPage + 1);
+    }
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        loadCalls(currentPage - 1);
+    }
+}
+</script>
+{% endblock %}

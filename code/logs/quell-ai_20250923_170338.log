@@ -1,0 +1,68 @@
+2025-09-23 17:03:38 - root - INFO - configure:523 - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-09-23 17:03:38 - api.app - INFO - create_app:102 - Application starting up
+2025-09-23 17:03:38 - api.db.connection - ERROR - _initialize_pool:23 - Failed to initialize database pool: connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied
+
+2025-09-23 17:03:38 - api.app - ERROR - create_app:127 - Database initialization failed: connection to server at "localhost" (::1), port 5432 failed: fe_sendauth: no password supplied
+
+2025-09-23 17:03:38 - api.app - ERROR - create_app:160 - AI model initialization failed: Could not parse SQLAlchemy URL from string ''
+2025-09-23 17:03:39 - api.app - INFO - create_app:547 - Application initialization complete
+2025-09-23 17:03:39 - __main__ - INFO - main:134 - Flask application created successfully
+2025-09-23 17:03:39 - __main__ - INFO - main:147 - Starting server on 0.0.0.0:8080 (debug=False)
+2025-09-23 17:03:39 - __main__ - INFO - main:161 - Running in production mode
+2025-09-23 17:03:39 - __main__ - INFO - main:162 - For production deployment, consider using:
+2025-09-23 17:03:39 - __main__ - INFO - main:163 -   gunicorn -w 4 -b 0.0.0.0:8080 api.app:create_app()
+2025-09-23 17:03:39 - __main__ - INFO - main:164 -   or uvicorn api.app:create_app --host 0.0.0.0 --port 8080
+2025-09-23 17:03:39 - werkzeug - INFO - _log:97 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8080
+ * Running on http://10.39.82.218:8080
+2025-09-23 17:03:39 - werkzeug - INFO - _log:97 - [33mPress CTRL+C to quit[0m
+2025-09-23 17:03:50 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:03:50] "[32mGET / HTTP/1.1[0m" 302 -
+2025-09-23 17:03:52 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:03:52] "GET /login HTTP/1.1" 200 -
+2025-09-23 17:03:52 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:03:52] "GET /static/styles.css HTTP/1.1" 200 -
+2025-09-23 17:03:53 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:03:53] "GET /static/main.js HTTP/1.1" 200 -
+2025-09-23 17:03:53 - api.app - WARNING - not_found:217 - 404 error: http://127.0.0.1:8080/favicon.ico
+2025-09-23 17:03:53 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:03:53] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-23 17:07:01 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:01] "GET /api/auth/register HTTP/1.1" 200 -
+2025-09-23 17:07:01 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:01] "GET /static/styles.css HTTP/1.1" 200 -
+2025-09-23 17:07:01 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:01] "GET /static/main.js HTTP/1.1" 200 -
+2025-09-23 17:07:01 - api.app - WARNING - not_found:217 - 404 error: http://127.0.0.1:8080/favicon.ico
+2025-09-23 17:07:01 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:01] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-23 17:07:05 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:05] "GET /login HTTP/1.1" 200 -
+2025-09-23 17:07:05 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:05] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+2025-09-23 17:07:05 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:05] "[36mGET /static/main.js HTTP/1.1[0m" 304 -
+2025-09-23 17:07:06 - api.app - WARNING - not_found:217 - 404 error: http://127.0.0.1:8080/favicon.ico
+2025-09-23 17:07:06 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:06] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-23 17:07:10 - repository.UsersRepository - INFO - execute:86 - db_query_start
+2025-09-23 17:07:10 - repository.UsersRepository - INFO - execute:110 - db_query_ok
+2025-09-23 17:07:10 - api.controllers.auth_controller - WARNING - login:177 - Login attempt with invalid password for: test@quell-ai.com
+2025-09-23 17:07:10 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:10] "[31m[1mPOST /api/auth/login HTTP/1.1[0m" 401 -
+2025-09-23 17:07:41 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:41] "GET /register HTTP/1.1" 200 -
+2025-09-23 17:07:41 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:41] "[36mGET /static/main.js HTTP/1.1[0m" 304 -
+2025-09-23 17:07:41 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:41] "GET /static/styles.css HTTP/1.1" 200 -
+2025-09-23 17:07:41 - api.app - WARNING - not_found:217 - 404 error: http://127.0.0.1:8080/favicon.ico
+2025-09-23 17:07:41 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:07:41] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-23 17:08:52 - repository.UsersRepository - INFO - execute:86 - db_query_start
+2025-09-23 17:08:52 - repository.UsersRepository - INFO - execute:110 - db_query_ok
+2025-09-23 17:08:52 - api.repositories.users_repo - ERROR - check_email_exists:203 - Error checking email existence: 0
+2025-09-23 17:08:52 - repository.UsersRepository - INFO - execute:86 - db_query_start
+2025-09-23 17:08:52 - repository.UsersRepository - INFO - execute:110 - db_query_ok
+2025-09-23 17:08:52 - api.repositories.users_repo - ERROR - check_phone_exists:213 - Error checking phone existence: 0
+2025-09-23 17:08:52 - repository.UsersRepository - INFO - execute:86 - db_query_start
+2025-09-23 17:08:52 - repository.UsersRepository - ERROR - execute:118 - db_query_failed
+Traceback (most recent call last):
+  File "E:\ai-call-copilot\code\api\repositories\base.py", line 97, in execute
+    cursor.execute(exec_query, params or [])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\psycopg\cursor.py", line 97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.NotNullViolation: null value in column "name" of relation "users" violates not-null constraint
+DETAIL:  Failing row contains (4, test-mail@gmail.com, f7274186a9ca53a987f998f2b26a091d8bae18bccfe1e2568978e3b3dca8550e..., +1 (111) 111-1111, t, f, f, 2025-09-24 00:08:52.513274+00, 2025-09-24 00:08:52.513274+00, null, null, null, null, null, null, active, 0, null, null, UTC, en, null, null, standard, t, f, f, f, null, system, system, null, 1).
+2025-09-23 17:08:52 - api.repositories.users_repo - ERROR - create_user:73 - Error creating user: null value in column "name" of relation "users" violates not-null constraint
+DETAIL:  Failing row contains (4, test-mail@gmail.com, f7274186a9ca53a987f998f2b26a091d8bae18bccfe1e2568978e3b3dca8550e..., +1 (111) 111-1111, t, f, f, 2025-09-24 00:08:52.513274+00, 2025-09-24 00:08:52.513274+00, null, null, null, null, null, null, active, 0, null, null, UTC, en, null, null, standard, t, f, f, f, null, system, system, null, 1).
+2025-09-23 17:08:52 - api.controllers.auth_controller - ERROR - register:145 - Registration failed: null value in column "name" of relation "users" violates not-null constraint
+DETAIL:  Failing row contains (4, test-mail@gmail.com, f7274186a9ca53a987f998f2b26a091d8bae18bccfe1e2568978e3b3dca8550e..., +1 (111) 111-1111, t, f, f, 2025-09-24 00:08:52.513274+00, 2025-09-24 00:08:52.513274+00, null, null, null, null, null, null, active, 0, null, null, UTC, en, null, null, standard, t, f, f, f, null, system, system, null, 1).
+2025-09-23 17:08:52 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:08:52] "[35m[1mPOST /api/auth/register HTTP/1.1[0m" 500 -
+2025-09-23 17:11:27 - api.app - WARNING - not_found:217 - 404 error: http://127.0.0.1:8080/favicon.ico
+2025-09-23 17:11:27 - werkzeug - INFO - _log:97 - 127.0.0.1 - - [23/Sep/2025 17:11:27] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-09-23 18:01:58 - __main__ - INFO - signal_handler:26 - Received signal 2, initiating graceful shutdown...
+2025-09-23 18:01:58 - __main__ - INFO - signal_handler:48 - Graceful shutdown completed

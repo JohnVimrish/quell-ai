@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Text Messages - Quell AI{% endblock %}
+
+{% block content %}
+<div class="texts-container">
+    <div class="texts-header">
+        <h1><i class="fas fa-sms"></i> Text Messages</h1>
+        <div class="header-actions">
+            <div class="search-container">
+                <input type="text" id="message-search" placeholder="Search messages..." class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="filter-container">
+                <select id="message-filter" class="filter-select">
+                    <option value="all">All Messages</option>
+                    <option value="unread">Unread</option>
+                    <option value="spam">Spam</option>
+                    <option value="ai-handled">AI Handled</option>
+                    <option value="important">Important</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+            <div class="date-filter">
+                <input type="date" id="date-from" class="date-input">
+                <span>to</span>
+                <input type="date" id="date-to" class="date-input">
+            </div>
+            <button class="btn btn-primary" onclick="composeMessage()">
+                <i class="fas fa-plus"></i> New Message
+            </button>
+        </div>
+    </div>
+
+    <!-- Message Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="total-messages">--</h3>
+                <p>Total Messages</p>
+                <span class="stat-change" id="total-messages-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon unread">
+                <i class="fas fa-envelope-open"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="unread-messages">--</h3>
+                <p>Unread Messages</p>
+                <span class="stat-change" id="unread-messages-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon spam">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="spam-messages">--</h3>
+                <p>Spam Blocked</p>
+                <span class="stat-change" id="spam-messages-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon ai-handled">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="ai-handled-messages">--</h3>
+                <p>AI Handled</p>
+                <span class="stat-change" id="ai-handled-messages-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon conversations">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="active-conversations">--</h3>
+                <p>Active Conversations</p>
+                <span class="stat-change" id="active-conversations-change">--</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon response-rate">
+                <i class="fas fa-reply"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="response-rate">--</h3>
+                <p>Response Rate</p>
+                <span class="stat-change" id="response-rate-change">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="texts-main">
+        <!-- Conversations List -->
+        <div class="conversations-panel">
+            <div class="conversations-header">
+                <h3>Conversations</h3>
+                <div class="conversation-controls">
+                    <button class="btn btn-sm btn-outline" onclick="markAllAsRead()">
+                        <i class="fas fa-check-double"></i> Mark All Read
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="archiveSelected()" disabled id="archive-btn">
+                        <i class="fas fa-archive"></i> Archive
+                    </button>
+                </div>
+            </div>
+            
+            <div class="conversations-list" id="conversations-list">
+                <div class="loading-spinner" id="conversations-loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading conversations...
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Thread -->
+        <div class="message-thread-panel">
+            <div class="message-thread-header" id="thread-header" style="display: none;">
+                <div class="contact-info">
+                    <div class="contact-avatar" id="contact-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4 id="contact-name">Select a conversation</h4>
+                        <p id="contact-phone"></p>
+                        <div class="contact-status">
+                            <span class="status-indicator" id="contact-status"></span>
+                            <span id="last-seen"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="thread-actions">
+                    <button class="btn btn-sm btn-outline" onclick="toggleContactInfo()">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="searchInConversation()">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="archiveConversation()">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="blockContact()">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline dropdown-toggle" onclick="toggleThreadMenu()">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu" id="thread-menu">
+                            <a href="#" onclick="exportConversation()">
+                                <i class="fas fa-download"></i> Export Conversation
+                            </a>
+                            <a href="#" onclick="deleteConversation()">
+                                <i class="fas fa-trash"></i> Delete Conversation
+                            </a>
+                            <a href="#" onclick="reportSpam()">
+                                <i class="fas fa-flag"></i> Report as Spam
+                            </a>
+                            <a href="#" onclick="whitelistContact()">
+                                <i class="fas fa-shield-alt"></i> Whitelist Contact
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-thread" id="message-thread">
+                <div class="no-conversation-selected">
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>Select a conversation</h3>
+                        <p>Choose a conversation from the list to view messages</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-input-container" id="message-input-container" style="display: none;">
+                <div class="ai-suggestions" id="ai-suggestions" style="display: none;">
+                    <div class="suggestions-header">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Suggestions</span>
+                        <button onclick="dismissSuggestions()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="suggestions-list" id="suggestions-list"></div>
+                </div>
+                
+                <div class="message-input-area">
+                    <div class="input-actions">
+                        <button class="action-btn" onclick="attachFile()" title="Attach file">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="action-btn" onclick="insertEmoji()" title="Insert emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button class="action-btn" onclick="useTemplate()" title="Use template">
+                            <i class="fas fa-file-alt"></i>
+                        </button>
+                        <button class="action-btn ai-assist-btn" onclick="getAIAssistance()" title="AI assistance">
+                            <i class="fas fa-robot"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="message-input-wrapper">
+                        <textarea id="message-input" placeholder="Type your message..." 
+                                rows="1" class="message-input"></textarea>
+                        <button class="send-btn" onclick="sendMessage()" disabled id="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="input-footer">
+                        <div class="typing-indicator" id="typing-indicator" style="display: none;">
+                            <i class="fas fa-circle"></i>
+                            <i class="fas fa-circle"></i>
+                            <i class="fas fa-circle"></i>
+                            <span>AI is typing...</span>
+                        </div>
+                        <div class="message-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="schedule-message">
+                                <span class="checkmark"></span>
+                                Schedule message
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="ai-review">
+                                <span class="checkmark"></span>
+                                AI review before sending
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info Panel -->
+        <div class="contact-info-panel" id="contact-info-panel" style="display: none;">
+            <div class="contact-info-header">
+                <h3>Contact Information</h3>
+                <button onclick="toggleContactInfo()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="contact-info-content">
+                <div class="contact-profile">
+                    <div class="profile-avatar" id="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="profile-name">Contact Name</h4>
+                    <p id="profile-phone">Phone Number</p>
+                    <div class="profile-tags" id="profile-tags"></div>
+                </div>
+                
+                <div class="contact-actions">
+                    <button class="btn btn-outline" onclick="callContact()">
+                        <i class="fas fa-phone"></i> Call
+                    </button>
+                    <button class="btn btn-outline" onclick="editContact()">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-outline" onclick="viewContactDetails()">
+                        <i class="fas fa-user"></i> View Details
+                    </button>
+                </div>
+                
+                <div class="contact-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-comment"></i>
+                        <span id="total-messages-contact">0 messages</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <span id="last-message-date">Never</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add your JavaScript functions here
+function composeMessage() {
+    // Implementation for composing new message
+}
+
+function markAllAsRead() {
+    // Implementation for marking all as read
+}
+
+function archiveSelected() {
+    // Implementation for archiving selected conversations
+}
+
+function toggleContactInfo() {
+    // Implementation for toggling contact info panel
+}
+
+function searchInConversation() {
+    // Implementation for searching in conversation
+}
+
+function archiveConversation() {
+    // Implementation for archiving conversation
+}
+
+function blockContact() {
+    // Implementation for blocking contact
+}
+
+function toggleThreadMenu() {
+    // Implementation for toggling thread menu
+}
+
+function exportConversation() {
+    // Implementation for exporting conversation
+}
+
+function deleteConversation() {
+    // Implementation for deleting conversation
+}
+
+function reportSpam() {
+    // Implementation for reporting spam
+}
+
+function whitelistContact() {
+    // Implementation for whitelisting contact
+}
+
+function getAIAssistance() {
+    // Implementation for getting AI assistance
+}
+
+function dismissSuggestions() {
+    // Implementation for dismissing suggestions
+}
+
+function attachFile() {
+    // Implementation for attaching file
+}
+
+function insertEmoji() {
+    // Implementation for inserting emoji
+}
+
+function useTemplate() {
+    // Implementation for using template
+}
+
+function sendMessage() {
+    // Implementation for sending message
+}
+
+function callContact() {
+    // Implementation for calling contact
+}
+
+function editContact() {
+    // Implementation for editing contact
+}
+
+function viewContactDetails() {
+    // Implementation for viewing contact details
+}
+</script>
+{% endblock %}

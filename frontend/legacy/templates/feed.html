@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Feed - Quell-Ai{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="glass-panel" style="padding: clamp(32px,4vw,48px); display:grid; gap:32px;">
+        <header class="hero" style="margin-bottom:0;">
+            <div>
+                <h1 class="headline" style="font-size: clamp(2.2rem,3vw,2.8rem);">Activity Feed</h1>
+                <p class="subheadline">Live snapshots of calls, texts, and AI actions so you always know what Quell-Ai handled.</p>
+            </div>
+        </header>
+    </div>
+</section>
+<section class="section-padding" style="padding-top:0;">
+    <div class="glass-panel" style="padding: clamp(24px,4vw,40px);">
+        <div class="activity-feed">
+            <article class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-phone-alt"></i></div>
+                    <div class="activity-meta">
+                        <h3>Incoming Call</h3>
+                        <span class="activity-time">2 minutes ago</span>
+                        <div class="activity-body">
+                            <span>From: <strong>+1-555-123-4567 (John Doe)</strong></span>
+                            <span>Status: <span class="chip success">Completed</span> · Duration: 1m 32s</span>
+                            <span>AI Summary: <em>Caller confirmed the meeting for 3 PM tomorrow. No action needed.</em></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-actions">
+                    <a href="/calls/1" class="button-primary">View Details</a>
+                    <a href="#" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;">Listen to Recording</a>
+                </div>
+            </article>
+
+            <article class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-sms"></i></div>
+                    <div class="activity-meta">
+                        <h3>New Text Message</h3>
+                        <span class="activity-time">15 minutes ago</span>
+                        <div class="activity-body">
+                            <span>From: <strong>+1-555-987-6543 (Logistics Inc.)</strong></span>
+                            <span>"Your package is out for delivery and will arrive today."</span>
+                            <span>AI Analysis: <em>Informational message. Marked as low priority.</em></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-actions">
+                    <a href="/texts/3" class="button-primary">View Conversation</a>
+                </div>
+            </article>
+
+            <article class="glass-tile">
+                <div class="activity-card-header">
+                    <div class="activity-icon"><i class="fas fa-robot"></i></div>
+                    <div class="activity-meta">
+                        <h3>AI Instruction Created</h3>
+                        <span class="activity-time">1 hour ago</span>
+                        <div class="activity-body">
+                            <span>Title: <strong>Block marketing calls</strong></span>
+                            <span>Instruction: <em>"If the call is a sales pitch or marketing, politely decline and end the call."</em></span>
+                            <span>Priority: <span class="chip warning">High</span> · Type: <span class="chip">Call-Specific</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="activity-actions">
+                    <a href="/instructions" class="button-primary">Manage Instructions</a>
+                </div>
+            </article>
+
+            {% for item in feed_items %}
+            <article class="glass-tile">
+                <!-- ... content rendered dynamically using new classes ... -->
+            </article>
+            {% else %}
+            <article class="glass-tile">
+                <div class="activity-body">No recent activity to display. The feed will update as calls, texts, and instructions occur.</div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

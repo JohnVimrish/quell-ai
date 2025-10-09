@@ -3,36 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Communicator-Copilot{% endblock %}</title>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>{% block title %}Quell-Ai{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header class="header">
         <div class="logo">
-            <a href="{{ url_for('dashboard') }}"><i class="fas fa-robot"></i> Communicator-Copilot</a>
+            <a href="{{ url_for('dashboard') }}">
+                <div class="agent-viz">
+                    <div class="agent-head"></div>
+                    <div class="agent-body"></div>
+                    <div class="agent-glow"></div>
+                </div>
+                <span class="brand-name">Quell-Ai</span>
+            </a>
         </div>
         <nav class="nav-links">
             <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
-            <a href="{{ url_for('feed') }}" class="{{ 'active' if request.endpoint == 'feed' else '' }}">Activity Feed</a>
-            <a href="{{ url_for('calls') }}" class="{{ 'active' if request.endpoint == 'calls' else '' }}">Calls</a>
-            <a href="{{ url_for('texts') }}" class="{{ 'active' if request.endpoint == 'texts' else '' }}">Texts</a>
-            <a href="{{ url_for('contacts') }}" class="{{ 'active' if request.endpoint == 'contacts' else '' }}">Contacts</a>
-            <a href="{{ url_for('instructions') }}" class="{{ 'active' if request.endpoint == 'instructions' else '' }}">AI Instructions</a>
-            <a href="{{ url_for('reports') }}" class="{{ 'active' if request.endpoint == 'reports' else '' }}">Reports</a>
+            <a href="{{ url_for('feed_page') }}" class="{{ 'active' if request.endpoint == 'feed_page' else '' }}">Activity Feed</a>
+            <a href="{{ url_for('calls_page') }}" class="{{ 'active' if request.endpoint == 'calls_page' else '' }}">Calls</a>
+            <a href="{{ url_for('texts_page') }}" class="{{ 'active' if request.endpoint == 'texts_page' else '' }}">Texts</a>
+            <a href="{{ url_for('contacts_page') }}" class="{{ 'active' if request.endpoint == 'contacts_page' else '' }}">Contacts</a>
+            <a href="{{ url_for('instructions_page') }}" class="{{ 'active' if request.endpoint == 'instructions_page' else '' }}">AI Instructions</a>
+            <a href="{{ url_for('reports_page') }}" class="{{ 'active' if request.endpoint == 'reports_page' else '' }}">Reports</a>
         </nav>
         <div class="auth-links">
             {% if session.user %}
-                <span class="username">Welcome, {{ session.user.name }}</span>
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <span class="username">{{ session.user.name }}</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                </div>
+                <div class="user-menu">
+                    <button class="btn btn-sm btn-outline" onclick="toggleUserMenu()">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu">
+                        <a href="{{ url_for('settings_page') }}"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('login_page') }}" class="btn btn-primary">Login</a>
+                <a href="{{ url_for('register_page') }}" class="btn btn-secondary">Sign Up</a>
             {% endif %}
         </div>
     </header>
     
     <main class="container">
+        <div class="hero" aria-hidden="true">
+            <div class="hero-accent"></div>
+        </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="flash-messages">

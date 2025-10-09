@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quell-Ai{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('ui_assets', filename='css/theme.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="navbar" data-ui="navbar">
+        <div class="brand">Quell-Ai</div>
+        <nav class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
+            <a href="{{ url_for('feed_page') }}" class="{{ 'active' if request.endpoint == 'feed_page' else '' }}">Activity Feed</a>
+            <a href="{{ url_for('calls_page') }}" class="{{ 'active' if request.endpoint == 'calls_page' else '' }}">Calls</a>
+            <a href="{{ url_for('texts_page') }}" class="{{ 'active' if request.endpoint == 'texts_page' else '' }}">Texts</a>
+            <a href="{{ url_for('contacts_page') }}" class="{{ 'active' if request.endpoint == 'contacts_page' else '' }}">Contacts</a>
+            <a href="{{ url_for('instructions_page') }}" class="{{ 'active' if request.endpoint == 'instructions_page' else '' }}">AI Instructions</a>
+            <a href="{{ url_for('reports_page') }}" class="{{ 'active' if request.endpoint == 'reports_page' else '' }}">Reports</a>
+        </nav>
+        <div class="auth-links">
+            {% if session.user %}
+                <div class="user-profile glass-panel" style="padding: 10px 16px; display:flex; gap:12px; align-items:center; box-shadow:none;">
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                    <div class="user-info">
+                        <span class="username">{{ session.user.name }}</span>
+                        <span class="user-status">Online</span>
+                    </div>
+                </div>
+                <div class="user-menu">
+                    <button class="btn btn-sm btn-outline" onclick="toggleUserMenu()">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu" id="user-menu">
+                        <a href="{{ url_for('settings_page') }}"><i class="fas fa-cog"></i> Settings</a>
+                        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login_page') }}" class="button-primary">Login</a>
+                <a href="{{ url_for('register_page') }}" class="button-primary" style="background:rgba(255,255,255,0.12); color:var(--color-text-primary); box-shadow:none;">Sign Up</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages" style="padding:20px;">
+                    {% for category, message in messages %}
+                        <div class="glass-panel" style="padding:16px 20px; margin-bottom:12px; border-left:4px solid {{ '#60a5fa' if category=='success' else '#f472b6' }};">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div>
+            <strong>Quell-Ai</strong>
+            <p>Communicator copilot for calls and texts.</p>
+        </div>
+        <div>
+            <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+        </div>
+        <div>
+            <small>&copy; {{ current_year | default(2025) }} Quell-Ai. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js" defer></script>
+    <script src="{{ url_for('ui_assets', filename='js/ui.js') }}" defer></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

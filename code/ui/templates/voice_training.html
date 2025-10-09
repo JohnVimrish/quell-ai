@@ -1,0 +1,610 @@
+{% extends "base.html" %}
+
+{% block title %}Voice Training - Communicator-Copilot{% endblock %}
+
+{% block content %}
+<div class="voice-training-container">
+    <h1><i class="fas fa-microphone-alt"></i> Voice Model Training</h1>
+    
+    <div class="training-progress">
+        <div class="progress-header">
+            <h2>Training Progress</h2>
+            <span class="progress-text"><span id="sample-count">0</span>/10 samples collected</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="training-sections">
+        <!-- Recording Section -->
+        <div class="training-section active" id="recording-section">
+            <h3><i class="fas fa-record-vinyl"></i> Record Voice Samples</h3>
+            <p>Read the following text clearly and naturally. We need 10 high-quality samples to train your voice model.</p>
+            
+            <div class="sample-text" id="sample-text">
+                <p>Click "Start Recording" to begin with the first sample.</p>
+            </div>
+            
+            <div class="recording-controls">
+                <button id="start-recording" class="btn btn-primary">
+                    <i class="fas fa-microphone"></i> Start Recording
+                </button>
+                <button id="stop-recording" class="btn btn-danger" disabled>
+                    <i class="fas fa-stop"></i> Stop Recording
+                </button>
+                <button id="play-recording" class="btn btn-secondary" disabled>
+                    <i class="fas fa-play"></i> Play Back
+                </button>
+                <button id="save-sample" class="btn btn-success" disabled>
+                    <i class="fas fa-save"></i> Save Sample
+                </button>
+                <button id="next-sample" class="btn btn-outline" disabled>
+                    <i class="fas fa-forward"></i> Next Sample
+                </button>
+            </div>
+            
+            <div class="recording-status">
+                <div class="status-indicator" id="recording-indicator">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Ready to record</span>
+                </div>
+                <div class="recording-timer" id="recording-timer">00:00</div>
+            </div>
+            
+            <div class="quality-feedback" id="quality-feedback" style="display: none;">
+                <div class="quality-score">
+                    <span>Quality Score: </span>
+                    <span id="quality-value">--</span>
+                    <div class="quality-bar">
+                        <div class="quality-fill" id="quality-fill"></div>
+                    </div>
+                </div>
+                <div class="quality-tips" id="quality-tips"></div>
+            </div>
+        </div>
+
+        <!-- Sample Management Section -->
+        <div class="training-section" id="samples-section">
+            <h3><i class="fas fa-list"></i> Recorded Samples</h3>
+            <div class="samples-list" id="samples-list">
+                <!-- Samples will be populated here -->
+            </div>
+        </div>
+
+        <!-- Training Section -->
+        <div class="training-section" id="training-section">
+            <h3><i class="fas fa-brain"></i> Train Voice Model</h3>
+            <p>Once you have collected enough high-quality samples, you can train your voice model.</p>
+            
+            <div class="model-config">
+                <div class="form-group">
+                    <label for="model-name">Model Name</label>
+                    <input type="text" id="model-name" class="form-control" placeholder="My Voice Model">
+                </div>
+                
+                <div class="form-group">
+                    <label for="model-description">Description (Optional)</label>
+                    <textarea id="model-description" class="form-control" rows="3" placeholder="Description of this voice model..."></textarea>
+                </div>
+                
+                <div class="training-options">
+                    <label>
+                        <input type="checkbox" id="high-quality-mode" checked>
+                        High Quality Mode (slower training, better results)
+                    </label>
+                </div>
+            </div>
+            
+            <div class="training-controls">
+                <button id="start-training" class="btn btn-primary" disabled>
+                    <i class="fas fa-play"></i> Start Training
+                </button>
+                <button id="cancel-training" class="btn btn-secondary" disabled>
+                    <i class="fas fa-times"></i> Cancel Training
+                </button>
+            </div>
+            
+            <div class="training-status" id="training-status" style="display: none;">
+                <div class="training-progress-bar">
+                    <div class="training-progress-fill" id="training-progress-fill"></div>
+                </div>
+                <div class="training-info">
+                    <span id="training-step">Preparing training data...</span>
+                    <span id="training-eta">ETA: --</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing Models Section -->
+        <div class="training-section" id="models-section">
+            <h3><i class="fas fa-database"></i> Your Voice Models</h3>
+            <div class="models-list" id="models-list">
+                <!-- Models will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio element for playback -->
+    <audio id="audio-playback" controls style="display: none;"></audio>
+</div>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+let currentSample = 0;
+let recordingStartTime;
+let timerInterval;
+let samples = [];
+
+const sampleTexts = [
+    "Hello, this is a test of my voice for the AI assistant training.",
+    "The quick brown fox jumps over the lazy dog near the riverbank.",
+    "I am recording my voice to create a personalized AI assistant.",
+    "Technology has advanced significantly in recent years, enabling new possibilities.",
+    "Please leave a message after the tone, and I will get back to you soon.",
+    "Good morning, this is an automated response from my AI assistant.",
+    "The weather today is beautiful with clear skies and gentle winds.",
+    "I appreciate your patience while I train my voice model for better service.",
+    "Artificial intelligence can help us communicate more effectively and efficiently.",
+    "Thank you for calling. Your message is important and will be addressed promptly."
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeVoiceTraining();
+    loadExistingModels();
+    loadExistingSamples();
+});
+
+async function initializeVoiceTraining() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop()); // Stop immediately, just testing access
+        
+        document.getElementById('start-recording').addEventListener('click', startRecording);
+        document.getElementById('stop-recording').addEventListener('click', stopRecording);
+        document.getElementById('play-recording').addEventListener('click', playRecording);
+        document.getElementById('save-sample').addEventListener('click', saveSample);
+        document.getElementById('next-sample').addEventListener('click', nextSample);
+        document.getElementById('start-training').addEventListener('click', startTraining);
+        
+        updateSampleText();
+    } catch (error) {
+        console.error('Microphone access denied:', error);
+        showNotification('Microphone access is required for voice training', 'error');
+    }
+}
+
+function updateSampleText() {
+    if (currentSample < sampleTexts.length) {
+        document.getElementById('sample-text').innerHTML = `
+            <p><strong>Sample ${currentSample + 1} of ${sampleTexts.length}:</strong></p>
+            <p class="text-to-read">"${sampleTexts[currentSample]}"</p>
+        `;
+    } else {
+        document.getElementById('sample-text').innerHTML = `
+            <p class="completion-message">
+                <i class="fas fa-check-circle"></i> 
+                All samples collected! You can now train your voice model.
+            </p>
+        `;
+    }
+}
+
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            document.getElementById('audio-playback').src = audioUrl;
+            document.getElementById('play-recording').disabled = false;
+            document.getElementById('save-sample').disabled = false;
+            
+            // Analyze quality
+            analyzeRecordingQuality(audioBlob);
+        };
+        
+        mediaRecorder.start();
+        recordingStartTime = Date.now();
+        
+        // Update UI
+        document.getElementById('start-recording').disabled = true;
+        document.getElementById('stop-recording').disabled = false;
+        document.getElementById('recording-indicator').className = 'status-indicator recording';
+        document.getElementById('status-text').textContent = 'Recording...';
+        
+        // Start timer
+        timerInterval = setInterval(updateTimer, 100);
+        
+    } catch (error) {
+        console.error('Error starting recording:', error);
+        showNotification('Failed to start recording', 'error');
+    }
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        // Update UI
+        document.getElementById('start-recording').disabled = false;
+        document.getElementById('stop-recording').disabled = true;
+        document.getElementById('recording-indicator').className = 'status-indicator';
+        document.getElementById('status-text').textContent = 'Recording complete';
+        
+        clearInterval(timerInterval);
+    }
+}
+
+function updateTimer() {
+    const elapsed = Date.now() - recordingStartTime;
+    const seconds = Math.floor(elapsed / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    
+    document.getElementById('recording-timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function playRecording() {
+    const audio = document.getElementById('audio-playback');
+    audio.style.display = 'block';
+    audio.play();
+}
+
+async function analyzeRecordingQuality(audioBlob) {
+    try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'sample.wav');
+        formData.append('text', sampleTexts[currentSample]);
+        
+        const response = await fetch('/api/voice/analyze-quality', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        // Show quality feedback
+        const qualityFeedback = document.getElementById('quality-feedback');
+        const qualityValue = document.getElementById('quality-value');
+        const qualityFill = document.getElementById('quality-fill');
+        const qualityTips = document.getElementById('quality-tips');
+        
+        qualityValue.textContent = `${(result.quality_score * 100).toFixed(1)}%`;
+        qualityFill.style.width = `${result.quality_score * 100}%`;
+        
+        if (result.quality_score >= 0.8) {
+            qualityFill.className = 'quality-fill high';
+                        qualityTips.textContent = 'Excellent quality! This sample is ready to save.';
+        } else if (result.quality_score >= 0.6) {
+            qualityFill.className = 'quality-fill medium';
+            qualityTips.textContent = 'Good quality. Consider re-recording for better results.';
+        } else {
+            qualityFill.className = 'quality-fill low';
+            qualityTips.textContent = 'Low quality. Please re-record in a quieter environment.';
+        }
+        
+        qualityFeedback.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error analyzing quality:', error);
+    }
+}
+
+async function saveSample() {
+    try {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, `sample_${currentSample + 1}.wav`);
+        formData.append('text', sampleTexts[currentSample]);
+        formData.append('sample_index', currentSample);
+        
+        const response = await fetch('/api/voice/add-sample', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            samples.push({
+                index: currentSample,
+                text: sampleTexts[currentSample],
+                quality_score: result.quality_score,
+                saved_at: new Date().toISOString()
+            });
+            
+            updateSamplesList();
+            updateProgress();
+            
+            showNotification('Sample saved successfully!', 'success');
+            
+            // Enable next sample button
+            document.getElementById('next-sample').disabled = false;
+            document.getElementById('save-sample').disabled = true;
+            
+            // Check if ready for training
+            if (samples.length >= 10) {
+                document.getElementById('start-training').disabled = false;
+            }
+        } else {
+            showNotification('Failed to save sample: ' + result.error, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error saving sample:', error);
+        showNotification('Error saving sample', 'error');
+    }
+}
+
+function nextSample() {
+    currentSample++;
+    updateSampleText();
+    
+    // Reset recording controls
+    document.getElementById('play-recording').disabled = true;
+    document.getElementById('save-sample').disabled = true;
+    document.getElementById('next-sample').disabled = true;
+    document.getElementById('quality-feedback').style.display = 'none';
+    document.getElementById('audio-playback').style.display = 'none';
+    document.getElementById('recording-timer').textContent = '00:00';
+}
+
+function updateProgress() {
+    const progress = (samples.length / 10) * 100;
+    document.getElementById('sample-count').textContent = samples.length;
+    document.getElementById('progress-fill').style.width = `${progress}%`;
+}
+
+function updateSamplesList() {
+    const samplesList = document.getElementById('samples-list');
+    samplesList.innerHTML = samples.map(sample => `
+        <div class="sample-item">
+            <div class="sample-info">
+                <span class="sample-number">Sample ${sample.index + 1}</span>
+                <span class="sample-quality quality-${getQualityClass(sample.quality_score)}">
+                    ${(sample.quality_score * 100).toFixed(1)}%
+                </span>
+            </div>
+            <div class="sample-text">"${sample.text.substring(0, 50)}..."</div>
+            <div class="sample-actions">
+                <button class="btn btn-sm btn-outline" onclick="deleteSample(${sample.index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getQualityClass(score) {
+    if (score >= 0.8) return 'high';
+    if (score >= 0.6) return 'medium';
+    return 'low';
+}
+
+async function startTraining() {
+    const modelName = document.getElementById('model-name').value.trim();
+    if (!modelName) {
+        showNotification('Please enter a model name', 'error');
+        return;
+    }
+    
+    try {
+        document.getElementById('start-training').disabled = true;
+        document.getElementById('cancel-training').disabled = false;
+        document.getElementById('training-status').style.display = 'block';
+        
+        const response = await fetch('/api/voice/train-model', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model_name: modelName,
+                description: document.getElementById('model-description').value,
+                high_quality: document.getElementById('high-quality-mode').checked
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Poll for training progress
+            pollTrainingProgress(result.training_id);
+        } else {
+            showNotification('Failed to start training: ' + result.error, 'error');
+            resetTrainingUI();
+        }
+        
+    } catch (error) {
+        console.error('Error starting training:', error);
+        showNotification('Error starting training', 'error');
+        resetTrainingUI();
+    }
+}
+
+async function pollTrainingProgress(trainingId) {
+    try {
+        const response = await fetch(`/api/voice/training-status/${trainingId}`);
+        const status = await response.json();
+        
+        // Update progress
+        document.getElementById('training-progress-fill').style.width = `${status.progress}%`;
+        document.getElementById('training-step').textContent = status.current_step;
+        document.getElementById('training-eta').textContent = `ETA: ${status.eta || '--'}`;
+        
+        if (status.status === 'completed') {
+            showNotification('Voice model training completed successfully!', 'success');
+            resetTrainingUI();
+            loadExistingModels();
+        } else if (status.status === 'failed') {
+            showNotification('Training failed: ' + status.error, 'error');
+            resetTrainingUI();
+        } else {
+            // Continue polling
+            setTimeout(() => pollTrainingProgress(trainingId), 2000);
+        }
+        
+    } catch (error) {
+        console.error('Error polling training progress:', error);
+        setTimeout(() => pollTrainingProgress(trainingId), 5000);
+    }
+}
+
+function resetTrainingUI() {
+    document.getElementById('start-training').disabled = false;
+    document.getElementById('cancel-training').disabled = true;
+    document.getElementById('training-status').style.display = 'none';
+    document.getElementById('training-progress-fill').style.width = '0%';
+}
+
+async function loadExistingModels() {
+    try {
+        const response = await fetch('/api/voice/models');
+        const models = await response.json();
+        
+        const modelsList = document.getElementById('models-list');
+        if (models.length === 0) {
+            modelsList.innerHTML = '<p class="no-models">No voice models found. Train your first model above!</p>';
+            return;
+        }
+        
+        modelsList.innerHTML = models.map(model => `
+            <div class="model-item">
+                <div class="model-info">
+                    <h4>${model.model_name}</h4>
+                    <p class="model-description">${model.description || 'No description'}</p>
+                    <div class="model-stats">
+                        <span>Quality: ${(model.quality_score * 100).toFixed(1)}%</span>
+                        <span>Samples: ${model.sample_count}</span>
+                        <span>Created: ${new Date(model.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="model-actions">
+                    <button class="btn btn-sm btn-primary" onclick="activateModel('${model.id}')">
+                        ${model.is_active ? 'Active' : 'Activate'}
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="testModel('${model.id}')">
+                        <i class="fas fa-play"></i> Test
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteModel('${model.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading models:', error);
+    }
+}
+
+async function loadExistingSamples() {
+    try {
+        const response = await fetch('/api/voice/samples');
+        const existingSamples = await response.json();
+        
+        samples = existingSamples;
+        updateSamplesList();
+        updateProgress();
+        
+        if (samples.length >= 10) {
+            document.getElementById('start-training').disabled = false;
+        }
+        
+    } catch (error) {
+        console.error('Error loading existing samples:', error);
+    }
+}
+
+async function deleteSample(index) {
+    if (confirm('Are you sure you want to delete this sample?')) {
+        try {
+            const response = await fetch(`/api/voice/samples/${index}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                samples = samples.filter(s => s.index !== index);
+                updateSamplesList();
+                updateProgress();
+                showNotification('Sample deleted successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error deleting sample:', error);
+            showNotification('Error deleting sample', 'error');
+        }
+    }
+}
+
+async function activateModel(modelId) {
+    try {
+        const response = await fetch(`/api/voice/models/${modelId}/activate`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showNotification('Voice model activated successfully', 'success');
+            loadExistingModels();
+        }
+    } catch (error) {
+        console.error('Error activating model:', error);
+        showNotification('Error activating model', 'error');
+    }
+}
+
+async function testModel(modelId) {
+    const testText = prompt('Enter text to synthesize with this voice model:');
+    if (!testText) return;
+    
+    try {
+        const response = await fetch(`/api/voice/models/${modelId}/test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: testText })
+        });
+        
+        if (response.ok) {
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        }
+    } catch (error) {
+        console.error('Error testing model:', error);
+        showNotification('Error testing model', 'error');
+    }
+}
+
+async function deleteModel(modelId) {
+    if (confirm('Are you sure you want to delete this voice model? This action cannot be undone.')) {
+        try {
+            const response = await fetch(`/api/voice/models/${modelId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                showNotification('Voice model deleted successfully', 'success');
+                loadExistingModels();
+            }
+        } catch (error) {
+            console.error('Error deleting model:', error);
+            showNotification('Error deleting model', 'error');
+        }
+    }
+}
+
+function showNotification(message, type) {
+    // Implementation depends on your notification system
+    console.log(`${type.toUpperCase()}: ${message}`);
+}
+</script>
+{% endblock %}
