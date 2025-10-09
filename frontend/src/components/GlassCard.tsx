@@ -1,4 +1,4 @@
-import { ReactNode, CSSProperties } from "react";
+import { type ReactNode, type CSSProperties } from "react";
 
 interface GlassCardProps {
   children: ReactNode;

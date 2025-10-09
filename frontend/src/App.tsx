@@ -5,6 +5,13 @@ import MinimalSection from "./pages/MinimalSection";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
+const CallsPage = lazy(() => import("./pages/CallsPage"));
+const ContactsPage = lazy(() => import("./pages/ContactsPage"));
+const TextsPage = lazy(() => import("./pages/TextsPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 function LoadingFallback() {
   return (
@@ -17,11 +24,7 @@ function LoadingFallback() {
 
 const simplePages = [
   { path: "features", title: "Product", description: "All the building blocks you need to orchestrate calls, texts, and automations without leaving your workspace." },
-  { path: "pricing", title: "Pricing", description: "Transparent tiers with built-in AI automations and usage-based add-ons for scaling teams." },
   { path: "faq", title: "FAQs", description: "Answers to common questions about AI call handling, compliance, and integrations." },
-  { path: "contact", title: "Contact", description: "Reach out to the team for onboarding support, enterprise plans, or custom integrations." },
-  { path: "login", title: "Log in", description: "Access your communicator console and resume where you left off." },
-  { path: "register", title: "Create an account", description: "Launch your communicator copilot in minutes with secure authentication and database setup." },
 ];
 
 export default function App() {
@@ -32,6 +35,13 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<LandingPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="calls" element={<CallsPage />} />
+            <Route path="contacts" element={<ContactsPage />} />
+            <Route path="texts" element={<TextsPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<SignupPage />} />
             {simplePages.map(({ path, title, description }) => (
               <Route key={path} path={path} element={<MinimalSection title={title} description={description} />} />
             ))}
