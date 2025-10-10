@@ -1,0 +1,4 @@
+docker exec node-frontend npm run build
+
+xcopy /E /I /Y frontend\dist backend\static\dist
+

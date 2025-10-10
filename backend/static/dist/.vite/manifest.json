@@ -1,4 +1,11 @@
 {
+  "_Phone3D-DF-_rB2d.js": {
+    "file": "assets/Phone3D-DF-_rB2d.js",
+    "name": "Phone3D",
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
   "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2": {
     "file": "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
     "src": "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2"
@@ -27,40 +34,27 @@
     "file": "assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2",
     "src": "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2"
   },
-  "src/assets/images/story-01.png": {
-    "file": "assets/story-01-Dhkj2uuZ.png",
-    "src": "src/assets/images/story-01.png"
-  },
-  "src/assets/images/story-02.png": {
-    "file": "assets/story-02-CBD0Je1T.png",
-    "src": "src/assets/images/story-02.png"
-  },
-  "src/assets/images/story-03.png": {
-    "file": "assets/story-03-CgvlBLR4.png",
-    "src": "src/assets/images/story-03.png"
-  },
-  "src/assets/images/story-04.png": {
-    "file": "assets/story-04-ChOcS3jn.png",
-    "src": "src/assets/images/story-04.png"
-  },
-  "src/assets/images/story-05.png": {
-    "file": "assets/story-05-BtXkOYu2.png",
-    "src": "src/assets/images/story-05.png"
-  },
   "src/main.tsx": {
-    "file": "assets/main-iA1U_hij.js",
+    "file": "assets/main-2TxJzpGU.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
+    "dynamicImports": [
+      "src/pages/LandingPage.tsx",
+      "src/pages/DashboardPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/SignupPage.tsx",
+      "src/pages/CallsPage.tsx",
+      "src/pages/ContactsPage.tsx",
+      "src/pages/TextsPage.tsx",
+      "src/pages/ReportsPage.tsx",
+      "src/pages/SettingsPage.tsx",
+      "src/pages/WhyQuellAI.tsx"
+    ],
     "css": [
-      "assets/main-BQfF8U_q.css"
+      "assets/main-DWzhOyvL.css"
     ],
     "assets": [
-      "assets/story-01-Dhkj2uuZ.png",
-      "assets/story-02-CBD0Je1T.png",
-      "assets/story-03-CgvlBLR4.png",
-      "assets/story-04-ChOcS3jn.png",
-      "assets/story-05-BtXkOYu2.png",
       "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
       "assets/inter-cyrillic-wght-normal-DqGufNeO.woff2",
       "assets/inter-greek-ext-wght-normal-DlzME5K_.woff2",
@@ -68,6 +62,98 @@
       "assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2",
       "assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2",
       "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
+    ]
+  },
+  "src/pages/CallsPage.tsx": {
+    "file": "assets/CallsPage-B0Rgw-aF.js",
+    "name": "CallsPage",
+    "src": "src/pages/CallsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/ContactsPage.tsx": {
+    "file": "assets/ContactsPage-Dyqy-h4X.js",
+    "name": "ContactsPage",
+    "src": "src/pages/ContactsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/DashboardPage.tsx": {
+    "file": "assets/DashboardPage-DyUdOPt5.js",
+    "name": "DashboardPage",
+    "src": "src/pages/DashboardPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/LandingPage.tsx": {
+    "file": "assets/LandingPage-BsfRyj7x.js",
+    "name": "LandingPage",
+    "src": "src/pages/LandingPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_Phone3D-DF-_rB2d.js"
+    ]
+  },
+  "src/pages/LoginPage.tsx": {
+    "file": "assets/LoginPage-DWcxsf9Y.js",
+    "name": "LoginPage",
+    "src": "src/pages/LoginPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/ReportsPage.tsx": {
+    "file": "assets/ReportsPage-DOmh0fvh.js",
+    "name": "ReportsPage",
+    "src": "src/pages/ReportsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/SettingsPage.tsx": {
+    "file": "assets/SettingsPage-CG5WsQ-p.js",
+    "name": "SettingsPage",
+    "src": "src/pages/SettingsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/SignupPage.tsx": {
+    "file": "assets/SignupPage-DSDIFo0A.js",
+    "name": "SignupPage",
+    "src": "src/pages/SignupPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/TextsPage.tsx": {
+    "file": "assets/TextsPage-SGJaxPQy.js",
+    "name": "TextsPage",
+    "src": "src/pages/TextsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/WhyQuellAI.tsx": {
+    "file": "assets/WhyQuellAI-GsJHJKBJ.js",
+    "name": "WhyQuellAI",
+    "src": "src/pages/WhyQuellAI.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_Phone3D-DF-_rB2d.js"
     ]
   }
 }

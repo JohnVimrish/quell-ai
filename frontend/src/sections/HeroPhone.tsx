@@ -1,32 +1,41 @@
 import { useEffect, useRef } from "react";
 
 const PHONE_TEMPLATE = `
-  <div class="phone-outer" role="presentation">
-    <div class="phone-frame">
-      <div class="phone-glare"></div>
-      <div class="phone-screen">
-        <div class="phone-notch">
-          <div class="phone-speaker"></div>
-          <div class="phone-camera"></div>
-        </div>
-        <div class="phone-content">
-          <header class="phone-status">
-            <span class="phone-time"></span>
-            <span class="phone-signal">AI MODE</span>
-          </header>
-          <main class="phone-body">
-            <h3>Quell-AI actively shields your time.</h3>
-            <ul>
-              <li>Screens unknown callers politely.</li>
-              <li>Summarizes conversations instantly.</li>
-              <li>Respects important contact boundaries.</li>
-            </ul>
-          </main>
-          <footer class="phone-action">
-            <button class="phone-button">Enable Copilot</button>
-          </footer>
-        </div>
-      </div>
+  <div class="hero-phone-frame" role="presentation">
+    <div class="hero-phone-display">
+      <header class="hero-phone-status">
+        <span class="phone-time"></span>
+      </header>
+      <main class="hero-phone-content">
+        <section class="hero-phone-video">
+          <div class="video-container">
+            <video 
+              class="phone-video" 
+              controls 
+              poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23f5f5f5' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23737373' font-family='Arial' font-size='20'%3EQuell-AI Demo%3C/text%3E%3C/svg%3E"
+            >
+              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <div class="video-overlay">
+              <svg class="play-icon" viewBox="0 0 24 24" fill="white" width="48" height="48">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </div>
+          </div>
+          <p style="margin: 12px 0 0; color: var(--color-grey-700); font-size: 0.9rem; text-align: center;">
+            Watch how Quell-AI handles your calls
+          </p>
+        </section>
+        <section class="hero-phone-card" style="margin-top: 12px;">
+          <h4 style="margin: 0 0 8px; font-size: 1rem; font-weight: 700; color: var(--color-grey-900);">Quick Stats</h4>
+          <p style="margin: 0; color: var(--color-grey-700); font-size: 0.85rem; line-height: 1.6;">
+            ✓ 2 VIP calls connected<br>
+            ✓ 5 calls screened<br>
+            ✓ 3 AI summaries ready
+          </p>
+        </section>
+      </main>
     </div>
   </div>
 `;
@@ -39,28 +48,6 @@ function updateTime(root: HTMLElement | null) {
   timeEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function initParallax(root: HTMLElement | null, reducedMotion: boolean) {
-  if (!root || reducedMotion) return;
-  const handler = (event: MouseEvent) => {
-    const rect = root.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    const rotY = (x - 0.5) * 16;
-    const rotX = -(y - 0.5) * 16;
-    root.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-  };
-  const reset = () => {
-    root.style.transform = "rotateX(8deg) rotateY(-8deg)";
-  };
-  root.addEventListener("mousemove", handler);
-  root.addEventListener("mouseleave", reset);
-  reset();
-  return () => {
-    root.removeEventListener("mousemove", handler);
-    root.removeEventListener("mouseleave", reset);
-  };
-}
-
 export default function HeroPhone() {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,11 +58,7 @@ export default function HeroPhone() {
     const phone = mount.firstElementChild as HTMLElement | null;
     updateTime(phone);
     const interval = window.setInterval(() => updateTime(phone), 30000);
-    const cleanParallax = initParallax(phone, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    return () => {
-      window.clearInterval(interval);
-      if (cleanParallax) cleanParallax();
-    };
+    return () => window.clearInterval(interval);
   }, []);
 
   return <div ref={containerRef} className="phone-mount" />;

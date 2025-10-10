@@ -4,6 +4,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+LOG_DIR="$PROJECT_ROOT/logs/terminal"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/$(date +%Y%m%d).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "📝 Logging run_dev.sh output to $LOG_FILE"
+
 source "$SCRIPT_DIR/setup_env.sh"
 
 start_frontend() {
@@ -21,7 +28,12 @@ start_backend() {
 start_frontend &
 FRONTEND_PID=$!
 
-trap 'echo "🛑 Shutting down..."; docker compose -f "$PROJECT_ROOT/extras/node.yml" down' EXIT
+cleanup() {
+  echo "🛑 Shutting down development services..."
+  docker compose -f "$PROJECT_ROOT/extras/node.yml" down || true
+}
 
-wait $FRONTEND_PID || true
+trap cleanup EXIT
+
+wait "$FRONTEND_PID" || true
 start_backend

@@ -3,3 +3,8 @@ __pycache__/
 **/__pycache__/
 pvenv/
 .vscode/
+# Project-specific directories
+about/
+reference_images/
+backend/ui/
+backend/logs/

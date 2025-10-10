@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  {% if current_app.debug %}
-    <script type="module" src="http://localhost:5173/@vite/client"></script>
-    <script type="module" src="http://localhost:5173/src/main.tsx"></script>
+  {% if is_debug %}
+    <script type="module" src="{{ vite_dev_url }}/@vite/client"></script>
+    <script type="module" src="{{ vite_dev_url }}/src/main.tsx"></script>
   {% else %}
     {% for href in asset_css('src/main.tsx') %}
       <link rel="stylesheet" href="{{ href }}" />
@@ -15,7 +15,7 @@
 </head>
 <body>
   <div id="root"></div>
-  {% if not current_app.debug %}
+  {% if not is_debug %}
     <script type="module" src="{{ asset_url('src/main.tsx') }}"></script>
   {% endif %}
 </body>
