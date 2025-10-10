@@ -1,231 +1,197 @@
-=======
-# quell-ai
-Personal Communicator-Copilot: An AI assistant for calls and texts.
+# Quell-AI Experience Site
 
-
-# 📱 Quell AI  
-**Calm your calls, tame your texts.**  
-An open-source, privacy-first AI copilot that auto-attends calls and texts on your behalf, filters spam, and summarizes conversations you can actually trust.
+Calm your calls, tame your texts. This repo hosts the interactive marketing experience for the Quell-AI communicator copilot. It highlights how Quell-AI auto-attends calls and texts on your behalf, filters spam, and delivers trustworthy summaries — all while keeping privacy front and center.
 
 ---
 
-## 🌟 Features
-- **Copilot Mode** — like silent/vibrate mode, but smarter. Toggle AI ON/OFF or set it for a duration (e.g., 1 hour).  
-- **Instruction Feed** — short-lived tasks the AI can use, auto-cleared after a week (privacy by design).  
-- **Whitelist Contacts** — important calls/texts bypass AI entirely.  
-- **Spam Filtering** — block spammers using number reputation + keyword filters.  
-- **Mind-Map Summaries** — conversations distilled into key-point visuals/snippets.  
-- **Voice Cloning (opt-in)** — Quell AI speaks in your voice but always discloses itself.  
-- **Searchable Transcripts** — find keywords across calls and texts.  
-- **Weekly Reports** — overview of AI-handled calls, spam blocked, time saved.  
-- **Open-Source & Modular** — bring-your-own-provider keys (STT, TTS, telephony).  
+## Product snapshot
+
+### Key capabilities
+
+- **Copilot Mode** – smarter than silent mode; toggle AI on/off or set a duration.
+- **Instruction Feed** – short-lived tasks the AI can reference (auto-clears in a week).
+- **Whitelist Contacts** – important callers bypass the AI entirely.
+- **Spam Filtering** – layered number reputation plus keyword heuristics.
+- **Mind-Map Summaries** – conversations distilled into actionable highlights.
+- **Voice Cloning (opt-in)** – speaks in your voice with transparent disclosure.
+- **Searchable Transcripts** – locate keywords across calls and texts.
+- **Weekly Reports** – track time saved, spam blocked, and AI-handled volume.
+- **Open and modular** – bring-your-own STT, TTS, and telephony providers.
+
+### Why Quell-AI stands apart
+
+| Feature / App                   | Quell-AI | Truecaller / Hiya | Google Call Screen | Business AI Assistants |
+|---------------------------------|----------|--------------------|--------------------|------------------------|
+| Copilot mode toggle             | Yes      | No                 | No                 | No                     |
+| Instruction feed (temp memory)  | Yes      | No                 | No                 | No                     |
+| Sensitive info guardrails       | Yes      | No                 | No                 | No                     |
+| Mind-map summaries              | Yes      | No (logs only)     | No (transcripts)   | No (notes only)        |
+| Voice cloning (transparent)     | Yes      | No                 | No (robotic)       | No (generic)           |
+| Whitelist contacts untouched    | Yes      | Yes                | No                 | No                     |
+| Keyword spam block (SMS)        | Yes      | No (number only)   | No                 | No                     |
+| Time-boxed AI mode              | Yes      | No                 | No                 | No                     |
+| Open source + BYOK              | Yes      | No                 | No                 | No                     |
+| Policy audit trail              | Yes      | No                 | No                 | Partial                |
 
 ---
 
-## 🆚 Why Quell AI is Different
-| Feature / App | **Quell AI** | Truecaller/Hiya | Google Call Screen | Business AI Assistants |
-|---------------|--------------|-----------------|--------------------|------------------------|
-| Copilot Mode toggle | ✅ | ❌ | ❌ | ❌ |
-| Instruction Feed (temp memory) | ✅ | ❌ | ❌ | ❌ |
-| Sensitive info guardrails | ✅ | ❌ | ❌ | ❌ |
-| Mind-map summaries | ✅ | ❌ Logs only | ❌ Transcript only | ❌ Notes only |
-| Voice cloning (transparent) | ✅ | ❌ | ❌ Robotic | ❌ Generic |
-| Whitelist contacts (untouched) | ✅ | ✅ | ❌ | ❌ |
-| Keyword spam block (SMS) | ✅ | ❌ Number-only | ❌ | ❌ |
-| Time-boxed AI mode | ✅ | ❌ | ❌ | ❌ |
-| Open Source + BYOK | ✅ | ❌ | ❌ | ❌ |
-| Policy audit (why AI said this) | ✅ | ❌ | ❌ | ⚠️ Partial |
+## What’s inside
+
+- **Engaged navigation flow** – a centered landing nav (`About | Engage with the Application | Log in`) that expands into the full product surface when visitors engage or log in, and collapses when they log out.
+- **Hover “Back to About” control** – appears while hovering over “Engage with the Application” or when browsing the engaged views (`/why`, dashboard shells, etc.). Clicking it snaps visitors back to the landing layout without a full reload.
+- **Why Quell-AI page** – reachable at `/why`, featuring interactive storytelling, the 3D phone demo component, and mock scenarios that highlight contextual intelligence, privacy, and adaptive learning.
+- **Legacy auth stubs** – static login and signup HTML files in `frontend/legacy/` for linking from the SPA while the real auth flow is under construction.
+- **Backend scaffolding** – Flask app factory, blueprint registration, asset manifest loader, and graceful shutdown hooks for database and ML services to support the experience frontend.
 
 ---
-**Project Structure**
 
-# 📂 Quell AI – Project Structure
-
-```plaintext
-<<<<<<< HEAD
-quell-ai/
-├─ api/
-│  ├─ app.py                      # Flask factory (create_app)
-│  ├─ controllers/
-│  │  ├─ copilot_controller.py
-│  │  ├─ feed_controller.py
-│  │  ├─ contacts_controller.py
-│  │  ├─ calls_controller.py
-│  │  ├─ texts_controller.py
-│  │  ├─ report_controller.py
-│  │  └─ webhooks_controller.py
-│  ├─ repositories/
-│  │  ├─ base.py
-│  │  └─ feed_repo.py
-│  ├─ utils/
-│  │  ├─ config.py
-│  │  └─ validation.py
-│  ├─ db/
-│  │  └─ connection.py
-│  └─ templates/
-│     ├─ base.html
-│     ├─ dashboard.html
-│     └─ feed.html
-├─ config/
-│  ├─ queries.json
-│  ├─ policies.json
-│  └─ providers.json
-├─ public/
-│  └─ styles.css
-├─ tests/
-├─ requirements.txt
-├─ .env.example
-└─ README.md
-=======
-code/
-	api/
-		app.py
-		run.py
-		controllers/
-			auth_controller.py
-			calls_controller.py
-			contacts_controller.py
-			copilot_controller.py
-			feed_controller.py
-			report_controller.py
-			texts_controller.py
-			webhooks_controller.py
-			__init__.py
-		db/
-			connection.py
-			migrations/
-			__init__.py
-		models/
-			rag_system.py
-			spam_detector.py
-			vector-store.py
-			__init__.py
-		repositories/
-			base.py
-			feed_repo.py
-			users_repo.py
-			__init__.py
-		templates/
-			base.html
-			dashboard.html
-			feed.html
-		utils/
-			config.py
-			logging.py
-			validation.py
-	config/
-		app.json
-		policies.json
-		providers.json
-		queries.json
-	extras/
-		docker-compose.yml
-		Dockerfile.api
-		requirements.txt
-	functionalities/
-		ai_instruction.py
-		analytics.py
-		call.py
-		text_message.py
-		user.py
-		voice_model.py
-		__init__.py
-	public/
-		index.html
-		styles.css
-	tests/
-		test_feed.py
->>>>>>> 5b1bea6 (Initial commit: add all project files)
-```
-
-# Quell AI
-
-Personal Communicator-Copilot: An AI assistant for calls and texts.
-
-## Project Layout
+## Repository layout
 
 ```
-quell-ai/
-├─ backend/          # Flask application (APIs, Socket.IO, database models)
-│  ├─ api/
-│  ├─ app/
-│  ├─ static/        # Production frontend build lives here (dist/)
-│  └─ templates/     # Jinja base shell which loads the Vite bundle
-├─ frontend/         # Vite + React SPA (JS/TS, CSS, assets)
-│  ├─ src/
-│  ├─ public/
-│  └─ dist/          # Generated build output (gitignored)
-├─ extras/           # Docker compose files, helper scripts
-└─ documents/, reference_images/, ...
+.
+├── backend/                 # Flask service (REST blueprints, Socket.IO, asset serving)
+│   ├── api/                 # Application logic and blueprints
+│   │   ├── app.py           # create_app(), route wiring, SPA shell
+│   │   ├── controllers/     # REST endpoints (feed, copilot, auth, etc.)
+│   │   ├── db/              # Connection pool manager and helpers
+│   │   ├── models/          # Spam detector, RAG system, voice model
+│   │   └── utils/           # Config loader, logging helpers, validation
+│   ├── app/asset_loader.py  # Vite manifest integration for Flask templates
+│   └── static/dist/         # Built frontend assets copied in for production
+├── frontend/                # Vite + React SPA (experience shell)
+│   ├── src/
+│   │   ├── App.tsx          # Routes, lazy-loaded pages, layout wrapper
+│   │   ├── components/      # NavBar, AuthProvider, Phone3D, etc.
+│   │   ├── pages/           # Landing, WhyQuellAI, dashboard shells, auth
+│   │   └── styles/theme.css # Global design tokens and component styling
+│   ├── legacy/              # Static login/signup HTML views
+│   ├── public/              # Static assets served via Flask `/assets/*`
+│   └── dist/                # Frontend build output (gitignored, copied to backend)
+├── node_build.txt           # Reference build script (Docker exec + copy dist)
+└── documents/, extras/, logs/, etc.
 ```
 
-## Prerequisites
+---
+
+## Tech stack
+
+| Layer        | Technology                                              |
+|--------------|---------------------------------------------------------|
+| Frontend     | React 19, Vite 7, TypeScript 5.8, CSS-in-files (theme.css) |
+| Backend      | Flask, Flask-SocketIO, psycopg2 pool                    |
+| Realtime UX  | Custom state machine inside `AuthProvider` + `NavBar`   |
+| ML scaffolds | Spam detector, RAG system, voice model placeholders     |
+| Tooling      | Docker (optional), npm, Python virtualenv               |
+
+---
+
+## Getting started
+
+### Prerequisites
 
 - Python 3.11+
-- Node 18+
-- Docker (for optional dev containers)
+- Node.js 18+ (or use the provided Docker setup)
+- Docker Desktop (optional, recommended for uniform Node builds)
 
-## Local Development
-
-1. **Backend environment**
-   ```bash
-   cd backend
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows PowerShell
-   pip install -r extras/requirements.txt
-   cp .env.example .env      # ensure DATABASE_URL etc.
-   ```
-
-2. **Frontend dependencies** (packages install inside the `node-frontend` container)
-   ```bash
-   docker compose -f extras/node.yml up -d
-   docker exec -it node-frontend bash -lc "cd /app && npm install"
-   ```
-
-3. **Run dev servers**
-   - Flask API: `flask --app api.app:create_app --debug run`
-   - Vite dev (already running in container): `docker logs -f node-frontend`
-
-   The React app proxies `/api` calls to `http://127.0.0.1:5000`. Visit http://localhost:5173.
-
-## Production Build
+### Backend setup
 
 ```bash
-# Frontend
-docker exec node-frontend bash -lc "cd /app && npm run build"
-cp -r frontend/dist backend/static/dist
-
-# Backend (e.g. gunicorn)
 cd backend
+python -m venv .venv
+.venv\Scripts\activate          # PowerShell on Windows
 pip install -r extras/requirements.txt
-FLASK_ENV=production gunicorn "api.app:create_app()"
+cp .env.example .env            # configure DATABASE_URL, provider keys, etc.
 ```
 
-## Docker Image
+Start the API in development mode:
 
-A multi-stage Dockerfile (node build -> copy dist -> install Python deps) is planned. For now, run the commands above in CI or locally before building any images.
+```bash
+flask --app api.app:create_app --debug run
+```
 
-## Tests
+The app factory auto-loads configuration, sets up CORS, registers all blueprints, and serves the SPA shell for non-API routes. Graceful shutdown now closes pooled database connections and calls ML model `cleanup()` hooks.
 
-- Python: `cd backend && pytest`
-- Frontend: `docker exec node-frontend bash -lc "cd /app && npm test"` (configure playwright/cypress as needed).
+### Frontend setup
 
-## Asset Manifest Integration
+Install dependencies directly:
 
-Flask consumes `backend/static/dist/.vite/manifest.json` via `backend/app/asset_loader.py`. Ensure the manifest exists before running in production (`npm run build`).
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-🔐 Privacy by Design
+Or use the project’s container workflow (mirrors `node_build.txt`):
 
-1.Feed items auto-delete after 7 days (archive +7 days, then purge).
-2.Sensitive input (bank, SSN, etc.) flagged before saving.
-3.Whitelisted contacts = never intercepted by AI.
-4.Recordings/transcripts are opt-in only.
-5.AI always discloses itself on calls.
+```bash
+docker compose -f extras/node.yml up -d                # start node-frontend container
+docker exec -it node-frontend npm install              # install packages inside container
+docker exec -it node-frontend npm run dev              # Vite dev server on http://localhost:5173
+```
 
-🧩 Roadmap
+The SPA proxies `/api/*` calls to `http://127.0.0.1:5000` while in development.
 
+---
 
+## Building for production
 
-📜 License
+From the host (or CI) use the provided script as reference:
 
-Apache-2.0 (see LICENSE)
+```bash
+# Build inside the container
+docker exec node-frontend npm run build
+
+# Copy artifacts into the Flask static directory
+xcopy /E /I /Y frontend\dist backend\static\dist
+```
+
+The Flask app serves assets from `backend/static/dist` and resolves hashed filenames via `asset_loader.py`. Ensure the build step runs before deploying the backend so `static/dist/.vite/manifest.json` exists.
+
+---
+
+## Navigation behaviour at a glance
+
+| State                      | Visible nav                               | Notes                                                         |
+|----------------------------|-------------------------------------------|---------------------------------------------------------------|
+| Default visitor            | `About | Engage with the Application | Log in` | Centered pills; hover over Engage reveals “Back to About”.    |
+| Engaged (clicked Engage)   | `About | Why Quell-AI | Dashboard | Calls | Contacts | Texts | Reports` | Smooth transition, Back button stays available.                |
+| Authenticated (login/signup) | `Dashboard | Calls | Contacts | Texts | Reports | Settings | Log out` | Log out returns to landing nav and clears highlights.          |
+| Hover / focus on Engage    | Adds `Back to About` control left of the brand | Clicking snaps to `/` without reloading or altering history. |
+
+The experience state is tracked by `AuthProvider.tsx` (`isAuthed`, `isEngaged`), persisted to `localStorage`, and initialised based on the current route. Legacy auth links (`/legacy/login.html`, `/legacy/signup.html`) remain accessible from the header.
+
+---
+
+## Testing & linting
+
+While end-to-end automation is still in flight, you can run available checks with:
+
+```bash
+# Type checks and linting
+cd frontend
+npm run build            # includes `tsc --noEmit`
+npm run lint
+
+# Backend tests
+cd backend
+pytest
+```
+
+Additions should maintain ASCII-only source unless there’s a clear reason to include Unicode (e.g., localisation assets).
+
+---
+
+## Contributing
+
+1. Fork / branch from `main`.
+2. Keep navigation and engagement behaviour consistent with the acceptance criteria above.
+3. Run the TypeScript build and relevant backend tests before opening a PR.
+4. Update `node_build.txt` and this README if the build pipeline changes.
+
+Design system, copy, or interaction updates live primarily in `frontend/src/styles/theme.css`, `frontend/src/components/NavBar.tsx`, and `frontend/src/components/AuthProvider.tsx`. Backend API additions should follow the existing blueprint pattern under `backend/api/controllers/` and reuse the `DatabaseManager` pool.
+
+---
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE) for details.
