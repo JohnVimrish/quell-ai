@@ -64,3 +64,16 @@ class DatabaseManager:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
                 return cur.fetchone()[0] == 1
+
+    def close_all_connections(self):
+        """Close all pooled connections."""
+        if not self.pool:
+            self.logger.debug("No database pool to close")
+            return
+
+        try:
+            self.pool.closeall()
+            self.pool = None
+            self.logger.info("Database connection pool closed")
+        except Exception as exc:  # noqa: BLE001
+            self.logger.error(f"Failed to close database pool: {exc}")

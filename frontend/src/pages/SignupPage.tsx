@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import { useState } from "react";
+import { useAuth } from "../components/AuthProvider";
 
 export default function SignupPage() {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -27,7 +27,7 @@ export default function SignupPage() {
 
     // TODO: Implement actual signup logic
     console.log("Signup attempt:", formData);
-    navigate("/dashboard");
+    login();
   };
 
   return (
@@ -85,7 +85,7 @@ export default function SignupPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="********"
                 required
               />
             </div>
@@ -98,7 +98,7 @@ export default function SignupPage() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="********"
                 required
               />
             </div>
@@ -111,7 +111,7 @@ export default function SignupPage() {
           <div className="auth-footer">
             <p>
               Already have an account?{" "}
-              <a href="/login" style={{ color: "var(--color-orange-500)", fontWeight: 600 }}>
+              <a href="/legacy/login.html" style={{ color: "var(--color-orange-500)", fontWeight: 600 }}>
                 Sign in
               </a>
             </p>
@@ -121,4 +121,6 @@ export default function SignupPage() {
     </div>
   );
 }
+
+
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../components/AuthProvider";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -10,7 +10,7 @@ export default function LoginPage() {
     e.preventDefault();
     // TODO: Implement actual login logic
     console.log("Login attempt:", { email, password });
-    navigate("/dashboard");
+    login();
   };
 
   return (
@@ -53,7 +53,7 @@ export default function LoginPage() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
                 required
               />
             </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <div className="auth-footer">
             <p>
               Don't have an account?{" "}
-              <a href="/register" style={{ color: "var(--color-orange-500)", fontWeight: 600 }}>
+              <a href="/legacy/signup.html" style={{ color: "var(--color-orange-500)", fontWeight: 600 }}>
                 Sign up
               </a>
             </p>
@@ -76,4 +76,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
 

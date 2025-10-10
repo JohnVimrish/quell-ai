@@ -12,6 +12,7 @@ const ContactsPage = lazy(() => import("./pages/ContactsPage"));
 const TextsPage = lazy(() => import("./pages/TextsPage"));
 const ReportsPage = lazy(() => import("./pages/ReportsPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const WhyQuellAI = lazy(() => import("./pages/WhyQuellAI"));
 
 function LoadingFallback() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="texts" element={<TextsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="why" element={<WhyQuellAI />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<SignupPage />} />
             {simplePages.map(({ path, title, description }) => (

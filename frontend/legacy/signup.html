@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Quell-AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .signup-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 48px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 32px;
+            color: #1a1a1a;
+        }
+        h1 { font-size: 28px; margin-bottom: 8px; text-align: center; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 32px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #1a1a1a; }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.25s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #A8DF8E;
+        }
+        .button-primary {
+            width: 100%;
+            padding: 14px;
+            background: #A8DF8E;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .button-primary:hover {
+            background: #95d077;
+            box-shadow: 0 4px 12px rgba(168, 223, 142, 0.3);
+        }
+        .links {
+            text-align: center;
+            margin-top: 24px;
+            color: #666;
+        }
+        .links a {
+            color: #1a1a1a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .links a:hover { text-decoration: underline; }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { color: #1a1a1a; }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="logo">Quell-AI</div>
+        <h1>Create Account</h1>
+        <p class="subtitle">Join the waitlist for early access</p>
+        
+        <form action="/api/auth/register" method="POST">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="John Doe">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="you@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="••••••••">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm_password" required placeholder="••••••••">
+            </div>
+            
+            <button type="submit" class="button-primary">Sign Up</button>
+        </form>
+        
+        <div class="links">
+            Already have an account? <a href="/legacy/login.html">Log in</a>
+        </div>
+        
+        <a href="/" class="back-link">← Back to home</a>
+    </div>
+</body>
+</html>

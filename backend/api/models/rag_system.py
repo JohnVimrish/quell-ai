@@ -269,6 +269,38 @@ AI Assistant Response:"""
         except Exception as e:
             logger.error(f"Error generating contextual response: {e}")
             return "I apologize, but I'm having trouble processing your request right now. Please try again."
+
+    def cleanup(self) -> None:
+        """Release database connections and model resources."""
+        try:
+            if hasattr(self, "session") and self.session:
+                self.session.close()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Error closing RAG session: {exc}")
+
+        try:
+            if hasattr(self, "engine") and self.engine:
+                self.engine.dispose()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Error disposing RAG engine: {exc}")
+
+        # Drop references to large models to help GC
+        for attr in [
+            "embedding_model",
+            "generation_model",
+            "generation_tokenizer",
+            "sentiment_analyzer",
+            "ner_pipeline",
+            "intent_classifier",
+        ]:
+            if hasattr(self, attr):
+                setattr(self, attr, None)
+
+        if torch.cuda.is_available():
+            try:
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
     
     def update_document_usage(self, document_id: int):
         """Update usage statistics for a document"""

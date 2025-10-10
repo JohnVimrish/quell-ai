@@ -713,6 +713,36 @@ class AdvancedSpamDetector:
         except Exception as e:
             logger.error(f"Error getting spam statistics: {e}")
             return {'error': str(e)}
+
+    def cleanup(self) -> None:
+        """Release database sessions and heavy model references."""
+        try:
+            if hasattr(self, "session") and self.session:
+                self.session.close()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Error closing spam detector session: {exc}")
+
+        try:
+            if hasattr(self, "engine") and self.engine:
+                self.engine.dispose()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Error disposing spam detector engine: {exc}")
+
+        for attr in [
+            "spam_classifier",
+            "tfidf_vectorizer",
+            "behavior_classifier",
+            "anomaly_detector",
+            "scaler",
+        ]:
+            if hasattr(self, attr):
+                setattr(self, attr, None)
+
+        if torch.cuda.is_available():
+            try:
+                torch.cuda.empty_cache()
+            except Exception:
+                pass
     
     def __del__(self):
         """Cleanup database connection"""

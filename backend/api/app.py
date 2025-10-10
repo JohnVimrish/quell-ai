@@ -12,11 +12,7 @@ from api.db.connection import DatabaseManager
 from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
-
-try:
-    from backend.app.asset_loader import asset_url, asset_css, reset_manifest_cache
-except ModuleNotFoundError:  # pragma: no cover - fallback for local test runs
-    from app.asset_loader import asset_url, asset_css, reset_manifest_cache
+from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
     copilot_controller,
@@ -26,8 +22,8 @@ from .controllers import (
     report_controller,
     webhooks_controller,
     auth_controller,
-    status_controller,
 )
+from flask import send_from_directory
 
 
 def create_app(config_override=None):
@@ -35,6 +31,9 @@ def create_app(config_override=None):
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     template_dir = os.path.join(project_root, "templates")
     static_dir = os.path.join(project_root, "static")
+    frontend_root = os.path.abspath(os.path.join(project_root, "..", "frontend"))
+    legacy_dir = os.path.join(frontend_root, "legacy")
+    assets_dir = os.path.join(frontend_root, "public", "assets")
 
     app = Flask(
         __name__,
@@ -42,8 +41,6 @@ def create_app(config_override=None):
         static_folder=static_dir,
         static_url_path="/static",
     )
-
-    app.config["STARTED_AT"] = datetime.utcnow()
 
     # Make Vite asset helpers available to Jinja templates
     app.jinja_env.globals.update(asset_url=asset_url, asset_css=asset_css)
@@ -59,7 +56,11 @@ def create_app(config_override=None):
         """Serve SPA shell; React router handles internal navigation."""
         if path.startswith("api/"):
             return jsonify({"error": "Unknown API endpoint"}), 404
-        return render_template("base.html")
+        return render_template(
+            "base.html",
+            is_debug=app.debug,
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+        )
 
     # Initialize SocketIO for real-time features
     socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
@@ -80,6 +81,7 @@ def create_app(config_override=None):
             DEEPGRAM_API_KEY=os.getenv("DEEPGRAM_API_KEY"),
             ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
             OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
+            FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
             DATABASE_URL=os.getenv("DATABASE_URL") or cfg.database_url,
             DEBUG=cfg.debug,
             FEED_ACTIVE_DAYS=int(os.getenv("FEED_ACTIVE_DAYS", 7)),
@@ -109,6 +111,7 @@ def create_app(config_override=None):
         app,
         supports_credentials=True,
         origins=[
+            app.config["FRONTEND_DEV_URL"],
             "http://localhost:5173",
             "http://127.0.0.1:5173",
             "http://localhost:3000",
@@ -174,13 +177,23 @@ def create_app(config_override=None):
     def not_found(error):  # noqa: D401
         if request.path.startswith("/api/"):
             return jsonify({"error": "Resource not found", "code": 404}), 404
-        return render_template("base.html"), 404
+        return render_template(
+            "base.html",
+            is_debug=app.debug,
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+        ), 404
 
     @app.errorhandler(500)
     def internal_error(error):  # noqa: D401
         if request.path.startswith("/api/"):
             return jsonify({"error": "Internal server error", "code": 500}), 500
-        return render_template("base.html"), 500
+        return render_template(
+            "base.html",
+            is_debug=app.debug,
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+        ), 500
+
+
 
     # Register API blueprints
     app.register_blueprint(auth_controller.bp, url_prefix="/api/auth")
@@ -191,7 +204,6 @@ def create_app(config_override=None):
     app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
     app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
     app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
-    app.register_blueprint(status_controller.bp, url_prefix="/api/status")
 
     # Simple API status endpoint
     @app.route("/api/status")
@@ -202,13 +214,27 @@ def create_app(config_override=None):
             "authenticated": bool(session.get("user_id")),
         }
 
-    @app.route("/healthz")
-    def healthz():
-        """Lightweight health probe for container platforms."""
-        from api.controllers.status_controller import build_health_payload
+    app.config["LEGACY_STATIC_ROOT"] = legacy_dir
+    app.config["PUBLIC_ASSETS_ROOT"] = assets_dir
 
-        payload = build_health_payload()
-        payload["status"] = payload.get("status", "ok") or "ok"
-        return jsonify(payload)
+    @app.route('/legacy/<path:filename>')
+    def serve_legacy(filename):
+        """Serve legacy HTML files"""
+        root = app.config.get("LEGACY_STATIC_ROOT")
+        if not root:
+            return jsonify({"error": "Legacy directory not configured"}), 500
+        return send_from_directory(root, filename)
 
+    @app.route('/assets/<path:filename>')
+    def serve_assets(filename):
+        """Serve static assets"""
+        root = app.config.get("PUBLIC_ASSETS_ROOT")
+        if not root:
+            return jsonify({"error": "Assets directory not configured"}), 500
+        return send_from_directory(root, filename)
+    
+    
+    # Start the application
     return app
+
+
