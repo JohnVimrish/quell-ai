@@ -188,12 +188,9 @@ export default function WhyQuellAI() {
         <p style={{ fontSize: '1.25rem', color: '#666', marginBottom: '40px', maxWidth: '700px', margin: '0 auto 40px' }}>
           Join the waitlist and be among the first to experience intelligent call management.
         </p>
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button className="button-engage" style={{ fontSize: '1.1rem', padding: '14px 32px' }}>
             Join Waitlist
-          </button>
-          <button className="button-outline" style={{ fontSize: '1.1rem', padding: '14px 32px' }}>
-            Book a Demo
           </button>
         </div>
       </section>

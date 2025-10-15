@@ -21,7 +21,6 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <button className="button-engage" onClick={engage}>Engage with the Application</button>
-            <button className="button-outline">Book a Demo</button>
           </div>
         </div>
         <Phone3D />

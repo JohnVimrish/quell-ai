@@ -1,6 +1,6 @@
 # Quell-AI Experience Site
 
-Calm your calls, tame your texts. This repo hosts the interactive marketing experience for the Quell-AI communicator copilot. It highlights how Quell-AI auto-attends calls and texts on your behalf, filters spam, and delivers trustworthy summaries — all while keeping privacy front and center.
+Calm your calls, tame your texts. This repo hosts the interactive marketing experience for the Quell-AI communicator copilot. It highlights how Quell-AI auto-attends calls and texts on your behalf, filters spam, and delivers trustworthy summaries - all while keeping privacy front and center.
 
 ---
 
@@ -35,13 +35,14 @@ Calm your calls, tame your texts. This repo hosts the interactive marketing expe
 
 ---
 
-## What’s inside
+## What's inside
 
-- **Engaged navigation flow** – a centered landing nav (`About | Engage with the Application | Log in`) that expands into the full product surface when visitors engage or log in, and collapses when they log out.
-- **Hover “Back to About” control** – appears while hovering over “Engage with the Application” or when browsing the engaged views (`/why`, dashboard shells, etc.). Clicking it snaps visitors back to the landing layout without a full reload.
-- **Why Quell-AI page** – reachable at `/why`, featuring interactive storytelling, the 3D phone demo component, and mock scenarios that highlight contextual intelligence, privacy, and adaptive learning.
-- **Legacy auth stubs** – static login and signup HTML files in `frontend/legacy/` for linking from the SPA while the real auth flow is under construction.
-- **Backend scaffolding** – Flask app factory, blueprint registration, asset manifest loader, and graceful shutdown hooks for database and ML services to support the experience frontend.
+- **Engaged navigation flow** - a centered landing nav (`About | Engage with the Application | Log in`) that expands into the full product surface when visitors engage or log in, and collapses when they log out.
+- **Hover "Back to About" control** - appears while hovering over "Engage with the Application" or when browsing the engaged views (`/why`, dashboard shells, etc.). Clicking it snaps visitors back to the landing layout without a full reload.
+- **Why Quell-AI page** - reachable at `/why`, featuring interactive storytelling, the 3D phone demo component, and mock scenarios that highlight contextual intelligence, privacy, and adaptive learning.
+- **Message understanding lab** - experiment at `/labs/message-understanding` with a split-view flow that simulates language detection, safer recursive splitting, chunk summaries, and an image captioning stub.
+- **Legacy auth stubs** - static login and signup HTML files in `frontend/legacy/` for linking from the SPA while the real auth flow is under construction.
+- **Backend scaffolding** - Flask app factory, blueprint registration, asset manifest loader, and graceful shutdown hooks for database and ML services to support the experience frontend.
 
 ---
 
@@ -121,7 +122,7 @@ npm install
 npm run dev
 ```
 
-Or use the project’s container workflow (mirrors `node_build.txt`):
+Or use the project's container workflow (mirrors `node_build.txt`):
 
 ```bash
 docker compose -f extras/node.yml up -d                # start node-frontend container
@@ -149,11 +150,41 @@ The Flask app serves assets from `backend/static/dist` and resolves hashed filen
 
 ---
 
+### Labs pipeline configuration
+
+To swap the lab demo over from deterministic stubs to real detection/translation/embedding services, set the provider and credentials via environment variables:
+
+```bash
+# Required when using OpenAI
+export LABS_PIPELINE_PROVIDER=openai
+export OPENAI_API_KEY=sk-...
+
+# Optional overrides
+export LABS_OPENAI_MODEL=gpt-4o-mini
+export LABS_OPENAI_TRANSLATE_MODEL=gpt-4o-mini
+export LABS_OPENAI_EMBED_MODEL=text-embedding-3-small
+export LABS_OPENAI_EMBED_DIM=1536
+```
+
+If `LABS_PIPELINE_PROVIDER` is not set (or the API call fails), the pipeline falls back to the deterministic heuristics so the UI keeps working offline.
+
+### Database setup for labs features
+
+The labs experience stores messages, chunks, and image captions in Postgres with pgvector. Run the helper schema once (requires the `vector` extension):
+
+```bash
+psql "$DATABASE_URL" -f backend/api/db/migrations/labs_schema.sql
+```
+
+The Flask controller also runs the same statements on startup as a safety net, but applying the SQL yourself avoids repeated DDL checks in production.
+
+---
+
 ## Navigation behaviour at a glance
 
 | State                      | Visible nav                               | Notes                                                         |
 |----------------------------|-------------------------------------------|---------------------------------------------------------------|
-| Default visitor            | `About | Engage with the Application | Log in` | Centered pills; hover over Engage reveals “Back to About”.    |
+| Default visitor            | `About | Engage with the Application | Log in` | Centered pills; hover over Engage reveals "Back to About".    |
 | Engaged (clicked Engage)   | `About | Why Quell-AI | Dashboard | Calls | Contacts | Texts | Reports` | Smooth transition, Back button stays available.                |
 | Authenticated (login/signup) | `Dashboard | Calls | Contacts | Texts | Reports | Settings | Log out` | Log out returns to landing nav and clears highlights.          |
 | Hover / focus on Engage    | Adds `Back to About` control left of the brand | Clicking snaps to `/` without reloading or altering history. |
@@ -177,7 +208,7 @@ cd backend
 pytest
 ```
 
-Additions should maintain ASCII-only source unless there’s a clear reason to include Unicode (e.g., localisation assets).
+Additions should maintain ASCII-only source unless there's a clear reason to include Unicode (e.g., localisation assets).
 
 ---
 
@@ -194,4 +225,4 @@ Design system, copy, or interaction updates live primarily in `frontend/src/styl
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE) for details.
+Apache-2.0 - see [LICENSE](LICENSE) for details.

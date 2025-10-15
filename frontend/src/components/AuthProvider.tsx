@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthed, isEngaged]);
 
   useEffect(() => {
-    const engagedRoutes = ["/why", "/dashboard", "/calls", "/contacts", "/texts", "/reports", "/settings"];
+    const engagedRoutes = ["/why", "/dashboard", "/calls", "/contacts", "/texts", "/reports", "/settings", "/labs"];
     if (!isEngaged && engagedRoutes.some((route) => location.pathname.startsWith(route))) {
       setIsEngaged(true);
     }
@@ -65,24 +65,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthed,
     isEngaged,
     engage: () => {
-      setIsEngaged(true);
-      navigate("/why");
+      setIsEngaged((prev) => (prev ? prev : true));
+      if (location.pathname !== "/why") {
+        navigate("/why");
+      }
     },
     login: () => {
       setIsAuthed(true);
       setIsEngaged(true);
-      navigate("/dashboard");
+      if (location.pathname !== "/dashboard") {
+        navigate("/dashboard");
+      }
     },
     logout: () => {
       setIsAuthed(false);
       setIsEngaged(false);
-      navigate("/");
+      if (location.pathname !== "/") {
+        navigate("/");
+      }
     },
     backToAbout: () => {
       setIsEngaged(false);
-      navigate("/");
+      if (location.pathname !== "/") {
+        navigate("/");
+      }
     },
-  }), [isAuthed, isEngaged, navigate]);
+  }), [isAuthed, isEngaged, navigate, location.pathname]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

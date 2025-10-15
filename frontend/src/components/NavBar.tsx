@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "./AuthProvider";
 
 type NavItem =
@@ -10,13 +10,6 @@ type NavItem =
 export default function NavBar() {
   const { pathname } = useLocation();
   const { isAuthed, isEngaged, engage, logout, backToAbout } = useAuth();
-  const [isHoveringEngage, setIsHoveringEngage] = useState(false);
-
-  useEffect(() => {
-    if (isEngaged && isHoveringEngage) {
-      setIsHoveringEngage(false);
-    }
-  }, [isEngaged, isHoveringEngage]);
 
   const navItems = useMemo<NavItem[]>(() => {
     if (isAuthed) {
@@ -40,6 +33,7 @@ export default function NavBar() {
         { type: "link", to: "/contacts", label: "Contacts" },
         { type: "link", to: "/texts", label: "Texts" },
         { type: "link", to: "/reports", label: "Reports" },
+        { type: "link", to: "/labs/message-understanding", label: "Message Lab" },
       ];
     }
 
@@ -50,7 +44,7 @@ export default function NavBar() {
     ];
   }, [isAuthed, isEngaged]);
 
-  const showBackToAbout = isEngaged || isHoveringEngage || pathname === "/why";
+  const showBackToAbout = isEngaged && pathname !== "/";
 
   return (
     <header className={`navbar ${isEngaged || isAuthed ? "navbar-expanded" : ""}`} data-ui="navbar">
@@ -116,18 +110,6 @@ export default function NavBar() {
                 } else if (item.action === "logout") {
                   logout();
                 }
-              }}
-              onMouseEnter={() => {
-                if (item.action === "engage") setIsHoveringEngage(true);
-              }}
-              onMouseLeave={() => {
-                if (item.action === "engage") setIsHoveringEngage(false);
-              }}
-              onFocus={() => {
-                if (item.action === "engage") setIsHoveringEngage(true);
-              }}
-              onBlur={() => {
-                if (item.action === "engage") setIsHoveringEngage(false);
               }}
             >
               {item.label}

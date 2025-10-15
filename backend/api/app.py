@@ -22,6 +22,7 @@ from .controllers import (
     report_controller,
     webhooks_controller,
     auth_controller,
+    labs_controller,
 )
 from flask import send_from_directory
 
@@ -204,6 +205,7 @@ def create_app(config_override=None):
     app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
     app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
     app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
+    app.register_blueprint(labs_controller.bp, url_prefix="/api")
 
     # Simple API status endpoint
     @app.route("/api/status")

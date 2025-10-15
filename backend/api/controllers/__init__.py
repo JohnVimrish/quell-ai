@@ -9,6 +9,7 @@ from .report_controller import bp as report_bp
 from .status_controller import bp as status_bp
 from .webhooks_controller import bp as webhooks_bp
 from .auth_controller import bp as auth_bp
+from .labs_controller import bp as labs_bp
 
 __all__ = [
     'feed_bp',
@@ -19,5 +20,6 @@ __all__ = [
     'report_bp',
     'webhooks_bp',
     'auth_bp',
-    'status_bp'
+    'status_bp',
+    'labs_bp'
 ]
