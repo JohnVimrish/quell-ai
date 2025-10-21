@@ -8,21 +8,30 @@ from flask_socketio import SocketIO
 
 from api.utils.config import Config
 from api.utils.logging import LoggerManager
+from api.utils.query_manager import QueryManager
 from api.db.connection import DatabaseManager
-from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
+# Archived: spam detector temporarily disabled (Oct 2025)
+try:
+    from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
+except Exception:  # Module archived or unavailable
+    SpamDetector = None  # type: ignore
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
+from api.models.ollama_service import OllamaService
 from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
     copilot_controller,
-    contacts_controller,
-    calls_controller,
+    # archived: contacts_controller,
+    # archived: calls_controller,
     texts_controller,
-    report_controller,
+    documents_controller,
+    settings_controller,
+    # archived: report_controller,
     webhooks_controller,
     auth_controller,
     labs_controller,
+    meetings_controller,
 )
 from flask import send_from_directory
 
@@ -73,15 +82,19 @@ def create_app(config_override=None):
         app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=24)
         app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
 
+        # Initialize Query Manager for centralized query management
+        queries_path = os.path.join(project_root, "config", "queries.json")
+        app.config["QUERY_MANAGER"] = QueryManager(queries_path)
+
         app.config.update(
             AI_MODEL_PATH=os.getenv("AI_MODEL_PATH", "models/"),
             VOICE_SAMPLES_PATH=os.getenv("VOICE_SAMPLES_PATH", "voice_samples/"),
             TRANSCRIPTS_PATH=os.getenv("TRANSCRIPTS_PATH", "transcripts/"),
-            TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID"),
-            TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN"),
-            DEEPGRAM_API_KEY=os.getenv("DEEPGRAM_API_KEY"),
-            ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
-            OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
+            # TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID"),
+            # TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN"),
+            # DEEPGRAM_API_KEY=os.getenv("DEEPGRAM_API_KEY"),
+            # ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
+            # OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
             FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
             DATABASE_URL=os.getenv("DATABASE_URL") or cfg.database_url,
             DEBUG=cfg.debug,
@@ -132,7 +145,8 @@ def create_app(config_override=None):
 
     # AI Models
     try:
-        if app.config["SPAM_DETECTION_ENABLED"]:
+        # Archived feature: Spam detector (Oct 2025)
+        if app.config["SPAM_DETECTION_ENABLED"] and SpamDetector is not None:
             app.config["SPAM_DETECTOR"] = SpamDetector(cfg)
         else:
             app.config["SPAM_DETECTOR"] = None
@@ -143,12 +157,24 @@ def create_app(config_override=None):
             app.config["VOICE_MODEL"] = VoiceModel()
         else:
             app.config["VOICE_MODEL"] = None
+
+        # Initialize OLLama service for data feeds
+        ollama_model_path = os.getenv(
+            "OLLAMA_MODEL_PATH",
+            "C:/Users/033690343/OneDrive - csulb/Models-LLM/Llama-3.2-1B-Instruct"
+        )
+        ollama_embedding_dim = int(os.getenv("OLLAMA_EMBEDDING_DIM", "384"))
+        app.config["OLLAMA_SERVICE"] = OllamaService(
+            model_path=ollama_model_path,
+            embedding_dim=ollama_embedding_dim
+        )
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).exception("AI model initialization failed")
         app.config.update(
             SPAM_DETECTOR=None,
             RAG_SYSTEM=None,
             VOICE_MODEL=None,
+            OLLAMA_SERVICE=None,
         )
 
     os.makedirs(app.config["AI_MODEL_PATH"], exist_ok=True)
@@ -162,6 +188,8 @@ def create_app(config_override=None):
         g.spam_detector = app.config.get("SPAM_DETECTOR")
         g.rag_system = app.config.get("RAG_SYSTEM")
         g.voice_model = app.config.get("VOICE_MODEL")
+        g.ollama_service = app.config.get("OLLAMA_SERVICE")
+        g.query_manager = app.config.get("QUERY_MANAGER")
         session.permanent = True
 
     @app.after_request
@@ -200,10 +228,14 @@ def create_app(config_override=None):
     app.register_blueprint(auth_controller.bp, url_prefix="/api/auth")
     app.register_blueprint(copilot_controller.bp, url_prefix="/api/copilot")
     app.register_blueprint(feed_controller.bp, url_prefix="/api/feed")
-    app.register_blueprint(contacts_controller.bp, url_prefix="/api/contacts")
-    app.register_blueprint(calls_controller.bp, url_prefix="/api/calls")
+    # Archived endpoints (Oct 2025)
+    # app.register_blueprint(contacts_controller.bp, url_prefix="/api/contacts")
+    # app.register_blueprint(calls_controller.bp, url_prefix="/api/calls")
     app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
-    app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
+    app.register_blueprint(documents_controller.bp, url_prefix="/api/documents")
+    app.register_blueprint(meetings_controller.bp, url_prefix="/api/meetings")
+    app.register_blueprint(settings_controller.bp, url_prefix="/api/settings")
+    # app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
     app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
     app.register_blueprint(labs_controller.bp, url_prefix="/api")
 
@@ -238,5 +270,3 @@ def create_app(config_override=None):
     
     # Start the application
     return app
-
-

@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS ai_intelligence.embeddings (
     content_id BIGINT NOT NULL,
     content_text TEXT NOT NULL,
     embedding vector(384) NOT NULL,
-    model_name TEXT NOT NULL DEFAULT 'sentence-transformers/all-MiniLM-L6-v2',
+    model_name TEXT NOT NULL DEFAULT 'text-embedding-3-small',
     model_version TEXT DEFAULT '1.0',
     created_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT embeddings_content_not_empty CHECK (char_length(trim(content_text)) > 0),

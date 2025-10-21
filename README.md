@@ -8,15 +8,15 @@ Calm your calls, tame your texts. This repo hosts the interactive marketing expe
 
 ### Key capabilities
 
-- **Copilot Mode** – smarter than silent mode; toggle AI on/off or set a duration.
-- **Instruction Feed** – short-lived tasks the AI can reference (auto-clears in a week).
-- **Whitelist Contacts** – important callers bypass the AI entirely.
-- **Spam Filtering** – layered number reputation plus keyword heuristics.
-- **Mind-Map Summaries** – conversations distilled into actionable highlights.
-- **Voice Cloning (opt-in)** – speaks in your voice with transparent disclosure.
-- **Searchable Transcripts** – locate keywords across calls and texts.
-- **Weekly Reports** – track time saved, spam blocked, and AI-handled volume.
-- **Open and modular** – bring-your-own STT, TTS, and telephony providers.
+- **Unified sessions** - calls, video meetings, and chat threads flow through one decision engine with shared guardrails.
+- **Delegation rules** - auto-join Zoom/Teams when you are busy, or hand chat mentions back when a VIP pings you.
+- **Instruction feed** - short-lived guidance scoped by channel, meeting title, or contact, with automatic expiry.
+- **Document policies** - upload briefs and set who, when, and where the assistant is allowed to share them.
+- **Voice cloning controls** - opt-in voice, disclosure toggles, and audit logs before the assistant speaks for you.
+- **Mind-map summaries** - meetings and calls distilled into highlights, topics, and action items.
+- **Spam and safety** - layered models keep unwanted calls, phishing texts, and unknown meeting invites at bay.
+- **Searchable transcripts** - keyword search across calls, meetings, and chat logs in one place.
+- **Modular stack** - bring your own telephony, transcription, and TTS providers.
 
 ### Why Quell-AI stands apart
 
@@ -37,6 +37,9 @@ Calm your calls, tame your texts. This repo hosts the interactive marketing expe
 
 ## What's inside
 
+- **Multi-channel session engine** - unified calls, meetings, and chat via `/api/meetings`, `/api/calls`, and `/api/texts` using the new communication session model.
+- **Document policy manager** - configure share rules at `/documents` with `/api/documents` audit trails and retention settings.
+- **Settings service** - `/api/settings` exposes voice clone, delegation, and retention toggles surfaced in the SPA.
 - **Engaged navigation flow** - a centered landing nav (`About | Engage with the Application | Log in`) that expands into the full product surface when visitors engage or log in, and collapses when they log out.
 - **Hover "Back to About" control** - appears while hovering over "Engage with the Application" or when browsing the engaged views (`/why`, dashboard shells, etc.). Clicking it snaps visitors back to the landing layout without a full reload.
 - **Why Quell-AI page** - reachable at `/why`, featuring interactive storytelling, the 3D phone demo component, and mock scenarios that highlight contextual intelligence, privacy, and adaptive learning.
@@ -226,3 +229,9 @@ Design system, copy, or interaction updates live primarily in `frontend/src/styl
 ## License
 
 Apache-2.0 - see [LICENSE](LICENSE) for details.
+
+
+
+
+
+

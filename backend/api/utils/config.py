@@ -41,6 +41,8 @@ class Config:
 
         # Resolve database URL
         db_url = (app_cfg.get("database", {}) or {}).get("url") or os.getenv("DATABASE_URL", "")
+        if db_url and db_url.startswith("postgresql://"):
+            db_url = "postgresql+psycopg://" + db_url[len("postgresql://") :]
 
         # Logging configuration
         log_cfg = app_cfg.get("logging") or {}

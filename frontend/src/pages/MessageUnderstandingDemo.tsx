@@ -51,6 +51,14 @@ export default function MessageUnderstandingDemo() {
   const senderLanguage = useMemo(() => (srcLang === "auto" ? undefined : srcLang), [srcLang]);
 
   useEffect(() => {
+    const previousTitle = document.title;
+    document.title = "Message Lab";
+    return () => {
+      document.title = previousTitle;
+    };
+  }, []);
+
+  useEffect(() => {
     setError("");
   }, [text, srcLang, userLang, imageFile, mediaUrl]);
 
@@ -136,7 +144,7 @@ export default function MessageUnderstandingDemo() {
     <div className="labs-page section-padding">
       <header className="labs-header">
         <div>
-          <h1>Message Understanding Lab</h1>
+          <h1>Message Lab</h1>
           <p>Simulate Quell-AI&apos;s safer splitting, translation, and summarization workflow.</p>
         </div>
         <div className="labs-actions">

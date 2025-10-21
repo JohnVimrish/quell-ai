@@ -1,12 +1,11 @@
 
 from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, JSON, Float, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from typing import Dict, List, Optional
 
-Base = declarative_base()
+from functionalities.base import Base
 
 class Contact(Base):
     __tablename__ = 'user_management.contacts'

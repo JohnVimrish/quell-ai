@@ -1,0 +1,1 @@
+import{j as e}from"./main-CqeJaehZ.js";function t(){return e.jsxs("div",{className:"section-padding",children:[e.jsx("h1",{style:{fontSize:"2.5rem",marginBottom:"24px"},children:"Reports"}),e.jsx("p",{style:{color:"#666",fontSize:"1.1rem"},children:"This is a placeholder for the Reports page. Full functionality coming soon."})]})}export{t as default};

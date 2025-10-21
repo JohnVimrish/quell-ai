@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthed, isEngaged]);
 
   useEffect(() => {
-    const engagedRoutes = ["/why", "/dashboard", "/calls", "/contacts", "/texts", "/reports", "/settings", "/labs"];
+    // Archived (Oct 2025): calls, contacts, reports
+    const engagedRoutes = ["/why", "/dashboard", "/texts", "/settings", "/labs"];
     if (!isEngaged && engagedRoutes.some((route) => location.pathname.startsWith(route))) {
       setIsEngaged(true);
     }
@@ -100,6 +101,9 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+
+
+
 
 
 

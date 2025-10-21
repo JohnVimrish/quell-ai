@@ -2,7 +2,11 @@
 from flask import Blueprint, jsonify, request, current_app, session
 from api.repositories.calls_repo import CallsRepository
 from api.repositories.contacts_repo import ContactsRepository
-from api.models.spam_detector import AdvancedSpamDetector as  SpamDetector
+# Archived: spam detector temporarily disabled (Oct 2025)
+try:
+    from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
+except Exception:
+    SpamDetector = None  # type: ignore
 from api.utils.validation import contains_sensitive
 import logging
 import json
@@ -80,16 +84,18 @@ def analyze_call():
             "action_items": []
         }
         
-        # Spam analysis
-        spam_detector = SpamDetector()
-        spam_result = spam_detector.analyze_call({
-            'from_number': call['from_number'],
-            'to_number': call['to_number'],
-            'duration_seconds': call.get('duration_seconds', 0),
-            'time_of_day': datetime.fromisoformat(call['started_at']).hour if call.get('started_at') else 12
-        })
+        # Spam analysis (archived if SpamDetector unavailable)
+        spam_result = None
+        if SpamDetector:
+            spam_detector = SpamDetector()
+            spam_result = spam_detector.analyze_call({
+                'from_number': call['from_number'],
+                'to_number': call['to_number'],
+                'duration_seconds': call.get('duration_seconds', 0),
+                'time_of_day': datetime.fromisoformat(call['started_at']).hour if call.get('started_at') else 12
+            })
         
-        if spam_result.get('is_spam'):
+        if spam_result and spam_result.get('is_spam'):
             analysis['insights'].append({
                 "type": "spam_detection",
                 "confidence": spam_result.get('spam_score', 0),
@@ -225,16 +231,18 @@ def real_time_assist():
         recent_calls = calls_repo.get_calls_by_phone(user_id, phone_number, 1, 5)
         assistance['call_history'] = recent_calls
         
-        # Spam check
-        spam_detector = SpamDetector()
-        spam_result = spam_detector.analyze_call({
-            'from_number': phone_number,
-            'to_number': 'user',  # Placeholder
-            'duration_seconds': 0,
-            'time_of_day': datetime.now().hour
-        })
+        # Spam check (archived if SpamDetector unavailable)
+        spam_result = None
+        if SpamDetector:
+            spam_detector = SpamDetector()
+            spam_result = spam_detector.analyze_call({
+                'from_number': phone_number,
+                'to_number': 'user',  # Placeholder
+                'duration_seconds': 0,
+                'time_of_day': datetime.now().hour
+            })
         
-        if spam_result.get('is_spam'):
+        if spam_result and spam_result.get('is_spam'):
             assistance['warnings'].append({
                 "type": "spam_risk",
                 "message": f"High spam probability ({spam_result.get('spam_score', 0):.2f})",
@@ -565,26 +573,32 @@ def health_check():
             "services": {}
         }
         
-        # Check spam detector
-        try:
-            spam_detector = SpamDetector()
-            test_result = spam_detector.analyze_call({
-                'from_number': '+1234567890',
-                'to_number': '+1987654321',
-                'duration_seconds': 30,
-                'time_of_day': 12
-            })
+        # Check spam detector (archived if unavailable)
+        if SpamDetector:
+            try:
+                spam_detector = SpamDetector()
+                test_result = spam_detector.analyze_call({
+                    'from_number': '+1234567890',
+                    'to_number': '+1987654321',
+                    'duration_seconds': 30,
+                    'time_of_day': 12
+                })
+                health_status['services']['spam_detector'] = {
+                    "status": "healthy" if test_result is not None else "unhealthy",
+                    "last_check": datetime.now().isoformat()
+                }
+            except Exception as e:
+                health_status['services']['spam_detector'] = {
+                    "status": "unhealthy",
+                    "error": str(e),
+                    "last_check": datetime.now().isoformat()
+                }
+                health_status['overall_status'] = "degraded"
+        else:
             health_status['services']['spam_detector'] = {
-                "status": "healthy" if test_result is not None else "unhealthy",
+                "status": "archived",
                 "last_check": datetime.now().isoformat()
             }
-        except Exception as e:
-            health_status['services']['spam_detector'] = {
-                "status": "unhealthy",
-                "error": str(e),
-                "last_check": datetime.now().isoformat()
-            }
-            health_status['overall_status'] = "degraded"
         
         # Check AI providers
         if cfg.providers:

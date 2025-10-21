@@ -149,5 +149,37 @@
     "invalidate": "UPDATE user_management.user_sessions SET is_active = false WHERE session_token = $1",
     "invalidate_all_user": "UPDATE user_management.user_sessions SET is_active = false WHERE user_id = $1",
     "cleanup_expired": "DELETE FROM user_management.user_sessions WHERE expires_at <= now() OR is_active = false"
+  },
+
+  "data_feeds": {
+    "check_existing": "SELECT id, name, embedding, version, file_size_bytes, content_metadata FROM ai_intelligence.documents WHERE name = :name AND user_id = :user_id AND is_deleted = false",
+    
+    "create_document": "INSERT INTO ai_intelligence.documents (user_id, name, description, storage_uri, storage_type, classification, file_type, file_size_bytes, original_content, processed_content, content_metadata, embedding, vector_metadata, ollama_model, version) VALUES (:user_id, :name, :description, :storage_uri, :storage_type, :classification, :file_type, :file_size_bytes, :original_content, :processed_content, :content_metadata, :embedding, :vector_metadata, :ollama_model, :version) RETURNING id",
+    
+    "update_version": "UPDATE ai_intelligence.documents SET version = version + 1, previous_embedding = embedding, embedding = :embedding, processed_content = :processed_content, content_metadata = :content_metadata, vector_metadata = :vector_metadata, last_modified_at = now(), embedding_changed = :embedding_changed WHERE id = :id RETURNING version",
+    
+    "list_active_documents": "SELECT id, user_id, name, description, file_type, file_size_bytes, content_metadata, vector_metadata, (embedding IS NOT NULL) as has_embedding, classification, shareable, version, created_at, updated_at FROM ai_intelligence.documents WHERE user_id = :user_id AND is_deleted = false ORDER BY created_at DESC",
+    
+    "get_document_with_embedding": "SELECT id, name, description, embedding, version, file_type, file_size_bytes, content_metadata, vector_metadata FROM ai_intelligence.documents WHERE id = :id AND user_id = :user_id AND is_deleted = false",
+    
+    "soft_delete": "UPDATE ai_intelligence.documents SET is_deleted = true, deleted_at = now(), deleted_by = :deleted_by, vector_metadata = '{}' WHERE id = :id AND user_id = :user_id RETURNING id, name, file_type, file_size_bytes, vector_metadata",
+    
+    "restore_document": "UPDATE ai_intelligence.documents SET is_deleted = false, deleted_at = NULL, deleted_by = NULL WHERE id = :id AND user_id = :user_id RETURNING id",
+    
+    "list_deleted": "SELECT id, name, file_type, file_size_bytes, deleted_at, deleted_by, created_at FROM ai_intelligence.documents WHERE user_id = :user_id AND is_deleted = true ORDER BY deleted_at DESC",
+    
+    "vector_search": "SELECT id, name, description, file_type, file_size_bytes, content_metadata, vector_metadata, created_at, 1 - (embedding <=> :query_embedding) AS similarity_score FROM ai_intelligence.documents WHERE user_id = :user_id AND embedding IS NOT NULL AND is_deleted = false ORDER BY embedding <=> :query_embedding LIMIT :limit",
+    
+    "create_version_snapshot": "INSERT INTO ai_intelligence.document_versions (document_id, version, embedding, content_snapshot, metadata_snapshot, created_by) VALUES (:document_id, :version, :embedding, :content_snapshot, :metadata_snapshot, :created_by) RETURNING id",
+    
+    "get_version_history": "SELECT version, created_at, created_by FROM ai_intelligence.document_versions WHERE document_id = :document_id ORDER BY version DESC",
+    
+    "get_version_content": "SELECT version, content_snapshot, metadata_snapshot, created_at, created_by FROM ai_intelligence.document_versions WHERE document_id = :document_id AND version = :version",
+    
+    "log_deletion": "INSERT INTO ai_intelligence.document_deletion_log (document_id, document_name, deleted_by, reason, vector_metadata_snapshot, file_type, file_size_bytes) VALUES (:document_id, :document_name, :deleted_by, :reason, :vector_metadata_snapshot, :file_type, :file_size_bytes) RETURNING id",
+    
+    "permanently_delete_old": "DELETE FROM ai_intelligence.documents WHERE is_deleted = true AND deleted_at < (now() - INTERVAL ':days days')",
+    
+    "get_content": "SELECT id, name, file_type, processed_content, original_content, content_metadata, vector_metadata FROM ai_intelligence.documents WHERE id = :id AND user_id = :user_id"
   }
 }

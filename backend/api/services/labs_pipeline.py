@@ -136,6 +136,10 @@ class LanguagePipelineClient:
     # ---- internal -------------------------------------------------------
 
     @property
+    def can_use_openai(self) -> bool:
+        return self._can_use_openai
+
+    @property
     def _can_use_openai(self) -> bool:
         return self.config.provider == "openai" and bool(self.config.api_key)
 
@@ -164,3 +168,34 @@ class LanguagePipelineClient:
         response.raise_for_status()
         data = response.json()
         return data["choices"][0]["message"]["content"]
+
+    def chat_conversation(
+        self,
+        messages: List[Dict[str, str]],
+        *,
+        model: Optional[str] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 800,
+    ) -> Optional[str]:
+        if not messages:
+            return None
+        if not self._can_use_openai:
+            return None
+        try:
+            payload = {
+                "model": model or self.config.chat_model,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "messages": messages,
+            }
+            response = requests.post(
+                f"{self.config.api_base}/chat/completions",
+                headers=self._headers,
+                json=payload,
+                timeout=30,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+        except Exception:  # pragma: no cover - external API
+            return None

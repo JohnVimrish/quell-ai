@@ -29,10 +29,12 @@ export DEBUG=${DEBUG:-true}
 export FRONTEND_DEV_URL=${FRONTEND_DEV_URL:-http://localhost:5173}
 
 # Database configuration (override in .env as needed)
-export DATABASE_URL=${DATABASE_URL:-'postgresql://user_ai:Abc$12345@localhost:15433/quell_ai'}
+export DATABASE_URL=${DATABASE_URL:-'postgresql+psycopg://user_ai:Abc$12345@localhost:15433/quell_ai'}
 
 # AI/ML Model configuration
-export EMBED_MODEL=${EMBED_MODEL:-"sentence-transformers/all-MiniLM-L6-v2"}
+export OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-"gpt-4o-mini"}
+export OPENAI_EMBED_MODEL=${OPENAI_EMBED_MODEL:-"text-embedding-3-small"}
+export OPENAI_EMBED_DIM=${OPENAI_EMBED_DIM:-1536}
 
 # Logging configuration
 export LOG_LEVEL=${LOG_LEVEL:-DEBUG}
