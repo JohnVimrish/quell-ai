@@ -1,315 +1,331 @@
-import torch
-import numpy as np
-from transformers import (
-    AutoTokenizer, AutoModel, AutoModelForCausalLM,
-    pipeline, BertTokenizer, BertModel
-)
-from sentence_transformers import SentenceTransformer
-import psycopg
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from __future__ import annotations
+
 import json
-from typing import List, Dict, Any, Tuple, Optional
-from datetime import datetime
 import logging
-from api.db.vector_store import DocumentEmbedding, ConversationContext, SpamPattern
+import re
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
+
+from api.db.vector_store import ConversationContext, DocumentEmbedding
 from api.utils.config import Config
+from api.models.ollama_service import OllamaService
 
 logger = logging.getLogger(__name__)
 
+TARGET_VECTOR_DIM = 384
+
+
 class RAGSystem:
-    """
-    Advanced RAG system with PostgreSQL vector storage and ML-powered analysis
-    """
-    
-    def __init__(self, config: Config):
+    """Retrieval-augmented generation backed by local Ollama service."""
+
+    def __init__(self, config: Config, ollama_service: Optional[OllamaService] = None):
         self.config = config
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-        # Initialize database connection
-        self.engine = create_engine(config.database_url)
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
-        
-        # Initialize transformer models
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.generation_model = AutoModelForCausalLM.from_pretrained(
-            "microsoft/DialoGPT-medium"
-        ).to(self.device)
-        self.generation_tokenizer = AutoTokenizer.from_pretrained(
-            "microsoft/DialoGPT-medium"
-        )
-        
-        # NLP pipeline for analysis
-        self.sentiment_analyzer = pipeline(
-            "sentiment-analysis",
-            model="cardiffnlp/twitter-roberta-base-sentiment-latest",
-            device=0 if torch.cuda.is_available() else -1
-        )
-        
-        self.ner_pipeline = pipeline(
-            "ner",
-            model="dbmdz/bert-large-cased-finetuned-conll03-english",
-            aggregation_strategy="simple",
-            device=0 if torch.cuda.is_available() else -1
-        )
-        
-        # Intent classification
-        self.intent_classifier = pipeline(
-            "zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=0 if torch.cuda.is_available() else -1
-        )
-        
-        self.intent_labels = [
-            "urgent_request", "appointment_scheduling", "complaint", "inquiry",
-            "sales_pitch", "spam", "emergency", "routine_business", "personal"
-        ]
-        
-    def store_document_embedding(self, user_id: int, content: str, 
-                                document_type: str, document_id: int = None,
-                                metadata: Dict = None) -> int:
-        """Store document embedding in PostgreSQL"""
+        engine = create_engine(config.database_url, future=True)
+        SessionFactory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+        self.engine = engine
+        self.session: Session = SessionFactory()
+
+        self.ollama_service: Optional[OllamaService] = ollama_service
+
+        # Optional table names from config.queries (rag section) or defaults
+        rag_cfg = (config.queries.get("rag") if isinstance(config.queries, dict) else None) or {}
+        self.embed_table: str = rag_cfg.get("embed_table", "document_embeddings")
+        self.context_table: str = rag_cfg.get("context_table", "conversation_contexts")
+
+    # ------------------------------------------------------------------ #
+    # Public API
+    # ------------------------------------------------------------------ #
+    def store_document_embedding(
+        self,
+        user_id: int,
+        content: str,
+        document_type: str,
+        document_id: Optional[int] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Optional[int]:
+        """Generate and persist an embedding for a document."""
+        embedding = self._embed_text(content)
+        if embedding is None:
+            logger.warning("Skipping document embedding; local LLM unavailable.")
+            return None
+
         try:
-            # Generate embedding
-            embedding = self.embedding_model.encode(content)
-            
-            # Create database record
-            doc_embedding = DocumentEmbedding(
+            record = DocumentEmbedding(
                 user_id=user_id,
                 document_type=document_type,
                 document_id=document_id,
                 content=content,
-                embedding=embedding.tolist(),
-                document_metadata=metadata or {}
+                embedding=embedding,
+                document_metadata=metadata or {},
             )
-            
-            self.session.add(doc_embedding)
+            self.session.add(record)
             self.session.commit()
-            
-            logger.info(f"Stored embedding for document type: {document_type}")
-            return doc_embedding.id
-            
-        except Exception as e:
-            logger.error(f"Error storing document embedding: {e}")
+            logger.info("Stored embedding for document type %s", document_type)
+            return record.id
+        except Exception as exc:  # noqa: BLE001
             self.session.rollback()
+            logger.error("Error storing document embedding: %s", exc)
             return None
-    
-    def retrieve_similar_documents(self, query: str, user_id: int, 
-                                 document_types: List[str] = None,
-                                 limit: int = 5) -> List[Dict[str, Any]]:
-        """Retrieve similar documents using vector similarity search"""
-        try:
-            # Generate query embedding
-            query_embedding = self.embedding_model.encode(query)
-            
-            # Build SQL query for vector similarity
-            type_filter = ""
-            if document_types:
-                type_list = "', '".join(document_types)
-                type_filter = f"AND document_type IN ('{type_list}')"
-            
-            sql_query = text(f"""
-                SELECT id, document_type, document_id, content, metadata,
-                       1 - (embedding <=> :query_embedding) as similarity_score
-                FROM document_embeddings 
-                WHERE user_id = :user_id {type_filter}
-                ORDER BY embedding <=> :query_embedding
-                LIMIT :limit
-            """)
-            
-            result = self.session.execute(sql_query, {
-                'query_embedding': query_embedding.tolist(),
-                'user_id': user_id,
-                'limit': limit
-            })
-            
-            documents = []
-            for row in result:
-                documents.append({
-                    'id': row.id,
-                    'document_type': row.document_type,
-                    'document_id': row.document_id,
-                    'content': row.content,
-                    'document_metadata': row.metadata,
-                    'similarity_score': float(row.similarity_score)
-                })
-                
-            return documents
-            
-        except Exception as e:
-            logger.error(f"Error retrieving similar documents: {e}")
+
+    def retrieve_similar_documents(
+        self,
+        query: str,
+        user_id: int,
+        document_types: Optional[List[str]] = None,
+        limit: int = 5,
+    ) -> List[Dict[str, Any]]:
+        """Retrieve similar documents using vector similarity search (pgvector)."""
+        embedding = self._embed_text(query)
+        if embedding is None:
             return []
-    
-    def analyze_conversation_context(self, conversation_text: str, 
-                                   conversation_id: str, user_id: int,
-                                   conversation_type: str) -> Dict[str, Any]:
-        """Analyze conversation using NLP and store context"""
+
         try:
-            # Sentiment analysis
-            sentiment_result = self.sentiment_analyzer(conversation_text)[0]
-            sentiment_score = sentiment_result['score'] if sentiment_result['label'] == 'POSITIVE' else -sentiment_result['score']
-            
-            # Named Entity Recognition
-            entities = self.ner_pipeline(conversation_text)
-            
-            # Intent classification
-            intent_result = self.intent_classifier(conversation_text, self.intent_labels)
-            primary_intent = intent_result['labels'][0]
-            intent_confidence = intent_result['scores'][0]
-            
-            # Urgency detection (custom logic)
-            urgency_keywords = ['urgent', 'emergency', 'asap', 'immediately', 'critical', 'help']
-            urgency_score = sum(1 for keyword in urgency_keywords if keyword.lower() in conversation_text.lower()) / len(urgency_keywords)
-            
-            # Generate context embedding
-            context_embedding = self.embedding_model.encode(conversation_text)
-            
-            # Prepare context data
-            context_data = {
-                'primary_intent': primary_intent,
-                'intent_confidence': float(intent_confidence),
-                'sentiment_label': sentiment_result['label'],
-                'entities': entities,
-                'urgency_keywords_found': [kw for kw in urgency_keywords if kw.lower() in conversation_text.lower()],
-                'text_length': len(conversation_text),
-                'analysis_timestamp': datetime.utcnow().isoformat()
+            type_filter = ""
+            params: Dict[str, Any] = {
+                "query_embedding": embedding,
+                "user_id": user_id,
+                "limit": limit,
             }
-            
-            # Store in database
-            conversation_context = ConversationContext(
+            if document_types:
+                type_filter = "AND document_type = ANY(:doc_types)"
+                params["doc_types"] = document_types
+
+            tmpl = (self.config.queries.get("rag") or {}).get("vector_search") or ""
+
+            if tmpl:
+                base_sql = tmpl.replace("{embed_table}", self.embed_table)
+                sql_text = base_sql.replace("{type_filter}", f" {type_filter} " if type_filter else "")
+            else:
+                sql_text = f"""
+                    SELECT id, document_type, document_id, content, document_metadata,
+                        1 - (embedding <=> :query_embedding) AS similarity_score
+                    FROM {self.embed_table}
+                    WHERE user_id = :user_id {type_filter}
+                    ORDER BY embedding <=> :query_embedding
+                    LIMIT :limit
+                """
+
+            rows = self.session.execute(text(sql_text), params).mappings().all()
+
+            documents: List[Dict[str, Any]] = []
+          
+            for r in rows:
+                documents.append(
+                    {
+                        "id": r["id"],
+                        "document_type": r.get("document_type"),
+                        "document_id": r.get("document_id"),
+                        "content": r.get("content"),
+                        "document_metadata": r.get("document_metadata"),
+                        "similarity_score": float(r["similarity_score"]),
+                    }
+                )
+            return documents
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Error retrieving similar documents: %s", exc)
+            return []
+
+    def analyze_conversation_context(
+        self,
+        conversation_text: str,
+        user_id: int,
+        conversation_id: str,
+        conversation_type: str = "call",
+    ) -> Dict[str, Any]:
+        """Analyze and store conversation context using local LLM."""
+        if not self._api_available:
+            return {"analysis_complete": False, "error": "local LLM unavailable"}
+
+        analysis = self._analyze_with_llm(conversation_text)
+        if not analysis:
+            return {"analysis_complete": False, "error": "analysis failed"}
+
+        # Try to embed text for retrieval
+        embedding = self._embed_text(conversation_text)
+
+        try:
+            context_record = ConversationContext(
                 user_id=user_id,
                 conversation_id=conversation_id,
                 conversation_type=conversation_type,
-                context_data=context_data,
-                embedding=context_embedding.tolist(),
-                entities_extracted=entities,
-                sentiment_score=sentiment_score,
-                urgency_score=urgency_score,
-                                confidence_score=float(intent_confidence)
+                context_data=analysis,
+                embedding=embedding,
+                entities_extracted=analysis.get("entities", []),
+                sentiment_score=float(analysis.get("sentiment_score", 0.0)),
+                urgency_score=float(analysis.get("urgency_score", 0.0)),
+                confidence_score=float(analysis.get("intent_confidence", 0.0)),
             )
-            
-            self.session.add(conversation_context)
+            self.session.add(context_record)
             self.session.commit()
-            
-            return {
-                'context_id': conversation_context.id,
-                'primary_intent': primary_intent,
-                'intent_confidence': float(intent_confidence),
-                'sentiment_score': sentiment_score,
-                'urgency_score': urgency_score,
-                'entities': entities,
-                'analysis_complete': True
-            }
-            
-        except Exception as e:
-            logger.error(f"Error analyzing conversation context: {e}")
-            self.session.rollback()
-            return {'analysis_complete': False, 'error': str(e)}
-    
-    def generate_contextual_response(self, query: str, user_id: int, 
-                                   conversation_id: str = None) -> str:
-        """Generate AI response using retrieved context and conversation history"""
-        try:
-            # Retrieve relevant documents
-            relevant_docs = self.retrieve_similar_documents(
-                query, user_id, 
-                document_types=['instruction', 'call_transcript', 'contact_info'],
-                limit=3
-            )
-            
-            # Get conversation context if available
-            conversation_context = None
-            if conversation_id:
-                conversation_context = self.session.query(ConversationContext).filter_by(
-                    conversation_id=conversation_id,
-                    user_id=user_id
-                ).order_by(ConversationContext.last_updated.desc()).first()
-            
-            # Build context for generation
-            context_parts = []
-            
-            # Add relevant documents
-            for doc in relevant_docs:
-                context_parts.append(f"Reference: {doc['content'][:200]}...")
-            
-            # Add conversation context
-            if conversation_context:
-                context_data = conversation_context.context_data
-                context_parts.append(f"Intent: {context_data.get('primary_intent', 'unknown')}")
-                context_parts.append(f"Sentiment: {context_data.get('sentiment_label', 'neutral')}")
-                if context_data.get('urgency_keywords_found'):
-                    context_parts.append(f"Urgency indicators: {', '.join(context_data['urgency_keywords_found'])}")
-            
-            # Create prompt
-            context_text = "\n".join(context_parts)
-            prompt = f"""Context: {context_text}
-User Query: {query}
 
-AI Assistant Response:"""
-            
-            # Generate response
-            inputs = self.generation_tokenizer.encode(prompt, return_tensors='pt').to(self.device)
-            
-            with torch.no_grad():
-                outputs = self.generation_model.generate(
-                    inputs,
-                    max_length=inputs.shape[1] + 100,
-                    num_return_sequences=1,
-                    temperature=0.7,
-                    do_sample=True,
-                    pad_token_id=self.generation_tokenizer.eos_token_id
-                )
-            
-            response = self.generation_tokenizer.decode(outputs[0], skip_special_tokens=True)
-            response = response[len(prompt):].strip()
-            
-            return response
-            
-        except Exception as e:
-            logger.error(f"Error generating contextual response: {e}")
-            return "I apologize, but I'm having trouble processing your request right now. Please try again."
+            return {
+                "context_id": context_record.id,
+                "primary_intent": analysis.get("primary_intent"),
+                "intent_confidence": float(analysis.get("intent_confidence", 0.0)),
+                "sentiment_score": float(analysis.get("sentiment_score", 0.0)),
+                "urgency_score": float(analysis.get("urgency_score", 0.0)),
+                "entities": analysis.get("entities", []),
+                "analysis_complete": True,
+            }
+        except Exception as exc:  # noqa: BLE001
+            self.session.rollback()
+            logger.error("Error analyzing conversation context: %s", exc)
+            return {"analysis_complete": False, "error": str(exc)}
+
+    def generate_contextual_response(
+        self,
+        query: str,
+        user_id: int,
+        conversation_id: Optional[str] = None,
+    ) -> str:
+        """Produce a conversational response using stored context and local LLM."""
+        relevant_docs = self.retrieve_similar_documents(
+            query,
+            user_id,
+            document_types=["instruction", "call_transcript", "contact_info"],
+            limit=3,
+        )
+
+        conversation_context: Optional[ConversationContext] = None
+        if conversation_id:
+            conversation_context = (
+                self.session.query(ConversationContext)
+                .filter_by(conversation_id=conversation_id, user_id=user_id)
+                .order_by(ConversationContext.last_updated.desc())
+                .first()
+            )
+
+        context_parts: List[str] = []
+        for doc in relevant_docs:
+            snippet = doc["content"][:200].replace("\n", " ")
+            context_parts.append(f"Reference snippet: {snippet}")
+
+        if conversation_context:
+            ctx = conversation_context.context_data or {}
+            context_parts.append(f"Tracked intent: {ctx.get('primary_intent', 'unknown')}")
+            context_parts.append(f"Sentiment: {ctx.get('sentiment_label', 'neutral')}")
+            if ctx.get("urgency_terms"):
+                joined = ", ".join(ctx["urgency_terms"])
+                context_parts.append(f"Urgency terms: {joined}")
+
+        context_text = "\n".join(context_parts) or "No additional context available."
+
+        if self._api_available:
+            try:
+                assert self.ollama_service is not None
+                resp = self.ollama_service.generate_response(query=query, context=context_text)
+                if resp:
+                    return resp.strip()
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Local generate_response failed: %s", exc)
+
+        return (
+            "I'm having trouble generating a response right now. "
+            "Please try again once the local AI service is available."
+        )
+
+    def update_document_usage(self, document_id: int) -> None:
+        """Update usage statistics for an embedding record."""
+        try:
+            record = self.session.query(DocumentEmbedding).filter_by(id=document_id).first()
+            if record:
+                record.usage_count = (record.usage_count or 0) + 1
+                record.last_used = datetime.utcnow()
+                self.session.commit()
+        except Exception as exc:  # noqa: BLE001
+            self.session.rollback()
+            logger.error("Error updating document usage: %s", exc)
 
     def cleanup(self) -> None:
-        """Release database connections and model resources."""
+        """Release database resources."""
         try:
             if hasattr(self, "session") and self.session:
                 self.session.close()
         except Exception as exc:  # noqa: BLE001
-            logger.error(f"Error closing RAG session: {exc}")
+            logger.error("Error closing RAG session: %s", exc)
 
         try:
             if hasattr(self, "engine") and self.engine:
                 self.engine.dispose()
         except Exception as exc:  # noqa: BLE001
-            logger.error(f"Error disposing RAG engine: {exc}")
+            logger.error("Error disposing RAG engine: %s", exc)
 
-        # Drop references to large models to help GC
-        for attr in [
-            "embedding_model",
-            "generation_model",
-            "generation_tokenizer",
-            "sentiment_analyzer",
-            "ner_pipeline",
-            "intent_classifier",
-        ]:
-            if hasattr(self, attr):
-                setattr(self, attr, None)
+    # ------------------------------------------------------------------ #
+    # Internal helpers
+    # ------------------------------------------------------------------ #
+    @property
+    def _api_available(self) -> bool:
+        return bool(self.ollama_service) and bool(getattr(self.ollama_service, "is_available", lambda: False)())
 
-        if torch.cuda.is_available():
-            try:
-                torch.cuda.empty_cache()
-            except Exception:
-                pass
-    
-    def update_document_usage(self, document_id: int):
-        """Update usage statistics for a document"""
+    def _embed_text(self, text_value: str) -> Optional[List[float]]:
+        """Generate an embedding for text using the local Ollama service.
+
+        Returns a 384-dim vector (or down-projects to TARGET_VECTOR_DIM).
+        Returns None if the local LLM is unavailable.
+        """
+        if not text_value or not text_value.strip():
+            return self._zero_vector()
+        if not self._api_available:
+            return None
         try:
-            doc = self.session.query(DocumentEmbedding).filter_by(id=document_id).first()
-            if doc:
-                doc.usage_count += 1
-                doc.last_used = datetime.utcnow()
-                self.session.commit()
-        except Exception as e:
-            logger.error(f"Error updating document usage: {e}")
-            self.session.rollback()
+            assert self.ollama_service is not None
+            embedding = self.ollama_service.generate_embedding(text_value)
+            if not embedding:
+                return None
+            return self._down_project_embedding(embedding)
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Embedding generation failed: %s", exc)
+            return None
+
+    def _zero_vector(self) -> List[float]:
+        return [0.0] * TARGET_VECTOR_DIM
+
+    def _down_project_embedding(self, embedding: List[float]) -> List[float]:
+        if len(embedding) == TARGET_VECTOR_DIM:
+            return embedding
+        arr = np.array(embedding, dtype=float)
+        if arr.size < TARGET_VECTOR_DIM:
+            padded = np.zeros(TARGET_VECTOR_DIM, dtype=float)
+            padded[: arr.size] = arr
+            return padded.tolist()
+        if arr.size % TARGET_VECTOR_DIM == 0:
+            factor = arr.size // TARGET_VECTOR_DIM
+            reduced = arr.reshape(TARGET_VECTOR_DIM, factor).mean(axis=1)
+            return reduced.tolist()
+        return arr[:TARGET_VECTOR_DIM].tolist()
+
+    def _safe_json(self, value: str) -> Optional[Dict[str, Any]]:
+        try:
+            return json.loads(value)
+        except Exception:
+            match = re.search(r"\{[\s\S]*\}", value)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except Exception:
+                    return None
+        return None
+
+    def _analyze_with_llm(self, conversation_text: str) -> Optional[Dict[str, Any]]:
+        if not self._api_available:
+            return None
+        instruction = (
+            "Extract structured metadata from the conversation. Return pure JSON only with keys: "
+            "primary_intent (string), intent_confidence (0-1), sentiment_label (positive|neutral|negative), "
+            "sentiment_score (-1..1), urgency_score (0-1), urgency_terms (string[]), entities (objects with type,text)."
+        )
+        try:
+            assert self.ollama_service is not None
+            raw = self.ollama_service.generate_response(query=instruction, context=conversation_text)
+            if not raw:
+                return None
+            parsed = self._safe_json(raw)
+            return parsed
+        except Exception:
+            return None
+
+

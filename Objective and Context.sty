@@ -1,0 +1,309 @@
+Objective and Context
+
+The goal is to refactor the existing Communicator-Copilot prototype (originally for phone calls & SMS) into a multi-platform AI Meeting and Messaging Assistant. We will preserve the current UI/UX design (look-and-feel and user workflows) while extending the backend logic and data models to support new features. The upgraded system will enable the AI to join online meetings (Zoom, Microsoft Teams, etc.), handle team chats (Slack/Teams channels), speak with a cloned voice, share documents under rule-based permissions, and act as an out-of-office proxy across these platforms. All enhancements should align with the original system’s privacy and user-control principles outlined in the concept document, such as respecting whitelisted contacts and following user-provided instructions.
+
+Architecture Refactor Overview
+
+Multi-Channel Support: The backend will be refactored to treat phone calls, video meetings, and chat messages as different “communication sessions” with a unified handling framework. This means abstracting common functionalities (like intercepting an incoming communication, checking permissions, consulting the instruction feed, responding via AI, logging transcripts, etc.) into reusable modules. Channel-specific logic will be implemented in separate integration services or adapters (for telephony, Zoom/Teams meetings, Slack/Teams chat) that plug into the core system:
+
+Session Management: Create a generalized session handler that can manage various session types (call, meeting, chat). Each session type will have its own adapter:
+
+TelephonyAdapter (existing) – handles phone call pickup, voice I/O, SMS texts.
+
+MeetingAdapter – new module to interface with Zoom/Teams meetings (audio/video streams, meeting events).
+
+ChatAdapter – new module to interface with Slack/MSTeams chat APIs for messages.
+
+Unified AI Logic: The AI decision engine (for choosing how to respond based on user instructions, privacy rules, etc.) will be shared across all session types. This ensures consistent behavior (e.g., the AI always introduces itself when acting on the user’s behalf, and only shares information the user allowed). We’ll extend this logic to cover meeting-specific actions (like posting a message or sharing a file) in addition to voice responses.
+
+Backend Framework: Continue using the established backend stack (e.g. Python Flask or similar) and maintain the REST API structure if one exists. New integration capabilities might require additional libraries/SDKs (e.g. Slack Bolt SDK for Python, Zoom/Teams SDKs or APIs). We will integrate these while keeping the overall architecture modular.
+
+Preserving UI/UX: The current web UI (pages for contact whitelist, instruction feed, dashboard, transcripts, settings, etc.) remains in place. We will add new interface components where needed but match the existing style (CSS, layouts, color scheme). The idea is to minimize changes to the user experience – the user will see familiar pages with additional options for the new features. For example: an added section for meeting settings on the settings page, new fields in the instruction feed to specify meeting context, and additional charts in the dashboard for meeting/chat analytics. All new UI elements will follow the same design patterns (forms, toggles, tables, etc.) already used.
+
+Integration with Video Meeting Platforms (Zoom/Teams)
+
+To allow the AI to attend online meetings on behalf of the user, we will implement integration with Zoom and Microsoft Teams (and potentially others in the future) via their APIs or SDKs:
+
+Meeting Bot Participation: Configure the system to join meetings as a virtual participant (a “bot”) using official SDKs or services. For Zoom, for example, we can use the Zoom Meeting SDK to programmatically launch a headless Zoom client and join the meeting
+devforum.zoom.us
+. This bot participant will appear in the meeting roster (e.g. named “AI Assistant for [User]”)
+recall.ai
+. It can capture the meeting’s audio/video streams and even post chat messages or play audio into the meeting when needed
+recall.ai
+recall.ai
+. Similarly, for Teams, we can register a Bot with Microsoft’s Bot Framework and use Teams’ meeting APIs to join as a meeting attendee with proper permissions.
+
+Audio Capture and Transcription: Once in the meeting, the adapter will capture live audio. We will leverage a Speech-to-Text service (as used in the phone prototype, e.g. Whisper or Google Speech API) to transcribe spoken dialogue in real time. Transcripts allow the AI to “understand” the discussion and also will be saved for the user to review later. We will handle multi-speaker transcription (distinguish speakers if possible via the platform’s metadata or by audio separation). In Zoom, the bot can get real-time transcript data with speaker labels via Zoom’s API or its own transcription process
+recall.ai
+.
+
+AI Participation & Voice Output: Enable the AI to speak in the meeting when required. This involves text-to-speech (TTS) conversion of the AI’s response text into audio. We will integrate the voice cloning module so that the AI’s speech sounds like the user’s voice (if the user has opted in and trained a model). The voice model can be stored and used with a TTS engine to generate speech on the fly. (If the user hasn’t provided a clone, a default pleasant voice will be used.) The MeetingAdapter will send the audio output into the meeting – e.g., by using the platform’s capability for bots to play audio. Zoom bots can play audio into the session
+recall.ai
+, and for Teams we can use the calling bot API to inject audio streams.
+
+Identification and Transparency: As in the phone version, the AI must announce itself at the start of a meeting on the user’s behalf. For example, upon joining, it could either speak or post a chat message: “Hello, I am an AI assistant representing [User].” This disclosure is important for transparency and likely required by platform policies. We will ensure this is done automatically each time the AI joins a meeting so all participants are aware they’re interacting with an AI agent.
+
+Meeting Interaction Logic: During the meeting, the AI will follow user instructions and context rules:
+
+It will only share information or files that the user has pre-authorized (via the instruction feed or document policy, see below). For any questions or requests outside its knowledge, it will not fabricate answers. Instead, it might respond with a polite deferral (e.g., “I’m sorry, I don’t have that info. I’ll ask [User] to follow up.”). This prevents unauthorized info disclosure.
+
+If a participant directs a question specifically to the user (e.g., “What do you think, [User]?”) and the AI has relevant guidance, it can answer briefly. Otherwise, it may either transparently indicate the user is unavailable or attempt to gently steer the question to be answered later by the user. The AI will always stay within the bounds of its instructions and known data.
+
+The AI can also perform simple meeting tasks if instructed: for example, if the user prepared a statement or report for the AI to deliver, the AI can read it aloud at the right time. Or it could share a screen or file if that’s part of the instructions (using the document sharing capability with proper permissions).
+
+Escalation to User: Implement a mechanism to notify or involve the user in real time if needed. For instance, if a meeting discussion takes a critical turn (maybe an important decision or an unexpected direct question that the AI cannot handle), the system can ping the user (via a push notification or SMS) to join the meeting or at least review the issue. In the interim, the AI might politely stall or schedule a follow-up (“I’ll make sure [User] gets back on that topic.”). This is analogous to the call fallback where the AI would forward the call to the user if necessary. In a meeting context, “forwarding” could mean the AI privately messages the user or even adds the user to the call if available.
+
+APIs and Authentication: For each platform, we’ll need to handle authentication and API usage:
+
+For Zoom: likely use OAuth or JWT credentials for the Zoom SDK/ API. The bot can be implemented either via the raw Meeting SDK (which is more involved) or by using a service like Recall.ai as a shortcut to get meeting audio/video streams
+devforum.zoom.us
+recall.ai
+. For a prototype, we might use a third-party API to simplify integration and focus on functionality.
+
+For Microsoft Teams: register an Azure Bot and use Microsoft Graph API for calendar and meeting access. The bot will need to be invited to meetings (or have a way to join with a meeting link).
+
+Ensure all API tokens and secrets are stored securely (e.g., in the database or config with encryption) and per-user if the integration requires user-specific tokens (for example, if each user connects their own Zoom account).
+
+Calendar Integration (Optional): As an enhancement, integrate with the user’s calendar (Google or Outlook) to know the meeting schedule. This can help automatically determine which meetings the AI should join or to schedule meetings. For example, if the user marks an event as AI-attended or if the user is OOO during a meeting, the system can auto-join on behalf of the user. (This aligns with the original concept of calendar integration for scheduling calls.) The calendar integration would involve reading events (with permission) and identifying those tagged for AI delegation.
+
+Integration with Team Chat Platforms (Slack/Teams Chat)
+
+The assistant will also function in text-based channels like Slack or Microsoft Teams chat, allowing it to handle messages when the user is unavailable (or to assist proactively). Key integration points and logic:
+
+Bot Accounts: Set up a bot user in Slack and Teams:
+
+Slack: Use the Slack API (via a Slack SDK or Bolt framework) to create a bot that can read and post messages in channels or DMs. The user will install this bot to their workspace and authorize it to access messages (likely only the channels the user specifies, to maintain privacy).
+
+Teams Chat: Register a Teams bot that can be added to Teams channels or used in 1:1 chat. Leverage Microsoft’s Bot Framework SDK for handling Teams messages.
+
+Message Interception and Auto-response: Much like the phone’s SMS auto-reply feature, implement logic for incoming messages:
+
+The AI can auto-respond to direct messages when the user is away (in “AI mode” or OOO mode). For example, if someone messages the user on Slack saying “Hi, are you available to review this document?”, the AI (if enabled) might reply: “Hello, this is [User]’s assistant. [User] is currently unavailable, but I can help with simple requests or take a message.” It will then follow the user’s instructions or knowledge base to continue the conversation.
+
+In channels or group chats, the AI might only intervene if mentioned or if it’s set to monitor a specific channel. For instance, the user could configure: “If I’m mentioned in #team-chat while I’m out, the AI should reply on my behalf.” The bot would then respond in-thread as needed.
+
+Out-of-Office and Status: We will integrate with presence/status if possible. For Slack, we might detect if the user set an OOO status and automatically enable AI replies. The user can also manually toggle AI mode for chat (similar to the global AI toggle for calls).
+
+The AI’s text replies should mimic the user’s style and tone to some extent, to keep consistency. We can utilize the concept from the original texting feature: analyzing the user’s past messages (with permission) to adopt their casual vs. formal tone, use of emojis, etc.. This will be a subtle touch so that colleagues feel the responses are in line with the user’s personality, even if they know it’s an assistant.
+
+As with calls/meetings, the AI will only provide information that’s authorized. For example, if a coworker asks “Can you share the latest project plan document?”, the AI will check the Document Permission Rules (see next section). If allowed, it will share the document (e.g., post a link or attach a file in Slack). If not allowed, it might respond, “I’ll have [User] send that to you shortly.”
+
+Important Contact/Channel Bypass: Maintain a concept of whitelisted contacts or channels that the AI will not auto-respond to. For instance, the user might mark their manager or a specific Slack channel as “always notify me” – meaning even if AI mode is on, those messages are forwarded to the user immediately and the AI stays silent. This is analogous to the important contacts whitelist for phone calls. We’ll extend the existing whitelist data to include identifiers for Slack users or Teams contacts that should bypass AI. The UI for managing this list can be the same page, now allowing input of Slack user IDs or emails, etc.
+
+Privacy and Transparency: Ensure the bot in chat is clearly identified. For Slack, the bot’s messages can be set with a custom username or a signature like “(Assistant)” to avoid confusion. Alternatively, the bot could actually post as the user (Slack allows user-token based bots that appear as the user). If we choose to post as the user for seamlessness, we should include a line in profile status or first message indicating it’s automated (to align with transparency). Since this is a demo/prototype, a simpler approach is the bot posts as itself indicating it represents the user. We will decide this based on what’s more acceptable in each platform’s terms.
+
+Logging and Handover: All bot-handled chat conversations should be logged in the system (just like call transcripts). If the user comes back and wants to continue the conversation personally, they should be able to do so easily. For instance, if the user starts replying in the Slack thread, the AI will recognize the user is now active and step back (similar to how the AI would step back if the user picks up a call mid-way). We will implement detection of the user’s own messages to disable further AI responses in that thread.
+
+Document Sharing and Permission Logic
+
+One major new feature is the AI’s ability to share documents during meetings or chat, under strict user-defined rules. To support this:
+
+Document Repository Integration: Create a way for users to register documents with the AI system. This could be through:
+
+Uploading files to the AI assistant’s database/storage.
+
+Or linking cloud storage (Google Drive, SharePoint, etc.) with specified file IDs that the AI can access. For early prototyping, storing files or URLs on our server might be simplest, whereas later a cloud integration could be used for scalability.
+
+Metadata and Rules: For each document added, allow the user to set permission rules. Examples of rules:
+
+Who can receive the document: e.g. “anyone within my company domain”, or a specific person or email, or “only members of Project X team”.
+
+In what context it can be shared: e.g. “if asked about Project X budget in a meeting, share Budget.xlsx” or “if Slack message contains phrase ‘project plan’, allow sharing ProjectPlan.pdf”.
+
+Privacy level of document: e.g. mark a document as “confidential – never auto-share, only notify me” versus “public – okay to share if relevant”.
+
+Expiration or one-time use: possibly an option that a document can only be shared once or only during a certain time window.
+
+Implementation: We’ll implement a Document Policy Engine in the backend. When a request or cue to share arises (someone asks “Can you send me X?”), the AI will:
+
+Identify which document (if any) they’re requesting (could use keywords or an explicit name).
+
+Check the requesting party against the allowed recipients list for that document.
+
+Check the context against the allowed context (meeting or chat context matches any rule triggers).
+
+If all checks pass, proceed to share; if not, refuse or defer to user.
+
+The actual sharing action: In a meeting, the AI could post a download link in the chat or initiate a file transfer if the platform supports it. In Slack, the bot can upload the file or share a Drive link. The assistant will always accompany the share with a note, e.g., “Sharing [DocumentName] as requested.” for clarity.
+
+UI for Document Management: Add a new page or extend the Settings page where users manage their documents and rules. It will list the documents the AI has access to, with columns for permitted recipients (maybe as tags or a dropdown of categories like “Anyone in [Company]”, “Only [Specific Person]”, “Anyone”), and context rules (free-text or template-based rules like “Keyword triggers”). Initially, we can keep it simple: perhaps allow tagging a document as either shareable with anyone vs. only shareable internally vs. not shareable without asking. For the prototype, even a basic toggle (“Allow AI to share this file when relevant”) might suffice, with the understanding that relevancy comes from instruction feed or explicit requests.
+
+Security: Store documents securely. If storing actual files, use encrypted storage or at least restrict access. If storing links/IDs, ensure the AI’s access token for those services is properly scoped. Also log every time a document is shared by the AI (who it went to and when) for user audit. This will likely be part of the transcripts or a separate audit log table.
+
+Contextual use: This feature ties into the Instruction Feed. For example, a user might put in an instruction: “If the project plan is requested by the client, share the ProjectPlan.pdf document.” The system should ideally allow linking that instruction to an actual document in the repository. We might implement a way to reference a doc (maybe via a short code or the document name) in the instruction feed so the AI knows exactly which file to share.
+
+Contextual Instruction Feed Enhancements
+
+The AI Instruction Feed is a core feature that we will extend for the new capabilities. In the original, this feed let the user give specific situational instructions (e.g., expecting a call from John with a codeword, then do X). We will broaden this concept:
+
+Unified Instructions Database: Keep a single instructions repository per user, but add fields to each instruction to specify the applicable context:
+
+Type of communication: call, meeting, chat, or “all”.
+
+Specific people or meeting IDs if applicable: e.g., an instruction might be tied to a meeting “Project Kickoff on Oct 20” or to a contact (like “John from CSULB” in the example).
+
+Expiration or active duration, as before (7 days active then archived, etc.), unless manually deleted or marked complete.
+
+Context Examples: Users can input instructions such as:
+
+“In the team meeting about XYZ project, if the budget question comes up, provide the figures from our Q3 report (it’s in the doc Budget.xlsx) and mention we have a document to share.” This would be tagged for that specific meeting or generally for any meeting with “XYZ project” in title, for example.
+
+“If I receive a Slack message about technical support while I’m away, reply with the support FAQ and notify the user to create a ticket.”
+
+“If my boss messages and I’m OOO, inform them I’m out and ping me immediately.” (This could be combined with the whitelist concept or simply an instruction that certain people get a special response.)
+
+Interface: The feed UI can remain largely the same, but we might add optional fields or tags to each entry to capture these context details (e.g., a dropdown for “applies to: calls / meetings / chat”, and maybe a text field for “specific contact or keyword”). To keep it simple in the demo, we might not implement a full tagging system, but rather allow the user to write free-form notes that include keywords. The AI can do a keyword match to decide if an instruction applies. For example, if a meeting’s title or participants match text in an instruction, that instruction is considered relevant during that meeting.
+
+Processing Logic: When the AI is engaged in any session (call, meeting, or chat), it will consult the active instructions:
+
+Match by context: filter instructions that are relevant to the current medium (and if specified, the current counterpart or meeting).
+
+From those, find if any triggers or conditions in the instruction are met by what the other party says or asks.
+
+If yes, follow the instruction (e.g., deliver a specific answer, share a particular document, ask a verification question, etc.).
+
+Once an instruction is fulfilled (the task described is completed), auto-mark it as done or remove it, similar to the original design (possibly moving it to an archive with a completion flag).
+
+Maintaining Privacy: The feed will continue to enforce no highly sensitive data without confirmation. This means if the user tries to input something like a password or personal identifier into an instruction, the system should warn or block it. This safeguard remains important since now the AI could be sharing info in more places. We’ll reuse the validation logic from the original for detecting sensitive patterns.
+
+Expiration/Cleanup: Unused instructions will expire and archive after 7 days active + 7 days archived (or whatever timeline was set). This prevents stale directives from lingering, especially as the user’s meetings and communications evolve rapidly. We will ensure the archive/deletion scheduler accounts for the extended instruction types.
+
+Dashboard, Summary, and Analytics Updates
+
+The existing prototype likely has a dashboard page showing call statistics, and a transcripts page where call logs and transcripts can be reviewed. We will enhance these to include meetings and chat analytics:
+
+Unified Activity Dashboard: Expand the dashboard counters to include new metrics:
+
+“Meetings attended by AI this week” vs “Meetings you attended” (if we can get that info via calendar or user input).
+
+“Total hours of meetings handled by AI”.
+
+“Messages auto-replied by AI” in Slack/Teams.
+
+Possibly, “Documents shared by AI” count.
+
+Continue to show call stats if calls are still in scope (or if pivoting fully, we might replace call stats with meeting stats).
+
+Visualizations: for example, a pie chart of communication types handled by AI (calls vs meetings vs messages), or a timeline showing when the AI was active.
+
+Transcripts & Logs: Merge the transcripts page to list all conversation transcripts (with a column or label for type: Call, Meeting, Chat). Each entry would have date/time, participants, and type. The user can click to see the full transcript:
+
+For a meeting: show the meeting transcript (dialogue with timestamps and speaker labels if available). Also list any files the AI shared and to whom.
+
+For a Slack conversation: show the message thread that took place (with timestamps and who said what, indicating which messages were by the AI bot).
+
+Provide filters to view only meetings, only chats, etc., to avoid clutter if needed.
+
+The search function should be upgraded to search across all transcripts (calls, meetings, chats) for keywords. This way, if the user searches “budget”, they might find that it was discussed in a Zoom meeting on Oct 5th and also in a Slack chat on Oct 7th, etc. The search results can indicate the source and date, linking to the full log.
+
+Meeting Summaries: Implement the AI-generated summaries for meetings, similar to the “mind map” idea from calls. After a meeting that the AI attends, the system can automatically produce a brief summary or key points list:
+
+This summary might include decisions made, tasks assigned, or any important highlights. We can use an NLP service or algorithm to parse the transcript and extract salient points (e.g., using keywords or a summary model).
+
+Possibly include a simple visualization (for the prototype, even a bullet list is fine, but we mention the concept of a mind-map style summary for future enhancement as in the original plan).
+
+The summary would be shown on the dashboard or in the transcript detail view, giving the user a quick insight without reading the full text.
+
+Analytics & Insights: Leverage data to provide insights:
+
+For example, “Your AI assistant handled 3 meetings and 5 chats this week, saving you approximately 4 hours.”
+
+“Most common topics in AI-handled communications: Project X, Budget, Recruitment.”
+
+Sentiment analysis on meetings could be added (was the meeting tone positive/negative) – though optional, this could mirror the suggestion in the original doc about sentiment for calls.
+
+If calls are still included, we keep spam metrics, etc., but for Zoom/Teams, spam is less relevant. Instead, we might identify external meetings (e.g., if an unknown person invited you and AI attended, flag it) or quality metrics (like how many times AI had to defer questions).
+
+User Feedback Loop: Provide means for the user to give feedback on AI’s performance in these meetings or chats. For each transcript, the user could mark if the AI did well or if there were mistakes. This isn’t strictly required for the demo, but noting it as part of the plan (to improve AI via supervised feedback) would be good for a future roadmap.
+
+Data Retention Settings: Ensure the user can manage how long transcripts and data are kept, just as originally planned for calls. We will carry over those settings (maybe on a Settings page: e.g., “Auto-delete transcripts after X days unless saved”). This is important given potentially sensitive meeting content – the user might not want an indefinite record.
+
+Database Schema Updates (Per-User Configurations)
+
+To support the above changes, the database (or data schema) needs refactoring and extensions. Key modifications per user:
+
+User Integrations: New tables to store OAuth tokens or credentials for each user for each platform (Zoom, Teams, Slack). For example, user_integrations table with columns: user_id, platform (zoom/teams/slack), auth_token, refresh_token, etc., plus any needed metadata (like bot IDs, workspace IDs). This allows the backend to act on behalf of the user in those platforms.
+
+Meetings and Delegation: A table (or collection) for scheduled meetings or meeting delegation rules. Possible design:
+
+meetings table: store meetings that the user wants the AI to handle (fields: meeting_id or link, datetime, title, participants, user_id, and a flag if AI is attending on behalf). We might populate this table by reading the user’s calendar or by manual input (for the prototype, maybe the user enters a meeting link in a form to tell the AI to join).
+
+delegation_rules: rules for auto-joining. Fields might include user_id, condition (e.g., “if busy/on OOO”, or a keyword filter for meeting titles), and an action (auto-join or not). For now, a simple approach is a boolean in user settings like auto_join_all_invites_when_AI_mode=true or a time range.
+
+Track active meeting sessions in a active_sessions table during runtime (or use in-memory if simpler) to coordinate the joining/leaving of meetings.
+
+Documents: A documents table to store info about user-uploaded or linked documents. Fields:
+
+doc_id, user_id (owner), name, storage_path_or_url, classification (public/internal/confidential), allowed_recipients (maybe a JSON field listing domains or user IDs allowed), allowed_context (e.g., “meeting” or “chat” or specific tags).
+
+Also, a flag if the document is currently shareable by AI or not.
+
+We might also need a separate mapping table if we allow mapping documents to specific instruction IDs (to link an instruction to a doc).
+
+Instruction Feed: The existing instruction data model should be extended. If previously it was something like instructions(user_id, text, date_created, active_flag), we now add fields: context_type (enum: call/meeting/chat/all), target (maybe store an identifier like contact name or meeting keyword if provided), and status (active/archived/completed). We also store expiry timestamp to auto-expire. The content of the instruction (the guidance text) remains as is.
+
+Transcripts and Logs:
+
+We likely already had call_logs and sms_logs. Instead, we can create a unified conversation_log table with columns: id, user_id, type (call/meeting/chat), counterpart (phone number or meeting title or channel/person), date, transcript_text (could be large, possibly stored in a separate table or file storage if very large), summary_text, and any analytics (like sentiment score, etc.). Alternatively, maintain separate tables like meeting_transcripts and chat_logs for clarity, but structure them similarly to calls.
+
+A shared_files_log table could record each time the AI shared a document: fields for user_id, document_id, session_id (link to conversation log), recipient, timestamp – for audit purposes.
+
+Voice Model: Add fields to the users table or a separate voice_model table that stores the path or identifier of the user’s voice clone model. For example, voice_model(user_id, model_path, created_date, active_flag). This will be set when the user completes voice training. If using an external voice service, we might store an API endpoint or model ID instead of a local path.
+
+Contact/Channel Whitelist: Extend the important_contacts table (if it exists) to include non-phone contacts:
+
+Perhaps have fields for contact_type (phone/slack/email etc.) and an identifier (phone number, Slack user ID, etc.). Then the AI logic checks all incoming communications against this list regardless of channel. If a match (e.g., an incoming Slack DM from an ID on the whitelist), the AI will not intervene and may send an alert to the user instead.
+
+Settings: Possibly a user_settings table to hold toggles and preferences:
+
+e.g., voice_clone_enabled, call_recording_enabled, data_retention_period, auto_join_meetings_enabled, spam_filter_level, etc. This allows easy retrieval of configuration flags in code. Some of these exist already for calls (like call recording option), and we’ll add new ones for meetings (like whether AI should auto-record meetings or rely on platform recordings, whether to auto-summarize, etc.).
+
+Migration/Refactoring Plan: Since this is an extension of a prototype, if the code already has some ORM models for calls and texts, we will migrate those:
+
+Combine or update models to accommodate new types (for example, if there was a Call model and SMS model, we might generalize to CommunicationSession with subclassing or a type field).
+
+Ensure not to break existing functionalities: calls and SMS handling should still work (unless we decide to deprioritize them). It’s safer to keep them working to show the system handles both legacy and new channels.
+
+Write scripts to migrate any existing user data to the new schema (if needed). For instance, move important contacts into the new format with contact_type=phone by default, etc.
+
+Throughout these changes, maintain data security and privacy: all personal data (transcripts, voice samples, documents) must be stored securely (use encryption at rest where appropriate, secure access rules in code). This was a priority in the original design and remains so.
+
+Frontend Adjustments (Preserving UX)
+
+While the main refactor is backend and data, we will make some targeted frontend changes to expose the new features:
+
+Navigation: If not already present, add menu links or tabs for “Meetings” (or integrate under existing sections like Transcripts or Dashboard) and “Documents”. Keep the style consistent with existing menu items.
+
+Pages/Sections:
+
+Meetings Dashboard: A section in the dashboard page highlighting meeting stats and maybe upcoming meetings that the AI will attend (if we have that info).
+
+Transcripts Page: Extend to list meeting and chat transcripts along with call logs, as described earlier.
+
+Documents Page: A new page for managing document permissions (with forms to add/delete docs and set rules).
+
+Instruction Feed Page: Update the form to allow context tags or at least instruct users how to phrase context. Possibly, show an icon or label on each instruction in the list indicating its context (e.g., a little phone icon for call instructions, video icon for meeting, chat bubble for messages).
+
+Settings: Add checkboxes/sliders for new settings like “Enable AI for Zoom/Teams meetings”, “Enable AI for Slack messages”, “Voice clone on/off”, “Auto-join meetings if I’m away”, etc. This lets users easily toggle the new capabilities.
+
+Consistency: All new UI components will reuse the app’s CSS framework. For instance, if the app uses Bootstrap, we will use the same button styles, table styles, etc. The visual design (colors, typography, spacing) will remain the same so that the new features look like an integrated part of the product, not an afterthought.
+
+No Major UX Overhaul: We are not redesigning the core look or user journey; we’re only adding what’s necessary to support the new features. The user should feel that the product is essentially the same but now with extra powers. For example, an existing user of the prototype should be able to navigate the updated app and find all the old functions where they expect them (whitelist, logs, etc.), plus see new options related to meetings and chat. Any new workflows (like connecting a Slack account or doing voice training) should be introduced with on-screen guidance but integrated into the overall UX flow smoothly.
+
+Demo and Deployment Strategy
+
+For early-stage pitching and demonstrations, consider developing this as a standalone web application rather than a deep integration into any single platform. Here’s the rationale and advice:
+
+Standalone Web App for Demo: Building a separate web app that simulates the assistant’s functionality is often faster and more flexible for an MVP. You can showcase the core features (AI joining a “meeting”, AI responding to “messages”, sharing a document, etc.) under your controlled environment. For instance, you might simulate a Zoom meeting within your app or use a recorded meeting feed to demonstrate transcription and AI response. This avoids the complexity of obtaining app approvals or dealing with the full breadth of Zoom/Teams APIs in a short timeline. It’s perfectly acceptable to use stubbed or simplified interactions in a demo as long as you explain the concept. In an early demo, investors or stakeholders will focus on the unique AI capabilities, not whether you integrated every platform’s API. It’s more important to prove the concept works and is intuitive, than to have full production-level integrations at this stage. As an MVP, skipping non-essential features or heavy integrations is recommended
+shortcut.com
+. The standard baseline functionalities (like the fact that Teams can make calls or Slack has messaging) can be assumed; your demo should highlight what new value the AI assistant adds.
+
+Tagging Platforms on LinkedIn: Demonstrating a standalone prototype on LinkedIn (with a video or live demo) and tagging companies like Zoom or Microsoft is a great way to gain visibility. It is generally fine to do so – these companies often appreciate innovative uses of their APIs. Just be clear in your description that this is a prototype of an AI assistant that could integrate with their platforms. You might say, for example, “Our AI assistant can join Zoom meetings and take notes for you,” which is attractive to mention. Ensure you don’t misuse any logos or claim an official partnership if there isn’t one. But conceptually, showcasing your independent web app and mentioning that it’s “Zoom-enabled” or “works with Slack” is fair and can even attract those companies’ attention.
+
+Excluding Standard Features in Demo: It’s absolutely okay if your demo omits certain “expected” features like a fully working dialer or a polished chat UI, as long as those are not the focus. In a pitch, you can assume the audience knows a platform has chat/call capability. What you need to prove is the AI assistant’s behavior within those contexts. For example, you don’t need to implement a full Slack clone; you can simply have a text box and show the AI’s reply to a message, to illustrate the auto-response logic. This aligns with the MVP philosophy of focusing on core innovation and skipping non-essential features
+shortcut.com
+. As long as you communicate that the final product will utilize the existing platform features for calls/chats, leaving them out of the prototype is fine. In fact, a lean demo that emphasizes the AI’s unique skills (like voice cloning, context-based document sharing, summaries, etc.) will be more memorable. Overloading the demo with standard features could distract or waste development time.
+
+When to Embed vs. Standalone: As you progress beyond the prototype/pitch stage, you can then look into deeper integration (e.g., publishing an app on the Teams App Store or Zoom Marketplace). Early on, however, a standalone app gives you control over the demo scenario. It reduces the risk of something failing due to external API issues during a live pitch. You can script the interactions more reliably. Once you have interest or investment, you can spend time to properly embed the solution into one or multiple platforms with the necessary compliance (which might involve more complex development and security review by those platform providers).
+
+In summary, proceed with the refactor focusing on the backend logic and data model upgrades to support multi-platform AI assistance, while keeping the user experience consistent. The plan above ensures the system can attend meetings, clone the user’s voice, manage document sharing, follow contextual instructions, and provide rich summaries – all without confusing or alienating existing users of the prototype. For demonstration purposes, implement and showcase the critical features in a standalone web environment, highlighting how the AI assistant operates, and don’t worry about fully implementing every basic chat/call feature at this stage. This approach will yield a compelling demo that can be shown on platforms like LinkedIn and to potential partners, while laying the groundwork in the code for eventual full integration into Zoom, Teams, Slack, etc., as needed.

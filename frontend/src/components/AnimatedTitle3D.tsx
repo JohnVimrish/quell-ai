@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 const sections = [
   { id: "about", label: "About", path: "/" },
   { id: "dashboard", label: "Dashboard", path: "/dashboard" },
-  { id: "calls", label: "Calls", path: "/calls" },
-  { id: "contacts", label: "Contacts", path: "/contacts" },
+  // Archived (Oct 2025): Calls, Contacts
+  // { id: "calls", label: "Calls", path: "/calls" },
+  // { id: "contacts", label: "Contacts", path: "/contacts" },
   { id: "texts", label: "Texts", path: "/texts" },
-  { id: "reports", label: "Reports", path: "/reports" },
+  // Archived (Oct 2025): Reports
+  // { id: "reports", label: "Reports", path: "/reports" },
   { id: "settings", label: "Settings", path: "/settings" },
 ];
 
@@ -123,4 +125,3 @@ export default function AnimatedTitle3D() {
     </>
   );
 }
-

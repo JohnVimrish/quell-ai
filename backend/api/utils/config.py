@@ -21,11 +21,11 @@ class Config:
         root = Path(__file__).resolve().parents[2]
 
         # Load provider/policy/query definitions
-        with open(root/"config"/"providers.json", "r", encoding="utf-8") as f:
+        with open(root/"config"/"providers.json", "r",encoding="utf-8-sig") as f:
             providers = json.load(f)
-        with open(root/"config"/"policies.json", "r", encoding="utf-8") as f:
+        with open(root/"config"/"policies.json", "r", encoding="utf-8-sig") as f:
             policies = json.load(f)
-        with open(root/"config"/"queries.json", "r", encoding="utf-8") as f:
+        with open(root/"config"/"queries.json", "r",encoding="utf-8-sig") as f:
             queries = json.load(f)
 
         # Optional application config file
@@ -34,14 +34,16 @@ class Config:
         try:
             p = Path(app_cfg_path)
             if p.exists():
-                with open(p, "r", encoding="utf-8") as f:
+                with open(p, "r",  encoding="utf-8-sig") as f:
                     app_cfg = json.load(f)
         except Exception:
             app_cfg = {}
 
         # Resolve database URL
         db_url = (app_cfg.get("database", {}) or {}).get("url") or os.getenv("DATABASE_URL", "")
-
+        if db_url and db_url.startswith("postgresql//"):
+            db_url = "postgresql+psycopg://" + db_url[len("postgresql//") :]
+            print(db_url)
         # Logging configuration
         log_cfg = app_cfg.get("logging") or {}
 

@@ -1,6 +1,6 @@
 {
-  "_Phone3D-DF-_rB2d.js": {
-    "file": "assets/Phone3D-DF-_rB2d.js",
+  "_Phone3D-_txtZFTy.js": {
+    "file": "assets/Phone3D-_txtZFTy.js",
     "name": "Phone3D",
     "imports": [
       "src/main.tsx"
@@ -35,7 +35,7 @@
     "src": "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2"
   },
   "src/main.tsx": {
-    "file": "assets/main-2TxJzpGU.js",
+    "file": "assets/main-DEHa6zRv.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -44,15 +44,16 @@
       "src/pages/DashboardPage.tsx",
       "src/pages/LoginPage.tsx",
       "src/pages/SignupPage.tsx",
-      "src/pages/CallsPage.tsx",
-      "src/pages/ContactsPage.tsx",
+      "src/pages/MeetingsPage.tsx",
       "src/pages/TextsPage.tsx",
-      "src/pages/ReportsPage.tsx",
+      "src/pages/DocumentsPage.tsx",
       "src/pages/SettingsPage.tsx",
-      "src/pages/WhyQuellAI.tsx"
+      "src/pages/WhyQuellAI.tsx",
+      "src/pages/MessageUnderstandingDemo.tsx",
+      "src/pages/LabsPlayground.tsx"
     ],
     "css": [
-      "assets/main-DWzhOyvL.css"
+      "assets/main-1Gz-woDd.css"
     ],
     "assets": [
       "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -64,26 +65,8 @@
       "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
     ]
   },
-  "src/pages/CallsPage.tsx": {
-    "file": "assets/CallsPage-B0Rgw-aF.js",
-    "name": "CallsPage",
-    "src": "src/pages/CallsPage.tsx",
-    "isDynamicEntry": true,
-    "imports": [
-      "src/main.tsx"
-    ]
-  },
-  "src/pages/ContactsPage.tsx": {
-    "file": "assets/ContactsPage-Dyqy-h4X.js",
-    "name": "ContactsPage",
-    "src": "src/pages/ContactsPage.tsx",
-    "isDynamicEntry": true,
-    "imports": [
-      "src/main.tsx"
-    ]
-  },
   "src/pages/DashboardPage.tsx": {
-    "file": "assets/DashboardPage-DyUdOPt5.js",
+    "file": "assets/DashboardPage-COnKJ6jp.js",
     "name": "DashboardPage",
     "src": "src/pages/DashboardPage.tsx",
     "isDynamicEntry": true,
@@ -91,18 +74,36 @@
       "src/main.tsx"
     ]
   },
+  "src/pages/DocumentsPage.tsx": {
+    "file": "assets/DocumentsPage-CM9fsH8Q.js",
+    "name": "DocumentsPage",
+    "src": "src/pages/DocumentsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/LabsPlayground.tsx": {
+    "file": "assets/LabsPlayground-VR6AAzU9.js",
+    "name": "LabsPlayground",
+    "src": "src/pages/LabsPlayground.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
   "src/pages/LandingPage.tsx": {
-    "file": "assets/LandingPage-BsfRyj7x.js",
+    "file": "assets/LandingPage-GuiaqGy8.js",
     "name": "LandingPage",
     "src": "src/pages/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_Phone3D-DF-_rB2d.js"
+      "_Phone3D-_txtZFTy.js"
     ]
   },
   "src/pages/LoginPage.tsx": {
-    "file": "assets/LoginPage-DWcxsf9Y.js",
+    "file": "assets/LoginPage-XFBZsUhF.js",
     "name": "LoginPage",
     "src": "src/pages/LoginPage.tsx",
     "isDynamicEntry": true,
@@ -110,17 +111,26 @@
       "src/main.tsx"
     ]
   },
-  "src/pages/ReportsPage.tsx": {
-    "file": "assets/ReportsPage-DOmh0fvh.js",
-    "name": "ReportsPage",
-    "src": "src/pages/ReportsPage.tsx",
+  "src/pages/MeetingsPage.tsx": {
+    "file": "assets/MeetingsPage-DoVx8XhI.js",
+    "name": "MeetingsPage",
+    "src": "src/pages/MeetingsPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "src/pages/MessageUnderstandingDemo.tsx": {
+    "file": "assets/MessageUnderstandingDemo-BoXnmNDe.js",
+    "name": "MessageUnderstandingDemo",
+    "src": "src/pages/MessageUnderstandingDemo.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx"
     ]
   },
   "src/pages/SettingsPage.tsx": {
-    "file": "assets/SettingsPage-CG5WsQ-p.js",
+    "file": "assets/SettingsPage-C2X0UQ15.js",
     "name": "SettingsPage",
     "src": "src/pages/SettingsPage.tsx",
     "isDynamicEntry": true,
@@ -129,7 +139,7 @@
     ]
   },
   "src/pages/SignupPage.tsx": {
-    "file": "assets/SignupPage-DSDIFo0A.js",
+    "file": "assets/SignupPage-BlyVZVlO.js",
     "name": "SignupPage",
     "src": "src/pages/SignupPage.tsx",
     "isDynamicEntry": true,
@@ -138,7 +148,7 @@
     ]
   },
   "src/pages/TextsPage.tsx": {
-    "file": "assets/TextsPage-SGJaxPQy.js",
+    "file": "assets/TextsPage-BONdQOKV.js",
     "name": "TextsPage",
     "src": "src/pages/TextsPage.tsx",
     "isDynamicEntry": true,
@@ -147,13 +157,13 @@
     ]
   },
   "src/pages/WhyQuellAI.tsx": {
-    "file": "assets/WhyQuellAI-GsJHJKBJ.js",
+    "file": "assets/WhyQuellAI-CqZWmpIg.js",
     "name": "WhyQuellAI",
     "src": "src/pages/WhyQuellAI.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_Phone3D-DF-_rB2d.js"
+      "_Phone3D-_txtZFTy.js"
     ]
   }
 }
