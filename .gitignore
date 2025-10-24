@@ -1,11 +1,44 @@
 # Ignore Python cache and virtual environment folders
 __pycache__/
 **/__pycache__/
+.pytest_cache/
 pvenv/
 .vscode/
 # Project-specific directories
-about/
-reference_images/
 backend/ui/
 backend/logs/
 logs/
+backend/uploads/
+backend/utils/
+backend/voice_samples/
+
+# ========================
+# FRONTEND IGNORE RULES
+# ========================
+
+
+# Logs
+/frontend/logs
+/frontend/*.log
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+
+# Node assets
+/frontend/node_modules
+/frontend/dist
+/frontend/dist-ssr
+/frontend/*.local
+
+# Editor directories and files
+/frontend/.vscode/*
+!/frontend/.vscode/extensions.json
+/frontend/.idea
+/frontend/.DS_Store
+/frontend/*.suo
+/frontend/*.ntvs*
+/frontend/*.njsproj
+/frontend/*.sln
+/frontend/*.sw?
