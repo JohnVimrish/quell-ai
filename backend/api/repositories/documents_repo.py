@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
+
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
+from contextlib import contextmanager
 
 from functionalities.document import (
     Document,
@@ -13,7 +14,7 @@ from functionalities.document import (
     DocumentVersion,
     DocumentDeletionLog,
 )
-from functionalities.communication_session import SharedFileLog
+
 
 
 class DocumentsRepository:
@@ -25,15 +26,15 @@ class DocumentsRepository:
         _queries_config: Optional[Dict] = None,
         query_manager: Optional[Any] = None
     ):
-        self._engine = create_engine(database_url, future=True)
-        self._session_factory = sessionmaker(
-            bind=self._engine, autoflush=False, expire_on_commit=False
+        self.engine = create_engine(database_url, future=True)
+        self.SessionLocal = sessionmaker(
+            bind=self.engine, autoflush=False, expire_on_commit=False
         )
         self.query_manager = query_manager
 
     @contextmanager
     def _session_scope(self) -> Session:
-        session = self._session_factory()
+        session = self.SessionLocal()
         try:
             yield session
             session.commit()
@@ -665,3 +666,7 @@ class DocumentsRepository:
             )
             
             return deleted_count
+
+
+
+

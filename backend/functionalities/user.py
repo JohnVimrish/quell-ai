@@ -63,3 +63,15 @@ class User(Base):
             "data_retention_days": self.data_retention_days,
             "transcript_retention_days": self.transcript_retention_days,
         }
+
+# Provide a minimal table definition for the actual DB table user_management.users
+# so that ORM ForeignKey references like ForeignKey("user_management.users.id") resolve
+# without requiring a full mapped class. We do not create this table; it's only for FK resolution.
+from sqlalchemy import Table  # noqa: E402
+
+user_mgmt_users = Table(
+    "users",
+    Base.metadata,
+    Column("id", Integer, primary_key=True),
+    schema="user_management",
+)

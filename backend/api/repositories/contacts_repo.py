@@ -1,33 +1,10 @@
 
-from sqlalchemy.sql import func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.orm import relationship
 from datetime import datetime
 
-Base = declarative_base()
-
-class Contact(Base):
-    __tablename__ = 'user_management.contacts'
-    
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    name = Column(String(100), nullable=False)
-    phone_number = Column(String(20), nullable=False)
-    email = Column(String(100), nullable=True)
-    company = Column(String(100), nullable=True)
-    title = Column(String(100), nullable=True)
-    is_blocked = Column(Boolean, default=False)
-    is_whitelisted = Column(Boolean, default=False)
-    is_favorite = Column(Boolean, default=False)
-    notes = Column(Text, nullable=True)
-    tags = Column(JSON, nullable=True)  # Array of tags
-    contact_count = Column(Integer, default=0)  # Number of interactions
-    last_contact_at = Column(DateTime, nullable=True)
-    last_contact_type = Column(String(20), nullable=True)  # 'call', 'text', 'email'
-    contact_metadata = Column(JSON, nullable=True)  # Additional contact metadata
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+from typing import List, Dict, Optional, Tuple
+from sqlalchemy import and_, or_, desc, func
+from api.repositories.base import BaseRepository
+from functionalities.contacts import Contact, ContactGroup, ContactNote
 
 from typing import List, Dict, Optional, Tuple
 from sqlalchemy.orm import sessionmaker
@@ -62,7 +39,7 @@ class ContactsRepository(BaseRepository):
                     is_favorite=contact_data.get('is_favorite', False),
                     notes=contact_data.get('notes'),
                     tags=contact_data.get('tags', []),
-                    contact_metadata=contact_data.get('metadata', {})
+                    conctact_metadata=contact_data.get('metadata', {})
                 )
                 
                 session.add(contact)
@@ -337,7 +314,7 @@ class ContactsRepository(BaseRepository):
                     note_text=note_data['note_text'],
                     note_type=note_data.get('note_type', 'general'),
                     is_important=note_data.get('is_important', False),
-                    metadata=note_data.get('metadata', {})
+                    group_metadata=note_data.get('metadata', {})
                 )
                 
                 session.add(note)

@@ -39,7 +39,7 @@ class QueryManager:
                 self.queries = {}
                 return
             
-            with open(self.queries_config_path, 'r', encoding='utf-8') as f:
+            with open(self.queries_config_path, 'r',encoding="utf-8-sig") as f:
                 self.queries = json.load(f)
             
             logger.info(

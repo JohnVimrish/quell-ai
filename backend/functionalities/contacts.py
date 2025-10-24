@@ -11,7 +11,7 @@ class Contact(Base):
     __tablename__ = 'user_management.contacts'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('user_management.users.id'), nullable=False)
     name = Column(String(100), nullable=False)
     phone_number = Column(String(20), nullable=False)
     email = Column(String(100), nullable=True)
@@ -122,10 +122,10 @@ class Contact(Base):
         self.updated_at = datetime.now()
 
 class ContactNote(Base):
-    __tablename__ = 'contact_notes'
+    __tablename__ = 'user_management.contact_notes'
     
     id = Column(Integer, primary_key=True)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
     note_text = Column(Text, nullable=False)
     note_type = Column(String(50), default='general')  # 'general', 'call_summary', 'reminder', 'warning'
     is_important = Column(Boolean, default=False)
@@ -158,10 +158,10 @@ class ContactNote(Base):
         }
 
 class ContactGroup(Base):
-    __tablename__ = 'contact_groups'
+    __tablename__ = 'user_management.contact_groups'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('user_management.users.id'), nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     color = Column(String(7), default='#007bff')  # Hex color code
@@ -193,11 +193,11 @@ class ContactGroup(Base):
         }
 
 class ContactGroupMember(Base):
-    __tablename__ = 'contact_group_members'
+    __tablename__ = 'user_management.contact_group_members'
     
     id = Column(Integer, primary_key=True)
-    group_id = Column(Integer, ForeignKey('contact_groups.id'), nullable=False)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
+    group_id = Column(Integer, ForeignKey('user_management.contact_groups.id'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
     added_at = Column(DateTime, server_default=func.now())
     added_by = Column(String(50), default='user')  # 'user', 'auto', 'import'
     
@@ -222,11 +222,11 @@ class ContactGroupMember(Base):
 
 
 class ContactInteraction(Base):
-    __tablename__ = 'contact_interactions'
+    __tablename__ = 'user_management.contact_interactions'
     
     id = Column(Integer, primary_key=True)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('user_management.users.id'), nullable=False)
     interaction_type = Column(String(20), nullable=False)  # 'call', 'text', 'email', 'meeting'
     direction = Column(String(10), nullable=False)  # 'inbound', 'outbound'
     duration_seconds = Column(Integer, nullable=True)  # For calls
@@ -287,10 +287,10 @@ class ContactInteraction(Base):
             return f"{seconds}s"
 
 class ContactPreference(Base):
-    __tablename__ = 'contact_preferences'
+    __tablename__ = 'user_management.contact_preferences'
     
     id = Column(Integer, primary_key=True)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
     preference_type = Column(String(50), nullable=False)  # 'communication', 'notification', 'ai_behavior'
     preference_key = Column(String(100), nullable=False)
     preference_value = Column(JSON, nullable=False)
@@ -317,11 +317,11 @@ class ContactPreference(Base):
         }
 
 class ContactRelationship(Base):
-    __tablename__ = 'contact_relationships'
+    __tablename__ = 'user_management.contact_relationships'
     
     id = Column(Integer, primary_key=True)
-    contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
-    related_contact_id = Column(Integer, ForeignKey('contacts.id'), nullable=False)
+    contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
+    related_contact_id = Column(Integer, ForeignKey('user_management.contacts.id'), nullable=False)
     relationship_type = Column(String(50), nullable=False)  # 'colleague', 'family', 'friend', 'business'
     relationship_strength = Column(Float, default=0.5)  # 0-1 scale
     is_mutual = Column(Boolean, default=False)

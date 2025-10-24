@@ -28,14 +28,20 @@ class OllamaService:
         self.model_path = Path(model_path or os.getenv("OLLAMA_MODEL_PATH", DEFAULT_MODEL_PATH))
         self.embedding_dim = embedding_dim
         self.model_loaded = False
-        self.model = None
+        self.embed_model = None  # base model for embeddings
+        self.gen_model = None    # causal LM for generation
         self.tokenizer = None
+        self.device = "cpu"
         
         self._initialize_model()
 
     def _initialize_model(self) -> None:
         """Initialize the OLLama model and tokenizer."""
         try:
+            # Avoid importing torchvision (not needed for text models) to sidestep NumPy ABI issues
+            os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION", "1")
+            # Also avoid TensorFlow import path in transformers when not used
+            os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
             # Check if model path exists
             if not self.model_path.exists():
                 logger.warning(
@@ -47,7 +53,7 @@ class OllamaService:
 
             # Try to import transformers
             try:
-                from transformers import AutoModel, AutoTokenizer
+                from transformers import AutoModel, AutoModelForCausalLM, AutoTokenizer
             except ImportError:
                 logger.warning(
                     "transformers library not available. "
@@ -58,21 +64,57 @@ class OllamaService:
 
             logger.info(f"Loading OLLama model from {self.model_path}")
             
-            # Load tokenizer and model
+            # Load tokenizer and models
             self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_path))
-            self.model = AutoModel.from_pretrained(
+
+            # Ensure a pad token exists for padding operations (common for decoder-only LLMs)
+            added_pad_token = False
+            if self.tokenizer.pad_token is None:
+                # Prefer EOS token as pad if available; otherwise add a new [PAD]
+                if getattr(self.tokenizer, "eos_token", None):
+                    self.tokenizer.pad_token = self.tokenizer.eos_token  # type: ignore[attr-defined]
+                else:
+                    self.tokenizer.add_special_tokens({"pad_token": "[PAD]"})
+                    added_pad_token = True
+
+            # Base model for hidden states/embeddings
+            self.embed_model = AutoModel.from_pretrained(
                 str(self.model_path),
                 trust_remote_code=True
             )
+
+            # Causal LM for text generation (may be the same underlying architecture)
+            try:
+                self.gen_model = AutoModelForCausalLM.from_pretrained(
+                    str(self.model_path),
+                    trust_remote_code=True
+                )
+            except Exception as gen_exc:
+                # If a generation head is not available, keep generation disabled
+                logger.warning(f"Causal LM head unavailable for generation: {gen_exc}")
+                self.gen_model = None
+
+            # If we added a new special token (e.g. PAD), resize embeddings to match tokenizer vocab
+            if added_pad_token:
+                try:
+                    if self.embed_model is not None and hasattr(self.embed_model, "resize_token_embeddings"):
+                        self.embed_model.resize_token_embeddings(len(self.tokenizer))
+                    if self.gen_model is not None and hasattr(self.gen_model, "resize_token_embeddings"):
+                        self.gen_model.resize_token_embeddings(len(self.tokenizer))
+                except Exception as resize_exc:
+                    logger.warning(f"Failed to resize token embeddings after adding PAD: {resize_exc}")
             
             # Move to CPU (or GPU if available)
             try:
-                import torch
-                device = "cuda" if torch.cuda.is_available() else "cpu"
-                self.model = self.model.to(device)
-                logger.info(f"Model loaded successfully on {device}")
+                import torch  # noqa: F401
+                self.device = "cpu"  # Force CPU usage per deployment preference
+                if self.embed_model is not None:
+                    self.embed_model = self.embed_model.to(self.device)
+                if self.gen_model is not None:
+                    self.gen_model = self.gen_model.to(self.device)
+                logger.info(f"Model(s) loaded successfully on {self.device}")
             except ImportError:
-                logger.info("Model loaded successfully (torch not available for device management)")
+                logger.info("Model(s) loaded successfully (torch not available for device management)")
             
             self.model_loaded = True
             
@@ -93,7 +135,7 @@ class OllamaService:
         if not text or not text.strip():
             return self._zero_vector()
 
-        if not self.model_loaded:
+        if not self.model_loaded or self.embed_model is None:
             logger.warning("Model not loaded, returning zero vector")
             return self._zero_vector()
 
@@ -110,12 +152,12 @@ class OllamaService:
             )
             
             # Move to same device as model
-            device = next(self.model.parameters()).device
+            device = next(self.embed_model.parameters()).device
             inputs = {k: v.to(device) for k, v in inputs.items()}
             
             # Generate embeddings
             with torch.no_grad():
-                outputs = self.model(**inputs)
+                outputs = self.embed_model(**inputs)
                 # Use mean pooling of last hidden state
                 embeddings = outputs.last_hidden_state.mean(dim=1)
                 
@@ -144,7 +186,7 @@ class OllamaService:
         if not texts:
             return []
 
-        if not self.model_loaded:
+        if not self.model_loaded or self.embed_model is None:
             logger.warning("Model not loaded, returning zero vectors")
             return [self._zero_vector() for _ in texts]
 
@@ -161,12 +203,12 @@ class OllamaService:
             )
             
             # Move to same device as model
-            device = next(self.model.parameters()).device
+            device = next(self.embed_model.parameters()).device
             inputs = {k: v.to(device) for k, v in inputs.items()}
             
             # Generate embeddings
             with torch.no_grad():
-                outputs = self.model(**inputs)
+                outputs = self.embed_model(**inputs)
                 # Use mean pooling of last hidden state
                 embeddings = outputs.last_hidden_state.mean(dim=1)
                 
@@ -195,7 +237,7 @@ class OllamaService:
         Returns:
             Generated response text
         """
-        if not self.model_loaded:
+        if not self.model_loaded or self.gen_model is None:
             return (
                 "I'm unable to generate a response right now as the AI model is not available. "
                 "Please check the model configuration."
@@ -214,19 +256,19 @@ class OllamaService:
             )
             
             # Move to device
-            device = next(self.model.parameters()).device
+            device = next(self.gen_model.parameters()).device
             inputs = {k: v.to(device) for k, v in inputs.items()}
             
             # Generate response
             import torch
             with torch.no_grad():
-                outputs = self.model.generate(
+                outputs = self.gen_model.generate(
                     **inputs,
                     max_new_tokens=400,
                     temperature=0.7,
                     do_sample=True,
                     top_p=0.9,
-                    pad_token_id=self.tokenizer.eos_token_id
+                    pad_token_id=self.tokenizer.pad_token_id or getattr(self.tokenizer, "eos_token_id", None)
                 )
             
             # Decode response
@@ -345,4 +387,5 @@ Based on the context above, provide a helpful and accurate response:"""
         except Exception as exc:
             logger.error(f"Error comparing embeddings: {exc}", exc_info=True)
             return 0.0
+
 

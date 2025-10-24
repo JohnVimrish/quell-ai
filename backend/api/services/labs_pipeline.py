@@ -1,7 +1,7 @@
 import os
 import re
 from dataclasses import dataclass
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Dict
 
 import requests
 

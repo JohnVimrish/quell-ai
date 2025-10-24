@@ -26,7 +26,7 @@ from functionalities.document import Document, DocumentVersion, DocumentDeletion
 def app():
     """Create test Flask application."""
     os.environ['TESTING'] = 'True'
-    os.environ['DATABASE_URL'] = os.getenv('TEST_DATABASE_URL', 'postgresql://localhost/ai_call_test')
+    os.environ['DATABASE_URL'] = os.getenv('DATABASE_URL', 'postgresql://localhost/ai_call_test')
     
     app = create_app()
     app.config['TESTING'] = True
@@ -54,7 +54,7 @@ def authenticated_client(client):
 @pytest.fixture
 def test_repo():
     """Create test repository."""
-    database_url = os.getenv('TEST_DATABASE_URL', 'postgresql://localhost/ai_call_test')
+    database_url = os.getenv('DATABASE_URL', 'postgresql://localhost/ai_call_test')
     
     # Load queries
     queries_path = Path('backend/config/queries.json')

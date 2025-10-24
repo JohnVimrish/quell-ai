@@ -1,0 +1,2 @@
+    rag_system = current_app.config.get("RAG_SYSTEM")
+

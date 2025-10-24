@@ -2,65 +2,39 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import requests
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from api.db.vector_store import ConversationContext, DocumentEmbedding
 from api.utils.config import Config
+from api.models.ollama_service import OllamaService
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CHAT_MODEL = "gpt-4o-mini"
-DEFAULT_EMBED_MODEL = "text-embedding-3-small"
-DEFAULT_EMBED_DIM = 1536
 TARGET_VECTOR_DIM = 384
-OPENAI_TIMEOUT = 30
 
 
 class RAGSystem:
-    """Retrieval-augmented generation backed by OpenAI endpoints."""
+    """Retrieval-augmented generation backed by local Ollama service."""
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, ollama_service: Optional[OllamaService] = None):
         self.config = config
         engine = create_engine(config.database_url, future=True)
         SessionFactory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
         self.engine = engine
         self.session: Session = SessionFactory()
 
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1").rstrip("/")
-        self.chat_model = (
-            os.getenv("OPENAI_RAG_MODEL")
-            or os.getenv("OPENAI_CHAT_MODEL")
-            or os.getenv("LABS_OPENAI_MODEL")
-            or DEFAULT_CHAT_MODEL
-        )
-        self.embed_model = (
-            os.getenv("OPENAI_EMBED_MODEL")
-            or os.getenv("LABS_OPENAI_EMBED_MODEL")
-            or DEFAULT_EMBED_MODEL
-        )
-        self.embed_dimension = self._resolve_embed_dim()
-        self._warned_missing_key = False
+        self.ollama_service: Optional[OllamaService] = ollama_service
 
-        self._urgency_vocab = [
-            "urgent",
-            "asap",
-            "immediately",
-            "emergency",
-            "critical",
-            "help",
-            "right away",
-        ]
-        self._positive_words = ["great", "excellent", "awesome", "thank", "appreciate", "happy"]
-        self._negative_words = ["angry", "frustrated", "cancel", "issue", "problem", "upset"]
+        # Optional table names from config.queries (rag section) or defaults
+        rag_cfg = (config.queries.get("rag") if isinstance(config.queries, dict) else None) or {}
+        self.embed_table: str = rag_cfg.get("embed_table", "document_embeddings")
+        self.context_table: str = rag_cfg.get("context_table", "conversation_contexts")
 
     # ------------------------------------------------------------------ #
     # Public API
@@ -76,7 +50,7 @@ class RAGSystem:
         """Generate and persist an embedding for a document."""
         embedding = self._embed_text(content)
         if embedding is None:
-            logger.warning("Skipping document embedding; OpenAI API unavailable.")
+            logger.warning("Skipping document embedding; local LLM unavailable.")
             return None
 
         try:
@@ -104,7 +78,7 @@ class RAGSystem:
         document_types: Optional[List[str]] = None,
         limit: int = 5,
     ) -> List[Dict[str, Any]]:
-        """Retrieve similar documents using vector similarity search."""
+        """Retrieve similar documents using vector similarity search (pgvector)."""
         embedding = self._embed_text(query)
         if embedding is None:
             return []
@@ -120,28 +94,34 @@ class RAGSystem:
                 type_filter = "AND document_type = ANY(:doc_types)"
                 params["doc_types"] = document_types
 
-            sql_query = text(
-                f"""
-                SELECT id, document_type, document_id, content, metadata,
-                       1 - (embedding <=> :query_embedding) AS similarity_score
-                FROM document_embeddings
-                WHERE user_id = :user_id {type_filter}
-                ORDER BY embedding <=> :query_embedding
-                LIMIT :limit
-                """
-            )
+            tmpl = (self.config.queries.get("rag") or {}).get("vector_search") or ""
 
-            rows = self.session.execute(sql_query, params)
+            if tmpl:
+                base_sql = tmpl.replace("{embed_table}", self.embed_table)
+                sql_text = base_sql.replace("{type_filter}", f" {type_filter} " if type_filter else "")
+            else:
+                sql_text = f"""
+                    SELECT id, document_type, document_id, content, document_metadata,
+                        1 - (embedding <=> :query_embedding) AS similarity_score
+                    FROM {self.embed_table}
+                    WHERE user_id = :user_id {type_filter}
+                    ORDER BY embedding <=> :query_embedding
+                    LIMIT :limit
+                """
+
+            rows = self.session.execute(text(sql_text), params).mappings().all()
+
             documents: List[Dict[str, Any]] = []
-            for row in rows:
+          
+            for r in rows:
                 documents.append(
                     {
-                        "id": row.id,
-                        "document_type": row.document_type,
-                        "document_id": row.document_id,
-                        "content": row.content,
-                        "document_metadata": row.metadata,
-                        "similarity_score": float(row.similarity_score),
+                        "id": r["id"],
+                        "document_type": r.get("document_type"),
+                        "document_id": r.get("document_id"),
+                        "content": r.get("content"),
+                        "document_metadata": r.get("document_metadata"),
+                        "similarity_score": float(r["similarity_score"]),
                     }
                 )
             return documents
@@ -152,46 +132,43 @@ class RAGSystem:
     def analyze_conversation_context(
         self,
         conversation_text: str,
-        conversation_id: str,
         user_id: int,
-        conversation_type: str,
+        conversation_id: str,
+        conversation_type: str = "call",
     ) -> Dict[str, Any]:
-        """Analyze a conversation and persist aggregated context."""
-        embedding = self._embed_text(conversation_text) or self._zero_vector()
-        analysis = self._analyze_with_openai(conversation_text)
+        """Analyze and store conversation context using local LLM."""
+        if not self._api_available:
+            return {"analysis_complete": False, "error": "local LLM unavailable"}
 
-        context_data = {
-            "primary_intent": analysis["primary_intent"],
-            "intent_confidence": float(analysis["intent_confidence"]),
-            "sentiment_label": analysis["sentiment_label"],
-            "entities": analysis["entities"],
-            "urgency_keywords_found": analysis["urgency_terms"],
-            "text_length": len(conversation_text),
-            "analysis_timestamp": datetime.utcnow().isoformat(),
-        }
+        analysis = self._analyze_with_llm(conversation_text)
+        if not analysis:
+            return {"analysis_complete": False, "error": "analysis failed"}
+
+        # Try to embed text for retrieval
+        embedding = self._embed_text(conversation_text)
 
         try:
             context_record = ConversationContext(
                 user_id=user_id,
                 conversation_id=conversation_id,
                 conversation_type=conversation_type,
-                context_data=context_data,
+                context_data=analysis,
                 embedding=embedding,
-                entities_extracted=analysis["entities"],
-                sentiment_score=float(analysis["sentiment_score"]),
-                urgency_score=float(analysis["urgency_score"]),
-                confidence_score=float(analysis["intent_confidence"]),
+                entities_extracted=analysis.get("entities", []),
+                sentiment_score=float(analysis.get("sentiment_score", 0.0)),
+                urgency_score=float(analysis.get("urgency_score", 0.0)),
+                confidence_score=float(analysis.get("intent_confidence", 0.0)),
             )
             self.session.add(context_record)
             self.session.commit()
 
             return {
                 "context_id": context_record.id,
-                "primary_intent": analysis["primary_intent"],
-                "intent_confidence": float(analysis["intent_confidence"]),
-                "sentiment_score": float(analysis["sentiment_score"]),
-                "urgency_score": float(analysis["urgency_score"]),
-                "entities": analysis["entities"],
+                "primary_intent": analysis.get("primary_intent"),
+                "intent_confidence": float(analysis.get("intent_confidence", 0.0)),
+                "sentiment_score": float(analysis.get("sentiment_score", 0.0)),
+                "urgency_score": float(analysis.get("urgency_score", 0.0)),
+                "entities": analysis.get("entities", []),
                 "analysis_complete": True,
             }
         except Exception as exc:  # noqa: BLE001
@@ -205,7 +182,7 @@ class RAGSystem:
         user_id: int,
         conversation_id: Optional[str] = None,
     ) -> str:
-        """Produce a conversational response using stored context and OpenAI."""
+        """Produce a conversational response using stored context and local LLM."""
         relevant_docs = self.retrieve_similar_documents(
             query,
             user_id,
@@ -231,33 +208,24 @@ class RAGSystem:
             ctx = conversation_context.context_data or {}
             context_parts.append(f"Tracked intent: {ctx.get('primary_intent', 'unknown')}")
             context_parts.append(f"Sentiment: {ctx.get('sentiment_label', 'neutral')}")
-            if ctx.get("urgency_keywords_found"):
-                joined = ", ".join(ctx["urgency_keywords_found"])
+            if ctx.get("urgency_terms"):
+                joined = ", ".join(ctx["urgency_terms"])
                 context_parts.append(f"Urgency terms: {joined}")
 
         context_text = "\n".join(context_parts) or "No additional context available."
 
-        response = self._chat_completion(
-            [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an AI assistant helping with customer communications. "
-                        "Use the provided context snippets when helpful. "
-                        "If the context lacks relevant facts, be transparent."
-                    ),
-                },
-                {"role": "user", "content": f"Context:\n{context_text}\n\nUser query: {query}"},
-            ],
-            temperature=0.6,
-            max_tokens=400,
-        )
+        if self._api_available:
+            try:
+                assert self.ollama_service is not None
+                resp = self.ollama_service.generate_response(query=query, context=context_text)
+                if resp:
+                    return resp.strip()
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Local generate_response failed: %s", exc)
 
-        if response:
-            return response.strip()
         return (
             "I'm having trouble generating a response right now. "
-            "Please try again once the AI services are available."
+            "Please try again once the local AI service is available."
         )
 
     def update_document_usage(self, document_id: int) -> None:
@@ -291,238 +259,73 @@ class RAGSystem:
     # ------------------------------------------------------------------ #
     @property
     def _api_available(self) -> bool:
-        return bool(self.api_key)
+        return bool(self.ollama_service) and bool(getattr(self.ollama_service, "is_available", lambda: False)())
 
-    def _resolve_embed_dim(self) -> int:
-        explicit = os.getenv("OPENAI_EMBED_DIM")
-        if explicit:
-            try:
-                return int(explicit)
-            except ValueError:
-                logger.warning("Invalid OPENAI_EMBED_DIM value '%s'; using defaults.", explicit)
+    def _embed_text(self, text_value: str) -> Optional[List[float]]:
+        """Generate an embedding for text using the local Ollama service.
 
-        model = self.embed_model.lower()
-        if model in {"text-embedding-3-large"}:
-            return 3072
-        return DEFAULT_EMBED_DIM
+        Returns a 384-dim vector (or down-projects to TARGET_VECTOR_DIM).
+        Returns None if the local LLM is unavailable.
+        """
+        if not text_value or not text_value.strip():
+            return self._zero_vector()
+        if not self._api_available:
+            return None
+        try:
+            assert self.ollama_service is not None
+            embedding = self.ollama_service.generate_embedding(text_value)
+            if not embedding:
+                return None
+            return self._down_project_embedding(embedding)
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Embedding generation failed: %s", exc)
+            return None
 
     def _zero_vector(self) -> List[float]:
         return [0.0] * TARGET_VECTOR_DIM
 
-    def _headers(self) -> Dict[str, str]:
-        return {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-    def _log_missing_key(self) -> None:
-        if not self._warned_missing_key:
-            logger.warning("OPENAI_API_KEY is not configured; falling back to heuristics.")
-            self._warned_missing_key = True
-
-    def _embed_text(self, text_value: str) -> Optional[List[float]]:
-        if not text_value.strip():
-            return self._zero_vector()
-
-        if not self._api_available:
-            self._log_missing_key()
-            return None
-
-        try:
-            payload = {"model": self.embed_model, "input": text_value}
-            response = requests.post(
-                f"{self.api_base}/embeddings",
-                headers=self._headers(),
-                json=payload,
-                timeout=OPENAI_TIMEOUT,
-            )
-            response.raise_for_status()
-            data = response.json()
-            embedding = data["data"][0]["embedding"]
-            return self._down_project_embedding(embedding)
-        except Exception as exc:  # noqa: BLE001
-            logger.error("Embedding request failed: %s", exc)
-            return None
-
     def _down_project_embedding(self, embedding: List[float]) -> List[float]:
         if len(embedding) == TARGET_VECTOR_DIM:
             return embedding
-
         arr = np.array(embedding, dtype=float)
         if arr.size < TARGET_VECTOR_DIM:
             padded = np.zeros(TARGET_VECTOR_DIM, dtype=float)
             padded[: arr.size] = arr
             return padded.tolist()
-
         if arr.size % TARGET_VECTOR_DIM == 0:
             factor = arr.size // TARGET_VECTOR_DIM
             reduced = arr.reshape(TARGET_VECTOR_DIM, factor).mean(axis=1)
             return reduced.tolist()
-
         return arr[:TARGET_VECTOR_DIM].tolist()
 
-    def _chat_completion(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.2,
-        max_tokens: int = 500,
-    ) -> Optional[str]:
-        if not self._api_available:
-            self._log_missing_key()
-            return None
-
+    def _safe_json(self, value: str) -> Optional[Dict[str, Any]]:
         try:
-            payload = {
-                "model": self.chat_model,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-                "messages": messages,
-            }
-            response = requests.post(
-                f"{self.api_base}/chat/completions",
-                headers=self._headers(),
-                json=payload,
-                timeout=OPENAI_TIMEOUT,
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
-        except Exception as exc:  # noqa: BLE001
-            logger.error("Chat completion failed: %s", exc)
-            return None
-
-    def _analyze_with_openai(self, conversation_text: str) -> Dict[str, Any]:
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You extract structured metadata from conversations. "
-                    "Return pure JSON with the keys: primary_intent (string), "
-                    "intent_confidence (float 0-1), sentiment_label (positive|neutral|negative), "
-                    "sentiment_score (float -1..1), urgency_score (float 0-1), "
-                    "urgency_terms (array of strings), and entities (array of objects "
-                    "with 'type' and 'text')."
-                ),
-            },
-            {"role": "user", "content": conversation_text},
-        ]
-
-        raw = self._chat_completion(messages, temperature=0.2, max_tokens=400)
-        if not raw:
-            return self._simple_analysis_fallback(conversation_text)
-
-        parsed = self._safe_json(raw)
-        if not parsed:
-            return self._simple_analysis_fallback(conversation_text)
-
-        return self._normalize_analysis(parsed, conversation_text)
-
-    def _safe_json(self, content: str) -> Optional[Dict[str, Any]]:
-        try:
-            return json.loads(content)
-        except json.JSONDecodeError:
-            match = re.search(r"{.*}", content, re.DOTALL)
+            return json.loads(value)
+        except Exception:
+            match = re.search(r"\{[\s\S]*\}", value)
             if match:
                 try:
                     return json.loads(match.group(0))
-                except json.JSONDecodeError:
+                except Exception:
                     return None
         return None
 
-    def _normalize_analysis(self, data: Dict[str, Any], text_value: str) -> Dict[str, Any]:
-        fallback = self._simple_analysis_fallback(text_value)
+    def _analyze_with_llm(self, conversation_text: str) -> Optional[Dict[str, Any]]:
+        if not self._api_available:
+            return None
+        instruction = (
+            "Extract structured metadata from the conversation. Return pure JSON only with keys: "
+            "primary_intent (string), intent_confidence (0-1), sentiment_label (positive|neutral|negative), "
+            "sentiment_score (-1..1), urgency_score (0-1), urgency_terms (string[]), entities (objects with type,text)."
+        )
+        try:
+            assert self.ollama_service is not None
+            raw = self.ollama_service.generate_response(query=instruction, context=conversation_text)
+            if not raw:
+                return None
+            parsed = self._safe_json(raw)
+            return parsed
+        except Exception:
+            return None
 
-        def _float(key: str, default: float) -> float:
-            value = data.get(key, default)
-            try:
-                return float(value)
-            except (TypeError, ValueError):
-                return default
-
-        primary_intent = str(data.get("primary_intent") or fallback["primary_intent"]).strip() or fallback["primary_intent"]
-        intent_confidence = max(0.0, min(1.0, _float("intent_confidence", fallback["intent_confidence"])))
-        sentiment_label = str(data.get("sentiment_label") or fallback["sentiment_label"]).lower()
-        if sentiment_label not in {"positive", "neutral", "negative"}:
-            sentiment_label = fallback["sentiment_label"]
-
-        sentiment_score = float(np.clip(_float("sentiment_score", fallback["sentiment_score"]), -1.0, 1.0))
-        urgency_score = max(0.0, min(1.0, _float("urgency_score", fallback["urgency_score"])))
-
-        urgency_terms = data.get("urgency_terms") or fallback["urgency_terms"]
-        if isinstance(urgency_terms, list):
-            urgency_terms = [str(term).strip() for term in urgency_terms if str(term).strip()]
-        else:
-            urgency_terms = fallback["urgency_terms"]
-
-        entities_raw = data.get("entities") or fallback["entities"]
-        entities: List[Dict[str, Any]] = []
-        if isinstance(entities_raw, list):
-            for item in entities_raw:
-                if isinstance(item, dict) and item.get("text"):
-                    entities.append(
-                        {
-                            "type": str(item.get("type", "unknown")),
-                            "text": str(item.get("text")),
-                        }
-                    )
-                elif isinstance(item, str) and item.strip():
-                    entities.append({"type": "unknown", "text": item.strip()})
-        else:
-            entities = fallback["entities"]
-
-        return {
-            "primary_intent": primary_intent,
-            "intent_confidence": intent_confidence,
-            "sentiment_label": sentiment_label,
-            "sentiment_score": sentiment_score,
-            "urgency_score": urgency_score,
-            "urgency_terms": urgency_terms,
-            "entities": entities,
-        }
-
-    def _simple_analysis_fallback(self, text_value: str) -> Dict[str, Any]:
-        lower = text_value.lower()
-        pos_hits = sum(lower.count(word) for word in self._positive_words)
-        neg_hits = sum(lower.count(word) for word in self._negative_words)
-        total_hits = pos_hits + neg_hits
-
-        sentiment_score = 0.0
-        if total_hits:
-            sentiment_score = (pos_hits - neg_hits) / max(total_hits, 1)
-
-        sentiment_label = "neutral"
-        if sentiment_score > 0.2:
-            sentiment_label = "positive"
-        elif sentiment_score < -0.2:
-            sentiment_label = "negative"
-
-        urgency_terms = [term for term in self._urgency_vocab if term in lower]
-        urgency_score = min(len(urgency_terms) / max(len(self._urgency_vocab), 1), 1.0)
-
-        primary_intent = "general_inquiry"
-        if "schedule" in lower or "meeting" in lower:
-            primary_intent = "appointment_scheduling"
-        elif "complain" in lower or "frustrated" in lower or sentiment_label == "negative":
-            primary_intent = "complaint"
-        elif urgency_score > 0.4:
-            primary_intent = "urgent_request"
-
-        entities: List[Dict[str, Any]] = []
-        email_matches = re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text_value)
-        for email in email_matches:
-            entities.append({"type": "email", "text": email})
-
-        phone_matches = re.findall(r"\+?\d[\d\s().-]{7,}", text_value)
-        for phone in phone_matches:
-            entities.append({"type": "phone_number", "text": phone.strip()})
-
-        return {
-            "primary_intent": primary_intent,
-            "intent_confidence": 0.55,
-            "sentiment_label": sentiment_label,
-            "sentiment_score": float(np.clip(sentiment_score, -1.0, 1.0)),
-            "urgency_score": urgency_score,
-            "urgency_terms": urgency_terms,
-            "entities": entities,
-        }
 

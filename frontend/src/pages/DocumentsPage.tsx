@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, ChangeEvent } from "react";
+import { useEffect, useState, useRef } from "react";
+import type { ChangeEvent } from "react";
 import {
   uploadFile,
   submitText,
@@ -6,7 +7,6 @@ import {
   formatFileSize,
   getFileTypeLabel,
   type UploadProgress,
-  type DocumentRecord as UploadDocumentRecord,
 } from "../utils/documentUpload";
 
 type DocumentRecord = {
@@ -26,6 +26,8 @@ type DocumentRecord = {
   file_size_bytes?: number;
   content_metadata?: Record<string, any>;
   has_embedding?: boolean;
+  version?: number;
+  deleted_at?: string | null;
   created_at?: string;
 };
 
@@ -367,17 +369,17 @@ export default function DocumentsPage() {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".txt,.csv,.xlsx"
-                onChange={handleFileSelect}
-                style={{ display: "none" }}
-              />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.csv,.xlsx,.json"
+                  onChange={handleFileSelect}
+                  style={{ display: "none" }}
+                />
               {!selectedFile && (
                 <>
                   <p style={{ fontSize: "18px", marginBottom: "8px" }}>📤 Drag and drop file here or click to browse</p>
-                  <p style={{ fontSize: "14px", color: "#666" }}>Supported: .txt, .csv, .xlsx (max 100MB)</p>
+                  <p style={{ fontSize: "14px", color: "#666" }}>Supported: .txt, .csv, .xlsx, .json (max 100MB)</p>
                 </>
               )}
               {selectedFile && (

@@ -1,4 +1,7 @@
 import os
+# Ensure Transformers does not import torchvision/TensorFlow (not needed for our CPU-only text use case)
+os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION", "1")
+os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
 import logging
 from datetime import datetime, timedelta
 
@@ -9,7 +12,6 @@ from flask_socketio import SocketIO
 from api.utils.config import Config
 from api.utils.logging import LoggerManager
 from api.utils.query_manager import QueryManager
-from api.db.connection import DatabaseManager
 # Archived: spam detector temporarily disabled (Oct 2025)
 try:
     from api.models.spam_detector import AdvancedSpamDetector as SpamDetector
@@ -17,7 +19,6 @@ except Exception:  # Module archived or unavailable
     SpamDetector = None  # type: ignore
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
-from api.models.ollama_service import OllamaService
 from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
@@ -96,7 +97,7 @@ def create_app(config_override=None):
             # ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
             # OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
             FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
-            DATABASE_URL=os.getenv("DATABASE_URL") or cfg.database_url,
+            DATABASE_URL= cfg.database_url,
             DEBUG=cfg.debug,
             FEED_ACTIVE_DAYS=int(os.getenv("FEED_ACTIVE_DAYS", 7)),
             FEED_ARCHIVE_DAYS=int(os.getenv("FEED_ARCHIVE_DAYS", 7)),
@@ -133,25 +134,20 @@ def create_app(config_override=None):
         ],
     )
 
-    # Database
-    try:
-        db_manager = DatabaseManager(app.config["DATABASE_URL"])
-        app.config["DB_MANAGER"] = db_manager
-        with app.app_context():
-            db_manager.test_connection()
-    except Exception as exc:  # noqa: BLE001
-        logging.getLogger(__name__).exception("Database initialization failed")
-        app.config["DB_MANAGER"] = None
+    # Database (SQLAlchemy used elsewhere; psycopg pool archived)
+    app.config["DB_MANAGER"] = None
 
     # AI Models
     try:
+        # Import here after environment flags are set
+        from api.models.ollama_service import OllamaService
         # Archived feature: Spam detector (Oct 2025)
         if app.config["SPAM_DETECTION_ENABLED"] and SpamDetector is not None:
             app.config["SPAM_DETECTOR"] = SpamDetector(cfg)
         else:
             app.config["SPAM_DETECTOR"] = None
 
-        app.config["RAG_SYSTEM"] = RAGSystem(cfg)
+        app.config["RAG_SYSTEM"] = RAGSystem(cfg, app.config.get("OLLAMA_SERVICE"))
 
         if app.config["VOICE_CLONING_ENABLED"]:
             app.config["VOICE_MODEL"] = VoiceModel()
@@ -183,6 +179,7 @@ def create_app(config_override=None):
 
     @app.before_request
     def before_request():  # noqa: D401
+        print('before request')
         g.config = app.config.get("APP_CONFIG")
         g.db_manager = app.config.get("DB_MANAGER")
         g.spam_detector = app.config.get("SPAM_DETECTOR")
@@ -270,3 +267,4 @@ def create_app(config_override=None):
     
     # Start the application
     return app
+

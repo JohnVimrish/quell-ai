@@ -3,7 +3,7 @@
  */
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
-const ALLOWED_EXTENSIONS = ['txt', 'csv', 'xlsx'];
+const ALLOWED_EXTENSIONS = ['txt', 'csv', 'xlsx', 'json'];
 
 export interface UploadProgress {
   loaded: number;
@@ -262,6 +262,8 @@ export function getFileTypeLabel(fileType?: string): string {
       return 'CSV Data';
     case 'xlsx':
       return 'Excel Spreadsheet';
+    case 'json':
+      return 'JSON File';
     case 'text_input':
       return 'Text Input';
     default:
