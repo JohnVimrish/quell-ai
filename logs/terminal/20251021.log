@@ -1,0 +1,2547 @@
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+npm error code 1
+npm error path /app/node_modules/esbuild
+npm error command failed
+npm error command sh -c node install.js
+npm error node:internal/child_process:1120
+npm error     result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+npm error                    ^
+npm error
+npm error <ref *1> Error: spawnSync /app/node_modules/esbuild/bin/esbuild ETXTBSY
+npm error     at Object.spawnSync (node:internal/child_process:1120:20)
+npm error     at spawnSync (node:child_process:902:24)
+npm error     at Object.execFileSync (node:child_process:945:15)
+npm error     at validateBinaryVersion (/app/node_modules/esbuild/install.js:102:28)
+npm error     at /app/node_modules/esbuild/install.js:287:5 {
+npm error   errno: -26,
+npm error   code: 'ETXTBSY',
+npm error   syscall: 'spawnSync /app/node_modules/esbuild/bin/esbuild',
+npm error   path: '/app/node_modules/esbuild/bin/esbuild',
+npm error   spawnargs: [ '--version' ],
+npm error   error: [Circular *1],
+npm error   status: null,
+npm error   signal: null,
+npm error   output: null,
+npm error   pid: 0,
+npm error   stdout: undefined,
+npm error   stderr: undefined
+npm error }
+npm error
+npm error Node.js v22.20.0
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 11.6.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+npm notice To update run: npm install -g npm@11.6.2
+npm notice
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-21T22_10_53_120Z-debug-0.log
+[1]+  Exit 1                  start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x211d9310110; CallSession> to <Mapper at 0x211d939a110; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x211d933d4d0; ChatSession> to <Mapper at 0x211d93a2150; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 22, in <module>
+    from .controllers import (
+  File "E:\ai-call-copilot\backend\api\controllers\__init__.py", line 14, in <module>
+    from .labs_controller import bp as labs_bp
+  File "E:\ai-call-copilot\backend\api\controllers\labs_controller.py", line 13, in <module>
+    from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 25, in <module>
+    class LanguagePipelineClient:
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 174, in LanguagePipelineClient
+    messages: List[Dict[str, str]],
+                   ^^^^
+NameError: name 'Dict' is not defined. Did you mean: 'dict'?
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+changed 435 packages, and audited 390 packages in 20s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x2c76fe10450; CallSession> to <Mapper at 0x2c76fe963d0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x2c76fe39890; ChatSession> to <Mapper at 0x2c76fea6310; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 22, in <module>
+    from .controllers import (
+  File "E:\ai-call-copilot\backend\api\controllers\__init__.py", line 14, in <module>
+    from .labs_controller import bp as labs_bp
+  File "E:\ai-call-copilot\backend\api\controllers\labs_controller.py", line 13, in <module>
+    from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 25, in <module>
+    class LanguagePipelineClient:
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 174, in LanguagePipelineClient
+    messages: List[Dict[str, str]],
+                   ^^^^
+NameError: name 'Dict' is not defined. Did you mean: 'dict'?
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Error while Stopping
+canceled
+
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+up to date, audited 390 packages in 1s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1c392d10150; CallSession> to <Mapper at 0x1c392d9a390; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1c392d396d0; ChatSession> to <Mapper at 0x1c392da2310; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 22, in <module>
+    from .controllers import (
+  File "E:\ai-call-copilot\backend\api\controllers\__init__.py", line 14, in <module>
+    from .labs_controller import bp as labs_bp
+  File "E:\ai-call-copilot\backend\api\controllers\labs_controller.py", line 13, in <module>
+    from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 25, in <module>
+    class LanguagePipelineClient:
+  File "E:\ai-call-copilot\backend\api\services\labs_pipeline.py", line 174, in LanguagePipelineClient
+    messages: List[Dict[str, str]],
+                   ^^^^
+NameError: name 'Dict' is not defined. Did you mean: 'dict'?
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+[1]+  Exit 137                start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1eddfb10210; CallSession> to <Mapper at 0x1eddfb9a250; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1eddfb396d0; ChatSession> to <Mapper at 0x1eddfba6290; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:16:22,858 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:16:22,860 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:16:22,862 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:16:22,864 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_151622.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 15:16:22,928 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 15:16:22,930 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 15:16:22,933 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x26e65510250; CallSession> to <Mapper at 0x26e6559a3d0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x26e655397d0; ChatSession> to <Mapper at 0x26e655a2350; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:16:25,470 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:16:25,471 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:16:25,472 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:16:25,475 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+2025-10-21 15:18:21,491 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:21] "GET / HTTP/1.1" 200 -
+2025-10-21 15:18:22,253 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 15:18:22,401 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "GET /static/dist/assets/main-CqeJaehZ.js HTTP/1.1" 200 -
+2025-10-21 15:18:22,571 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "[33mGET /assets/Phone3D-47cQfGB4.js HTTP/1.1[0m" 404 -
+2025-10-21 15:18:22,572 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "GET /static/dist/assets/LandingPage-tRWiIppc.js HTTP/1.1" 200 -
+2025-10-21 15:18:22,603 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "[33mGET /assets/LandingPage-tRWiIppc.js HTTP/1.1[0m" 404 -
+2025-10-21 15:18:22,620 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:18:22,627 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "GET /static/dist/assets/Phone3D-47cQfGB4.js HTTP/1.1" 200 -
+2025-10-21 15:18:22,665 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:18:22,888 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:22] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:18:28,905 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:28] "[33mGET /assets/WhyQuellAI-Bezs97lX.js HTTP/1.1[0m" 404 -
+2025-10-21 15:18:28,916 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:28] "GET /static/dist/assets/WhyQuellAI-Bezs97lX.js HTTP/1.1" 200 -
+2025-10-21 15:18:28,981 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:28] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:18:29,072 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:29] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:18:39,636 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:39] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:18:39,638 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:39] "GET /static/dist/assets/MessageUnderstandingDemo-4QuxBCEo.js HTTP/1.1" 200 -
+2025-10-21 15:18:43,180 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:43] "GET /static/dist/assets/LabsPlayground-DMVCbHRi.js HTTP/1.1" 200 -
+2025-10-21 15:18:43,180 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:43] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:18:43,278 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:18:43] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 15:19:58,844 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:19:58] "[31m[1mPOST /api/labs/notebook/respond HTTP/1.1[0m" 405 -
+2025-10-21 15:21:29,066 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:29] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:21:29,069 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:29] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:21:38,377 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:38] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:21:38,381 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:38] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:21:53,050 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:53] "GET /legacy/login.html HTTP/1.1" 200 -
+2025-10-21 15:21:53,155 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:53] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:21:54,966 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:54] "GET /why HTTP/1.1" 200 -
+2025-10-21 15:21:55,011 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[36mGET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1[0m" 304 -
+2025-10-21 15:21:55,021 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[36mGET /static/dist/assets/main-CqeJaehZ.js HTTP/1.1[0m" 304 -
+2025-10-21 15:21:55,057 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[33mGET /assets/WhyQuellAI-Bezs97lX.js HTTP/1.1[0m" 404 -
+2025-10-21 15:21:55,068 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[33mGET /assets/Phone3D-47cQfGB4.js HTTP/1.1[0m" 404 -
+2025-10-21 15:21:55,072 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:21:55,072 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[36mGET /static/dist/assets/WhyQuellAI-Bezs97lX.js HTTP/1.1[0m" 304 -
+2025-10-21 15:21:55,096 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[36mGET /static/dist/assets/Phone3D-47cQfGB4.js HTTP/1.1[0m" 304 -
+2025-10-21 15:21:55,115 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:21:55,363 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:55] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:21:56,696 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:56] "[33mGET /assets/LandingPage-tRWiIppc.js HTTP/1.1[0m" 404 -
+2025-10-21 15:21:56,703 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:56] "[36mGET /static/dist/assets/LandingPage-tRWiIppc.js HTTP/1.1[0m" 304 -
+2025-10-21 15:21:56,709 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:56] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:21:56,738 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:56] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:21:56,971 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:21:56] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_151625.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;Bsource ./setup/run_dev.sh[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lcd ..
+[?2004l]633;E;cd ..;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot[36m (development)[0m
+$ ]633;B]633;Bcd ..[C[Csource ./setup/run_dev.sh
+[?2004l]633;E;source ./setup/run_dev.sh;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:/e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:/e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\ai-call-copilot\backend
+  E:\ai-call-copilot\E
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+Python paths:
+  
+  E:\ai-call-copilot\backend
+  E:\ai-call-copilot\E
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 3s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+up to date, audited 390 packages in 3s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[1]+  Done                    start_frontend
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1c8e6518490; CallSession> to <Mapper at 0x1c8e6596390; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1c8e6539a10; ChatSession> to <Mapper at 0x1c8e65a2350; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1c8e6518490; CallSession> to <Mapper at 0x1c8e6596390; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1c8e6539a10; ChatSession> to <Mapper at 0x1c8e65a2350; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:24:48,064 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:24:48,065 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:24:48,066 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:24:48,064 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:24:48,065 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:24:48,066 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:24:48,070 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+2025-10-21 15:24:48,070 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_152448.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 15:24:48,111 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_152448.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 15:24:48,111 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 15:24:48,114 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 15:24:48,116 - werkzeug - INFO -  * Restarting with stat
+2025-10-21 15:24:48,114 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 15:24:48,116 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1cebe114850; CallSession> to <Mapper at 0x1cebe19a950; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1cebe139e10; ChatSession> to <Mapper at 0x1cebe1a28d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1cebe114850; CallSession> to <Mapper at 0x1cebe19a950; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1cebe139e10; ChatSession> to <Mapper at 0x1cebe1a28d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:24:50,638 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:24:50,640 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:24:50,641 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:24:50,644 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+2025-10-21 15:24:50,638 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:24:50,640 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:24:50,641 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:24:50,644 - api.models.ollama_service - WARNING - transformers library not available. Install with: pip install transformers torch
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_152450.log
+Max file size: 10485760 bytes, Backup count: 5
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_152450.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[7mxcopy /E /I /Y frontend\dist backend\static\dist[27m[7mxcopy /E /I /Y frontend\dist backend\static\dist[27m[C[C[1Pxcopy /E /I /Y frontend\dist backend\static\dis[C[C[1Pxcopy /E /I /Y frontend\dist backend\static\dis[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lcd [K[Kcd [K[K[K[K[?5h[?5l[?5h[?5lccdd  //ee//aa[K[K
+[?2004l
+[?2004l]633;E;cd /e/;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;D;0]633;E;cd /e/;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;D;0]633;P;Cwd=E:/]633;P;Cwd=E:/[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;Bllss
+[?2004l
+[?2004l]633;E;ls;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;E;ls;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C$RECYCLE.BIN/
+ai-call-copilot/
+assesment/
+bizmetric/
+bulk_upload_njs/
+cursor/
+cyber/
+Datathon/
+docker_image_bck/
+docker_spark_image_volume/
+e/
+Model_Test/
+movies/
+neonctl-win.exe*
+O reilly DataBricks Python.pdf
+README.md
+Rent Beverly 173/
+scebills/
+screen recorder/
+sql_challenge/
+summer_project/
+System Volume Information/
+temp/
+test.py
+ui/
+ui.zip
+Vijay_Krishna_ASI_Resume.pdf
+weaviate workshop/
+$RECYCLE.BIN/
+ai-call-copilot/
+assesment/
+bizmetric/
+bulk_upload_njs/
+cursor/
+cyber/
+Datathon/
+docker_image_bck/
+docker_spark_image_volume/
+e/
+Model_Test/
+movies/
+neonctl-win.exe*
+O reilly DataBricks Python.pdf
+README.md
+Rent Beverly 173/
+scebills/
+screen recorder/
+sql_challenge/
+summer_project/
+System Volume Information/
+temp/
+test.py
+ui/
+ui.zip
+Vijay_Krishna_ASI_Resume.pdf
+weaviate workshop/
+]633;D;0]633;D;0]633;P;Cwd=E:/]633;P;Cwd=E:/[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;Bdd  mmoo[K[K==[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lssoouurrccee  [K[K  //,,[K[K[K[K..//mmoo[?5h[?5l[?5h[?5lddeeModel_Test/Model_Test/SS[K[Kmmodel_test_venv/odel_test_venv/SS[?5h[?5l[?5h[?5lccripts/ripts/aaccttiivvtt[K[Kaa[?5h[?5lte[?5h[?5lte
+[?2004l
+[?2004l]633;E;source ./Model_Test/model_test_venv/Scripts/activate;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;E;source ./Model_Test/model_test_venv/Scripts/activate;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;D;0]633;D;0]633;P;Cwd=E:/]633;P;Cwd=E:/[?2004h]633;A(model_test_venv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[?2004h]633;A(model_test_venv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;Bppiipp  ffrreeeezzee  [7mE:\ai-call-copilot\extras\requirements.txt[27m[7mE:\ai-call-copilot\extras\requirements.txt[27m[?5h[?5l[C[C[C[C[C[C[C[C[C[C[C[C[CE:\ai-call-copilot\extras\requirements.txt[?5h[?5l[C[C[C[C[C[C[C[C[C[C[C[C[CE:\ai-call-copilot\extras\requirements.txt[K[K[K[K[K[K[K[K[K[Kss--ttrraanndd[K[Kffoorrmmeerr,,[K[K..ttxxtt
+[?2004l
+[?2004l]633;E;pip freeze E:\\ai-call-copilot\\extras\\requirements-tranformer.txt;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;C]633;E;pip freeze E:\\ai-call-copilot\\extras\\requirements-tranformer.txt;1553ec89-4db2-406c-96f7-9e0b64bdc447]633;Caccelerate==1.11.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+click==8.3.0
+colorama==0.4.6
+contourpy==1.3.3
+cycler==0.12.1
+duckduckgo_search==8.1.1
+filelock==3.20.0
+fonttools==4.60.1
+fsspec==2025.9.0
+huggingface-hub==0.35.3
+idna==3.11
+intel-openmp==2021.4.0
+Jinja2==3.1.6
+joblib==1.5.2
+kiwisolver==1.4.9
+lxml==6.0.2
+MarkupSafe==2.1.5
+matplotlib==3.10.7
+mkl==2021.4.0
+mpmath==1.3.0
+networkx==3.5
+numpy==2.3.4
+packaging==25.0
+pillow==12.0.0
+primp==0.15.0
+psutil==7.1.1
+pyparsing==3.2.5
+python-dateutil==2.9.0.post0
+PyYAML==6.0.3
+regex==2025.9.18
+requests==2.32.5
+safetensors==0.6.2
+scikit-learn==1.7.2
+scipy==1.16.2
+sentence-transformers==5.1.1
+six==1.17.0
+sympy==1.14.0
+tbb==2021.11.0
+threadpoolctl==3.6.0
+tokenizers==0.22.1
+torch==2.3.1+cpu
+tqdm==4.67.1
+transformers==4.57.1
+typing_extensions==4.15.0
+urllib3==2.5.0
+accelerate==1.11.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+click==8.3.0
+colorama==0.4.6
+contourpy==1.3.3
+cycler==0.12.1
+duckduckgo_search==8.1.1
+filelock==3.20.0
+fonttools==4.60.1
+fsspec==2025.9.0
+huggingface-hub==0.35.3
+idna==3.11
+intel-openmp==2021.4.0
+Jinja2==3.1.6
+joblib==1.5.2
+kiwisolver==1.4.9
+lxml==6.0.2
+MarkupSafe==2.1.5
+matplotlib==3.10.7
+mkl==2021.4.0
+mpmath==1.3.0
+networkx==3.5
+numpy==2.3.4
+packaging==25.0
+pillow==12.0.0
+primp==0.15.0
+psutil==7.1.1
+pyparsing==3.2.5
+python-dateutil==2.9.0.post0
+PyYAML==6.0.3
+regex==2025.9.18
+requests==2.32.5
+safetensors==0.6.2
+scikit-learn==1.7.2
+scipy==1.16.2
+sentence-transformers==5.1.1
+six==1.17.0
+sympy==1.14.0
+tbb==2021.11.0
+threadpoolctl==3.6.0
+tokenizers==0.22.1
+torch==2.3.1+cpu
+tqdm==4.67.1
+transformers==4.57.1
+typing_extensions==4.15.0
+urllib3==2.5.0
+]633;D;0]633;D;0]633;P;Cwd=E:/]633;P;Cwd=E:/[?2004h]633;A(model_test_venv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[?2004h]633;A(model_test_venv) ]633;A]0;MINGW64:/e
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e[36m[0m
+$ ]633;B]633;B[?5h[?5l[?5h[?5lAA[?5h[?5l[?5h[?5lAA[?5h[?5l[?5h[?5lAA[?5h[?5l[?5h[?5lAA[?5h[?5l[?5h[?5lAA[?5h[?5l[?5h[?5lAA📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 3s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x15b73918290; CallSession> to <Mapper at 0x15b7399e250; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x15b73939690; ChatSession> to <Mapper at 0x15b739ae210; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:45:26,286 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:45:26,287 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:45:26,288 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:45:39,308 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 63, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 15:45:55,482 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_154526.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 15:45:55,528 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 15:45:55,530 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 15:45:55,532 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x18a26e18290; CallSession> to <Mapper at 0x18a26e9e450; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x18a26e3d8d0; ChatSession> to <Mapper at 0x18a26eaa3d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:45:57,795 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:45:57,797 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:45:57,798 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:46:02,373 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 63, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 15:46:07,441 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 15:48:29,807 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:29] "GET / HTTP/1.1" 200 -
+2025-10-21 15:48:30,185 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 15:48:30,323 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "GET /static/dist/assets/main-DEHa6zRv.js HTTP/1.1" 200 -
+2025-10-21 15:48:30,362 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "[33mGET /assets/LandingPage-GuiaqGy8.js HTTP/1.1[0m" 404 -
+2025-10-21 15:48:30,368 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "[33mGET /assets/Phone3D-_txtZFTy.js HTTP/1.1[0m" 404 -
+2025-10-21 15:48:30,372 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "GET /static/dist/assets/LandingPage-GuiaqGy8.js HTTP/1.1" 200 -
+2025-10-21 15:48:30,402 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "GET /static/dist/assets/Phone3D-_txtZFTy.js HTTP/1.1" 200 -
+2025-10-21 15:48:30,413 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:48:30,442 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:30] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:48:37,933 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:37] "GET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1" 200 -
+2025-10-21 15:48:38,043 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:38] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 15:48:49,893 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:48:49] "GET /static/dist/assets/MessageUnderstandingDemo-BoXnmNDe.js HTTP/1.1" 200 -
+2025-10-21 15:49:05,043 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:05] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:49:07,703 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:07] "[33mGET /assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1[0m" 404 -
+2025-10-21 15:49:07,713 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:07] "GET /static/dist/assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1" 200 -
+2025-10-21 15:49:07,753 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:07] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:49:10,163 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:10] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 15:49:18,011 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET / HTTP/1.1" 200 -
+2025-10-21 15:49:18,161 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET /static/dist/assets/main-DEHa6zRv.js HTTP/1.1" 200 -
+2025-10-21 15:49:18,163 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 15:49:18,357 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "[33mGET /assets/Phone3D-_txtZFTy.js HTTP/1.1[0m" 404 -
+2025-10-21 15:49:18,372 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "[33mGET /assets/LandingPage-GuiaqGy8.js HTTP/1.1[0m" 404 -
+2025-10-21 15:49:18,412 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET /static/dist/assets/LandingPage-GuiaqGy8.js HTTP/1.1" 200 -
+2025-10-21 15:49:18,412 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:49:18,439 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "GET /static/dist/assets/Phone3D-_txtZFTy.js HTTP/1.1" 200 -
+2025-10-21 15:49:18,459 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:49:18,647 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:18] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:49:23,175 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:23] "GET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1" 200 -
+2025-10-21 15:49:23,178 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:23] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:49:23,341 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:23] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 15:49:33,648 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:33] "[36mGET /legacy/login.html HTTP/1.1[0m" 304 -
+2025-10-21 15:49:33,776 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:33] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:49:35,480 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:35] "GET /labs/dev-playground HTTP/1.1" 200 -
+2025-10-21 15:49:35,544 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:35] "[36mGET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1[0m" 304 -
+2025-10-21 15:49:35,547 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:35] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 15:49:35,844 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:49:35] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 15:53:31,546 - werkzeug - INFO -  * Detected change in 'E:\\ai-call-copilot\\backend\\api\\models\\ollama_service.py', reloading
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_154557.log
+Max file size: 10485760 bytes, Backup count: 5
+2025-10-21 15:53:32,823 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1423d0180d0; CallSession> to <Mapper at 0x1423d09e290; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1423d03d590; ChatSession> to <Mapper at 0x1423d0aa2d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:53:35,258 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:53:35,261 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:53:35,262 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:53:39,605 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 15:53:44,070 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 15:58:02,677 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 15:58:02] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 15:59:46,703 - werkzeug - INFO -  * Detected change in 'E:\\ai-call-copilot\\backend\\api\\models\\ollama_service.py', reloading
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_155335.log
+Max file size: 10485760 bytes, Backup count: 5
+2025-10-21 15:59:48,112 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x29d53e180d0; CallSession> to <Mapper at 0x29d53e9e190; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x29d53e41610; ChatSession> to <Mapper at 0x29d53eaa190; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 15:59:51,057 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 15:59:51,060 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-21 15:59:51,061 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 15:59:56,029 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:00:00,520 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 16:07:08,209 - werkzeug - INFO -  * Detected change in 'E:\\ai-call-copilot\\backend\\api\\db\\connection.py', reloading
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_155951.log
+Max file size: 10485760 bytes, Backup count: 5
+2025-10-21 16:07:09,683 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1c139a18090; CallSession> to <Mapper at 0x1c139a9e310; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1c139a41690; ChatSession> to <Mapper at 0x1c139aaa250; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 16:07:12,638 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:07:12,641 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:07:12,642 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:07:17,700 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:07:22,888 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_160712.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[?5h[?5lA[?5h[?5lA[?5h[?5lA[?5h[?5lA[?5h[?5lA[?5h[?5lA[?5h[?5lA[?5h[?5lA[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[7m    deactivate[27m[?5h[?5l[C[C    deactivate[?5h[?5l[?5h[?5l[C[C[C[1Pdeactivate[C[C[C[C[1Pdeactivate[C[C[C[1Pdeactivate[C[C[C[C[C[C[C[C[C[C[C[C[C[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l
+[?2004l]633;E;deactivate;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[7m        rm -rf my_env[27m[?5h[?5l[C[C        rm -rf my_env[C[C[1P[C[1P[C[1P[C[1P[C[1P[C[1P[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[C[1P[1P[C[C[C[C[C[C[C[C.my_env/my_env[C[C[C[C[C[C[?5h[?5l[?5h[?5l[?5h[?5l[K[K[K[K[K[Kpvenv
+[?2004l]633;E;rm -rf ./pvenv;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[7mpython -m venv myenv[27m[?5h[?5l[C[Cpython -m venv myenv[K[K[K[K[Kpvenv
+[?2004l]633;E;python -m venv pvenv;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;Bpython -m venv pvenv[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lsource p[K./pvenv/Scripts/Ac[K[Kactiv[?5h[?5late
+[?2004l]633;E;source ./pvenv/Scripts/activate;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;Bpu[Kip install -r "[7mE:\ai-call-copilot\extras\requirements.txt[27m[?5h[?5l[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[CE:\ai-call-copilot\extras\requirements.txt"
+[?2004l]633;E;pip install -r "E:\\ai-call-copilot\\extras\\requirements.txt";d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;CCollecting sqlalchemy (from -r E:\ai-call-copilot\extras\requirements.txt (line 1))
+  Downloading sqlalchemy-2.0.44-cp311-cp311-win_amd64.whl.metadata (9.8 kB)
+Collecting Flask (from -r E:\ai-call-copilot\extras\requirements.txt (line 3))
+  Downloading flask-3.1.2-py3-none-any.whl.metadata (3.2 kB)
+Collecting python-dotenv (from -r E:\ai-call-copilot\extras\requirements.txt (line 4))
+  Using cached python_dotenv-1.1.1-py3-none-any.whl.metadata (24 kB)
+Collecting Jinja2 (from -r E:\ai-call-copilot\extras\requirements.txt (line 5))
+  Using cached jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting Werkzeug (from -r E:\ai-call-copilot\extras\requirements.txt (line 6))
+  Using cached werkzeug-3.1.3-py3-none-any.whl.metadata (3.7 kB)
+Collecting pytest (from -r E:\ai-call-copilot\extras\requirements.txt (line 7))
+  Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+Collecting pytest-asyncio (from -r E:\ai-call-copilot\extras\requirements.txt (line 8))
+  Downloading pytest_asyncio-1.2.0-py3-none-any.whl.metadata (4.1 kB)
+Collecting pytest-cov (from -r E:\ai-call-copilot\extras\requirements.txt (line 9))
+  Downloading pytest_cov-7.0.0-py3-none-any.whl.metadata (31 kB)
+Collecting graypy (from -r E:\ai-call-copilot\extras\requirements.txt (line 10))
+  Using cached graypy-2.1.0-py2.py3-none-any.whl.metadata (8.9 kB)
+Collecting pgvector (from -r E:\ai-call-copilot\extras\requirements.txt (line 11))
+  Using cached pgvector-0.4.1-py3-none-any.whl.metadata (18 kB)
+Collecting gunicorn (from -r E:\ai-call-copilot\extras\requirements.txt (line 12))
+  Using cached gunicorn-23.0.0-py3-none-any.whl.metadata (4.4 kB)
+Collecting librosa (from -r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached librosa-0.11.0-py3-none-any.whl.metadata (8.7 kB)
+Collecting soundfile (from -r E:\ai-call-copilot\extras\requirements.txt (line 14))
+  Using cached soundfile-0.13.1-py2.py3-none-win_amd64.whl.metadata (16 kB)
+Collecting Flask-Cors (from -r E:\ai-call-copilot\extras\requirements.txt (line 15))
+  Using cached flask_cors-6.0.1-py3-none-any.whl.metadata (5.3 kB)
+Collecting Flask-SocketIO (from -r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached Flask_SocketIO-5.5.1-py3-none-any.whl.metadata (2.6 kB)
+Collecting lxml (from -r E:\ai-call-copilot\extras\requirements.txt (line 17))
+  Using cached lxml-6.0.2-cp311-cp311-win_amd64.whl.metadata (3.7 kB)
+Collecting MarkupSafe (from -r E:\ai-call-copilot\extras\requirements.txt (line 18))
+  Using cached markupsafe-3.0.3-cp311-cp311-win_amd64.whl.metadata (2.8 kB)
+Collecting matplotlib (from -r E:\ai-call-copilot\extras\requirements.txt (line 19))
+  Using cached matplotlib-3.10.7-cp311-cp311-win_amd64.whl.metadata (11 kB)
+Collecting mkl (from -r E:\ai-call-copilot\extras\requirements.txt (line 20))
+  Downloading mkl-2025.2.0-py2.py3-none-win_amd64.whl.metadata (1.4 kB)
+Collecting mpmath (from -r E:\ai-call-copilot\extras\requirements.txt (line 21))
+  Using cached mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+Collecting networkx (from -r E:\ai-call-copilot\extras\requirements.txt (line 22))
+  Using cached networkx-3.5-py3-none-any.whl.metadata (6.3 kB)
+Collecting numpy (from -r E:\ai-call-copilot\extras\requirements.txt (line 23))
+  Using cached numpy-2.3.4-cp311-cp311-win_amd64.whl.metadata (60 kB)
+Collecting packaging (from -r E:\ai-call-copilot\extras\requirements.txt (line 24))
+  Using cached packaging-25.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting pillow (from -r E:\ai-call-copilot\extras\requirements.txt (line 25))
+  Using cached pillow-12.0.0-cp311-cp311-win_amd64.whl.metadata (9.0 kB)
+Collecting primp (from -r E:\ai-call-copilot\extras\requirements.txt (line 26))
+  Using cached primp-0.15.0-cp38-abi3-win_amd64.whl.metadata (13 kB)
+Collecting psutil (from -r E:\ai-call-copilot\extras\requirements.txt (line 27))
+  Using cached psutil-7.1.1-cp37-abi3-win_amd64.whl.metadata (23 kB)
+Collecting pyparsing (from -r E:\ai-call-copilot\extras\requirements.txt (line 28))
+  Using cached pyparsing-3.2.5-py3-none-any.whl.metadata (5.0 kB)
+Collecting python-dateutil (from -r E:\ai-call-copilot\extras\requirements.txt (line 29))
+  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting PyYAML (from -r E:\ai-call-copilot\extras\requirements.txt (line 30))
+  Using cached pyyaml-6.0.3-cp311-cp311-win_amd64.whl.metadata (2.4 kB)
+Collecting regex (from -r E:\ai-call-copilot\extras\requirements.txt (line 31))
+  Downloading regex-2025.10.23-cp311-cp311-win_amd64.whl.metadata (41 kB)
+     -------------------------------------- 41.5/41.5 kB 977.7 kB/s eta 0:00:00
+Collecting requests (from -r E:\ai-call-copilot\extras\requirements.txt (line 32))
+  Using cached requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+Collecting safetensors (from -r E:\ai-call-copilot\extras\requirements.txt (line 33))
+  Using cached safetensors-0.6.2-cp38-abi3-win_amd64.whl.metadata (4.1 kB)
+Collecting scikit-learn (from -r E:\ai-call-copilot\extras\requirements.txt (line 34))
+  Using cached scikit_learn-1.7.2-cp311-cp311-win_amd64.whl.metadata (11 kB)
+Collecting scipy (from -r E:\ai-call-copilot\extras\requirements.txt (line 35))
+  Using cached scipy-1.16.2-cp311-cp311-win_amd64.whl.metadata (60 kB)
+Collecting sentence-transformers (from -r E:\ai-call-copilot\extras\requirements.txt (line 36))
+  Using cached sentence_transformers-5.1.1-py3-none-any.whl.metadata (16 kB)
+Collecting six (from -r E:\ai-call-copilot\extras\requirements.txt (line 37))
+  Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Collecting sympy (from -r E:\ai-call-copilot\extras\requirements.txt (line 38))
+  Using cached sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+Collecting tbb (from -r E:\ai-call-copilot\extras\requirements.txt (line 39))
+  Downloading tbb-2022.2.0-py3-none-win_amd64.whl.metadata (1.1 kB)
+Collecting threadpoolctl (from -r E:\ai-call-copilot\extras\requirements.txt (line 40))
+  Using cached threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+Collecting tokenizers (from -r E:\ai-call-copilot\extras\requirements.txt (line 41))
+  Using cached tokenizers-0.22.1-cp39-abi3-win_amd64.whl.metadata (6.9 kB)
+Collecting torch (from -r E:\ai-call-copilot\extras\requirements.txt (line 42))
+  Downloading torch-2.9.0-cp311-cp311-win_amd64.whl.metadata (30 kB)
+Collecting torchaudio (from -r E:\ai-call-copilot\extras\requirements.txt (line 43))
+  Downloading torchaudio-2.9.0-cp311-cp311-win_amd64.whl.metadata (6.9 kB)
+Collecting tqdm (from -r E:\ai-call-copilot\extras\requirements.txt (line 44))
+  Using cached tqdm-4.67.1-py3-none-any.whl.metadata (57 kB)
+Collecting transformers (from -r E:\ai-call-copilot\extras\requirements.txt (line 45))
+  Using cached transformers-4.57.1-py3-none-any.whl.metadata (43 kB)
+Collecting typing_extensions (from -r E:\ai-call-copilot\extras\requirements.txt (line 46))
+  Using cached typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting urllib3 (from -r E:\ai-call-copilot\extras\requirements.txt (line 47))
+  Using cached urllib3-2.5.0-py3-none-any.whl.metadata (6.5 kB)
+Collecting psycopg[binary] (from -r E:\ai-call-copilot\extras\requirements.txt (line 2))
+  Downloading psycopg-3.2.11-py3-none-any.whl.metadata (4.5 kB)
+Collecting greenlet>=1 (from sqlalchemy->-r E:\ai-call-copilot\extras\requirements.txt (line 1))
+  Using cached greenlet-3.2.4-cp311-cp311-win_amd64.whl.metadata (4.2 kB)
+Collecting tzdata (from psycopg[binary]->-r E:\ai-call-copilot\extras\requirements.txt (line 2))
+  Using cached tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting psycopg-binary==3.2.11 (from psycopg[binary]->-r E:\ai-call-copilot\extras\requirements.txt (line 2))
+  Downloading psycopg_binary-3.2.11-cp311-cp311-win_amd64.whl.metadata (3.0 kB)
+Collecting blinker>=1.9.0 (from Flask->-r E:\ai-call-copilot\extras\requirements.txt (line 3))
+  Using cached blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+Collecting click>=8.1.3 (from Flask->-r E:\ai-call-copilot\extras\requirements.txt (line 3))
+  Using cached click-8.3.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting itsdangerous>=2.2.0 (from Flask->-r E:\ai-call-copilot\extras\requirements.txt (line 3))
+  Using cached itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+Collecting colorama>=0.4 (from pytest->-r E:\ai-call-copilot\extras\requirements.txt (line 7))
+  Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting iniconfig>=1 (from pytest->-r E:\ai-call-copilot\extras\requirements.txt (line 7))
+  Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting pluggy<2,>=1.5 (from pytest->-r E:\ai-call-copilot\extras\requirements.txt (line 7))
+  Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Collecting pygments>=2.7.2 (from pytest->-r E:\ai-call-copilot\extras\requirements.txt (line 7))
+  Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov->-r E:\ai-call-copilot\extras\requirements.txt (line 9))
+  Using cached coverage-7.11.0-cp311-cp311-win_amd64.whl.metadata (9.2 kB)
+Collecting audioread>=2.1.9 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached audioread-3.0.1-py3-none-any.whl.metadata (8.4 kB)
+Collecting numba>=0.51.0 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached numba-0.62.1-cp311-cp311-win_amd64.whl.metadata (2.9 kB)
+Collecting joblib>=1.0 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached joblib-1.5.2-py3-none-any.whl.metadata (5.6 kB)
+Collecting decorator>=4.3.0 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached decorator-5.2.1-py3-none-any.whl.metadata (3.9 kB)
+Collecting pooch>=1.1 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached pooch-1.8.2-py3-none-any.whl.metadata (10 kB)
+Collecting soxr>=0.3.2 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached soxr-1.0.0-cp311-cp311-win_amd64.whl.metadata (5.6 kB)
+Collecting lazy_loader>=0.1 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached lazy_loader-0.4-py3-none-any.whl.metadata (7.6 kB)
+Collecting msgpack>=1.0 (from librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached msgpack-1.1.2-cp311-cp311-win_amd64.whl.metadata (8.4 kB)
+Collecting cffi>=1.0 (from soundfile->-r E:\ai-call-copilot\extras\requirements.txt (line 14))
+  Using cached cffi-2.0.0-cp311-cp311-win_amd64.whl.metadata (2.6 kB)
+Collecting python-socketio>=5.12.0 (from Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached python_socketio-5.14.2-py3-none-any.whl.metadata (3.2 kB)
+Collecting contourpy>=1.0.1 (from matplotlib->-r E:\ai-call-copilot\extras\requirements.txt (line 19))
+  Using cached contourpy-1.3.3-cp311-cp311-win_amd64.whl.metadata (5.5 kB)
+Collecting cycler>=0.10 (from matplotlib->-r E:\ai-call-copilot\extras\requirements.txt (line 19))
+  Using cached cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+Collecting fonttools>=4.22.0 (from matplotlib->-r E:\ai-call-copilot\extras\requirements.txt (line 19))
+  Using cached fonttools-4.60.1-cp311-cp311-win_amd64.whl.metadata (114 kB)
+Collecting kiwisolver>=1.3.1 (from matplotlib->-r E:\ai-call-copilot\extras\requirements.txt (line 19))
+  Using cached kiwisolver-1.4.9-cp311-cp311-win_amd64.whl.metadata (6.4 kB)
+Collecting intel-openmp<2026,>=2024 (from mkl->-r E:\ai-call-copilot\extras\requirements.txt (line 20))
+  Downloading intel_openmp-2025.2.1-py2.py3-none-win_amd64.whl.metadata (1.3 kB)
+Collecting tcmlib==1.* (from tbb->-r E:\ai-call-copilot\extras\requirements.txt (line 39))
+  Downloading tcmlib-1.4.0-py2.py3-none-win_amd64.whl.metadata (1.0 kB)
+Collecting charset_normalizer<4,>=2 (from requests->-r E:\ai-call-copilot\extras\requirements.txt (line 32))
+  Using cached charset_normalizer-3.4.4-cp311-cp311-win_amd64.whl.metadata (38 kB)
+Collecting idna<4,>=2.5 (from requests->-r E:\ai-call-copilot\extras\requirements.txt (line 32))
+  Using cached idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Collecting certifi>=2017.4.17 (from requests->-r E:\ai-call-copilot\extras\requirements.txt (line 32))
+  Using cached certifi-2025.10.5-py3-none-any.whl.metadata (2.5 kB)
+Collecting huggingface-hub>=0.20.0 (from sentence-transformers->-r E:\ai-call-copilot\extras\requirements.txt (line 36))
+  Using cached huggingface_hub-0.35.3-py3-none-any.whl.metadata (14 kB)
+Collecting filelock (from torch->-r E:\ai-call-copilot\extras\requirements.txt (line 42))
+  Using cached filelock-3.20.0-py3-none-any.whl.metadata (2.1 kB)
+Collecting fsspec>=0.8.5 (from torch->-r E:\ai-call-copilot\extras\requirements.txt (line 42))
+  Using cached fsspec-2025.9.0-py3-none-any.whl.metadata (10 kB)
+Collecting pycparser (from cffi>=1.0->soundfile->-r E:\ai-call-copilot\extras\requirements.txt (line 14))
+  Using cached pycparser-2.23-py3-none-any.whl.metadata (993 bytes)
+Collecting intel-cmplr-lib-ur==2025.2.1 (from intel-openmp<2026,>=2024->mkl->-r E:\ai-call-copilot\extras\requirements.txt (line 20))
+  Downloading intel_cmplr_lib_ur-2025.2.1-py2.py3-none-win_amd64.whl.metadata (1.3 kB)
+Collecting umf==0.11.* (from intel-cmplr-lib-ur==2025.2.1->intel-openmp<2026,>=2024->mkl->-r E:\ai-call-copilot\extras\requirements.txt (line 20))
+  Downloading umf-0.11.0-py2.py3-none-win_amd64.whl.metadata (1.1 kB)
+Collecting llvmlite<0.46,>=0.45.0dev0 (from numba>=0.51.0->librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached llvmlite-0.45.1-cp311-cp311-win_amd64.whl.metadata (5.0 kB)
+Collecting platformdirs>=2.5.0 (from pooch>=1.1->librosa->-r E:\ai-call-copilot\extras\requirements.txt (line 13))
+  Using cached platformdirs-4.5.0-py3-none-any.whl.metadata (12 kB)
+Collecting bidict>=0.21.0 (from python-socketio>=5.12.0->Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached bidict-0.23.1-py3-none-any.whl.metadata (8.7 kB)
+Collecting python-engineio>=4.11.0 (from python-socketio>=5.12.0->Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached python_engineio-4.12.3-py3-none-any.whl.metadata (2.2 kB)
+Collecting simple-websocket>=0.10.0 (from python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached simple_websocket-1.1.0-py3-none-any.whl.metadata (1.5 kB)
+Collecting wsproto (from simple-websocket>=0.10.0->python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached wsproto-1.2.0-py3-none-any.whl.metadata (5.6 kB)
+Collecting h11<1,>=0.9.0 (from wsproto->simple-websocket>=0.10.0->python-engineio>=4.11.0->python-socketio>=5.12.0->Flask-SocketIO->-r E:\ai-call-copilot\extras\requirements.txt (line 16))
+  Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Downloading sqlalchemy-2.0.44-cp311-cp311-win_amd64.whl (2.1 MB)
+   ---------------------------------------- 2.1/2.1 MB 5.9 MB/s eta 0:00:00
+Downloading psycopg_binary-3.2.11-cp311-cp311-win_amd64.whl (2.9 MB)
+   ---------------------------------------- 2.9/2.9 MB 5.8 MB/s eta 0:00:00
+Downloading flask-3.1.2-py3-none-any.whl (103 kB)
+   ---------------------------------------- 103.3/103.3 kB 5.8 MB/s eta 0:00:00
+Using cached python_dotenv-1.1.1-py3-none-any.whl (20 kB)
+Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Using cached werkzeug-3.1.3-py3-none-any.whl (224 kB)
+Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+   ---------------------------------------- 365.8/365.8 kB 4.6 MB/s eta 0:00:00
+Downloading pytest_asyncio-1.2.0-py3-none-any.whl (15 kB)
+Downloading pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+Using cached graypy-2.1.0-py2.py3-none-any.whl (29 kB)
+Using cached pgvector-0.4.1-py3-none-any.whl (27 kB)
+Using cached gunicorn-23.0.0-py3-none-any.whl (85 kB)
+Using cached librosa-0.11.0-py3-none-any.whl (260 kB)
+Using cached soundfile-0.13.1-py2.py3-none-win_amd64.whl (1.0 MB)
+Using cached flask_cors-6.0.1-py3-none-any.whl (13 kB)
+Using cached Flask_SocketIO-5.5.1-py3-none-any.whl (18 kB)
+Using cached lxml-6.0.2-cp311-cp311-win_amd64.whl (4.0 MB)
+Using cached markupsafe-3.0.3-cp311-cp311-win_amd64.whl (15 kB)
+Using cached matplotlib-3.10.7-cp311-cp311-win_amd64.whl (8.1 MB)
+Downloading mkl-2025.2.0-py2.py3-none-win_amd64.whl (153.6 MB)
+   ---------------------------------------- 153.6/153.6 MB 5.0 MB/s eta 0:00:00
+Downloading tbb-2022.2.0-py3-none-win_amd64.whl (420 kB)
+   ---------------------------------------- 420.6/420.6 kB 5.3 MB/s eta 0:00:00
+Downloading tcmlib-1.4.0-py2.py3-none-win_amd64.whl (370 kB)
+   ---------------------------------------- 370.3/370.3 kB 5.7 MB/s eta 0:00:00
+Using cached mpmath-1.3.0-py3-none-any.whl (536 kB)
+Using cached networkx-3.5-py3-none-any.whl (2.0 MB)
+Using cached numpy-2.3.4-cp311-cp311-win_amd64.whl (13.1 MB)
+Using cached packaging-25.0-py3-none-any.whl (66 kB)
+Using cached pillow-12.0.0-cp311-cp311-win_amd64.whl (7.0 MB)
+Using cached primp-0.15.0-cp38-abi3-win_amd64.whl (3.1 MB)
+Using cached psutil-7.1.1-cp37-abi3-win_amd64.whl (246 kB)
+Using cached pyparsing-3.2.5-py3-none-any.whl (113 kB)
+Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Using cached pyyaml-6.0.3-cp311-cp311-win_amd64.whl (158 kB)
+Downloading regex-2025.10.23-cp311-cp311-win_amd64.whl (277 kB)
+   ---------------------------------------- 277.6/277.6 kB 4.3 MB/s eta 0:00:00
+Using cached requests-2.32.5-py3-none-any.whl (64 kB)
+Using cached safetensors-0.6.2-cp38-abi3-win_amd64.whl (320 kB)
+Using cached scikit_learn-1.7.2-cp311-cp311-win_amd64.whl (8.9 MB)
+Using cached scipy-1.16.2-cp311-cp311-win_amd64.whl (38.7 MB)
+Using cached sentence_transformers-5.1.1-py3-none-any.whl (486 kB)
+Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+Using cached sympy-1.14.0-py3-none-any.whl (6.3 MB)
+Using cached threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+Using cached tokenizers-0.22.1-cp39-abi3-win_amd64.whl (2.7 MB)
+Downloading torch-2.9.0-cp311-cp311-win_amd64.whl (109.3 MB)
+   ---------------------------------------- 109.3/109.3 MB 5.1 MB/s eta 0:00:00
+Downloading torchaudio-2.9.0-cp311-cp311-win_amd64.whl (664 kB)
+   ---------------------------------------- 664.7/664.7 kB 3.5 MB/s eta 0:00:00
+Using cached tqdm-4.67.1-py3-none-any.whl (78 kB)
+Using cached transformers-4.57.1-py3-none-any.whl (12.0 MB)
+Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Using cached urllib3-2.5.0-py3-none-any.whl (129 kB)
+Using cached audioread-3.0.1-py3-none-any.whl (23 kB)
+Using cached blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Using cached certifi-2025.10.5-py3-none-any.whl (163 kB)
+Using cached cffi-2.0.0-cp311-cp311-win_amd64.whl (182 kB)
+Using cached charset_normalizer-3.4.4-cp311-cp311-win_amd64.whl (106 kB)
+Using cached click-8.3.0-py3-none-any.whl (107 kB)
+Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Using cached contourpy-1.3.3-cp311-cp311-win_amd64.whl (225 kB)
+Using cached coverage-7.11.0-cp311-cp311-win_amd64.whl (219 kB)
+Using cached cycler-0.12.1-py3-none-any.whl (8.3 kB)
+Using cached decorator-5.2.1-py3-none-any.whl (9.2 kB)
+Using cached fonttools-4.60.1-cp311-cp311-win_amd64.whl (2.3 MB)
+Using cached fsspec-2025.9.0-py3-none-any.whl (199 kB)
+Using cached greenlet-3.2.4-cp311-cp311-win_amd64.whl (299 kB)
+Using cached huggingface_hub-0.35.3-py3-none-any.whl (564 kB)
+Using cached idna-3.11-py3-none-any.whl (71 kB)
+Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Downloading intel_openmp-2025.2.1-py2.py3-none-win_amd64.whl (34.0 MB)
+   ---------------------------------------- 34.0/34.0 MB 3.1 MB/s eta 0:00:00
+Downloading intel_cmplr_lib_ur-2025.2.1-py2.py3-none-win_amd64.whl (1.2 MB)
+   ---------------------------------------- 1.2/1.2 MB 4.6 MB/s eta 0:00:00
+Downloading umf-0.11.0-py2.py3-none-win_amd64.whl (231 kB)
+   ---------------------------------------- 231.7/231.7 kB 2.8 MB/s eta 0:00:00
+Using cached itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Using cached joblib-1.5.2-py3-none-any.whl (308 kB)
+Using cached kiwisolver-1.4.9-cp311-cp311-win_amd64.whl (73 kB)
+Using cached lazy_loader-0.4-py3-none-any.whl (12 kB)
+Using cached msgpack-1.1.2-cp311-cp311-win_amd64.whl (71 kB)
+Using cached numba-0.62.1-cp311-cp311-win_amd64.whl (2.7 MB)
+Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+Using cached pooch-1.8.2-py3-none-any.whl (64 kB)
+Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+   ---------------------------------------- 1.2/1.2 MB 3.4 MB/s eta 0:00:00
+Using cached python_socketio-5.14.2-py3-none-any.whl (78 kB)
+Using cached soxr-1.0.0-cp311-cp311-win_amd64.whl (173 kB)
+Using cached filelock-3.20.0-py3-none-any.whl (16 kB)
+Downloading psycopg-3.2.11-py3-none-any.whl (206 kB)
+   ---------------------------------------- 206.8/206.8 kB 6.3 MB/s eta 0:00:00
+Using cached tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+Using cached bidict-0.23.1-py3-none-any.whl (32 kB)
+Using cached llvmlite-0.45.1-cp311-cp311-win_amd64.whl (38.1 MB)
+Using cached platformdirs-4.5.0-py3-none-any.whl (18 kB)
+Using cached python_engineio-4.12.3-py3-none-any.whl (59 kB)
+Using cached pycparser-2.23-py3-none-any.whl (118 kB)
+Using cached simple_websocket-1.1.0-py3-none-any.whl (13 kB)
+Using cached wsproto-1.2.0-py3-none-any.whl (24 kB)
+Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Installing collected packages: tcmlib, mpmath, graypy, urllib3, umf, tzdata, typing_extensions, threadpoolctl, tbb, sympy, six, safetensors, regex, PyYAML, python-dotenv, pyparsing, pygments, pycparser, psycopg-binary, psutil, primp, pluggy, platformdirs, pillow, packaging, numpy, networkx, msgpack, MarkupSafe, lxml, llvmlite, kiwisolver, joblib, itsdangerous, iniconfig, idna, h11, greenlet, fsspec, fonttools, filelock, decorator, cycler, coverage, colorama, charset_normalizer, certifi, blinker, bidict, audioread, wsproto, Werkzeug, tqdm, sqlalchemy, soxr, scipy, requests, python-dateutil, pytest, psycopg, pgvector, numba, lazy_loader, Jinja2, intel-cmplr-lib-ur, gunicorn, contourpy, click, cffi, torch, soundfile, simple-websocket, scikit-learn, pytest-cov, pytest-asyncio, pooch, matplotlib, intel-openmp, huggingface-hub, Flask, torchaudio, tokenizers, python-engineio, mkl, librosa, Flask-Cors, transformers, python-socketio, sentence-transformers, Flask-SocketIO
+Successfully installed Flask-3.1.2 Flask-Cors-6.0.1 Flask-SocketIO-5.5.1 Jinja2-3.1.6 MarkupSafe-3.0.3 PyYAML-6.0.3 Werkzeug-3.1.3 audioread-3.0.1 bidict-0.23.1 blinker-1.9.0 certifi-2025.10.5 cffi-2.0.0 charset_normalizer-3.4.4 click-8.3.0 colorama-0.4.6 contourpy-1.3.3 coverage-7.11.0 cycler-0.12.1 decorator-5.2.1 filelock-3.20.0 fonttools-4.60.1 fsspec-2025.9.0 graypy-2.1.0 greenlet-3.2.4 gunicorn-23.0.0 h11-0.16.0 huggingface-hub-0.35.3 idna-3.11 iniconfig-2.3.0 intel-cmplr-lib-ur-2025.2.1 intel-openmp-2025.2.1 itsdangerous-2.2.0 joblib-1.5.2 kiwisolver-1.4.9 lazy_loader-0.4 librosa-0.11.0 llvmlite-0.45.1 lxml-6.0.2 matplotlib-3.10.7 mkl-2025.2.0 mpmath-1.3.0 msgpack-1.1.2 networkx-3.5 numba-0.62.1 numpy-2.3.4 packaging-25.0 pgvector-0.4.1 pillow-12.0.0 platformdirs-4.5.0 pluggy-1.6.0 pooch-1.8.2 primp-0.15.0 psutil-7.1.1 psycopg-3.2.11 psycopg-binary-3.2.11 pycparser-2.23 pygments-2.19.2 pyparsing-3.2.5 pytest-8.4.2 pytest-asyncio-1.2.0 pytest-cov-7.0.0 python-dateutil-2.9.0.post0 python-dotenv-1.1.1 python-engineio-4.12.3 python-socketio-5.14.2 regex-2025.10.23 requests-2.32.5 safetensors-0.6.2 scikit-learn-1.7.2 scipy-1.16.2 sentence-transformers-5.1.1 simple-websocket-1.1.0 six-1.17.0 soundfile-0.13.1 soxr-1.0.0 sqlalchemy-2.0.44 sympy-1.14.0 tbb-2022.2.0 tcmlib-1.4.0 threadpoolctl-3.6.0 tokenizers-0.22.1 torch-2.9.0 torchaudio-2.9.0 tqdm-4.67.1 transformers-4.57.1 typing_extensions-4.15.0 tzdata-2025.2 umf-0.11.0 urllib3-2.5.0 wsproto-1.2.0
+
+[notice] A new release of pip is available: 24.0 -> 25.2
+[notice] To update, run: python.exe -m pip install --upgrade pip
+]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B]633;B[7mpython.exe -m pip install --upgrade pip[27m[?5h[?5l[C[Cpython.exe -m pip install --upgrade pip
+[?2004l]633;E;python.exe -m pip install --upgrade pip;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;CRequirement already satisfied: pip in e:\ai-call-copilot\backend\pvenv\lib\site-packages (24.0)
+Collecting pip
+  Using cached pip-25.2-py3-none-any.whl.metadata (4.7 kB)
+Using cached pip-25.2-py3-none-any.whl (1.8 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 24.0
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-25.2
+]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;B[K$ ]633;B]633;B]633;Bpython.exe -m pip install --upgrade pip[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lcd ..
+[?2004l]633;E;cd ..;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C]633;D;0]633;P;Cwd=E:/ai-call-copilot[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot[36m (development)[0m
+$ ]633;B]633;B]633;Bcd ..[C[Cpython.exe -m pip install --upgrade pip[C[C[Cip install -r "E:\ai-call-copilot\extras\requirements.txt"[C[C[28Psource ./pvenv/Scripts/activate[C[C[11Ppython -m venv pvenv[C[C[6Prm -rf ./pvenv[C[C[3P deactivate[C[Csource ./setup/run_dev.sh
+[?2004l]633;E;source ./setup/run_dev.sh;d2ddb7d9-d532-4f6f-aee0-24a763eddaec]633;C📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:/e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:/e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\ai-call-copilot\backend
+  E:\ai-call-copilot\E
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+Python paths:
+  
+  E:\ai-call-copilot\backend
+  E:\ai-call-copilot\E
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 3s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+
+up to date, audited 390 packages in 3s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1a187d18810; CallSession> to <Mapper at 0x1a187d9e850; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1a187d18810; CallSession> to <Mapper at 0x1a187d9e850; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1a187d3dc50; ChatSession> to <Mapper at 0x1a187da6790; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1a187d3dc50; ChatSession> to <Mapper at 0x1a187da6790; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 16:22:55,664 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:22:55,665 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:22:55,667 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:22:55,664 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:22:55,665 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:22:55,667 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:22:59,897 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+2025-10-21 16:22:59,897 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:23:06,718 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 16:23:06,718 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_162255.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_162255.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 16:23:06,765 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 16:23:06,767 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 16:23:06,769 - werkzeug - INFO -  * Restarting with stat
+2025-10-21 16:23:06,765 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 16:23:06,767 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 16:23:06,769 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x22829218810; CallSession> to <Mapper at 0x2282929e7d0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x22829218810; CallSession> to <Mapper at 0x2282929e7d0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x22829241c50; ChatSession> to <Mapper at 0x228292ae7d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x22829241c50; ChatSession> to <Mapper at 0x228292ae7d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 16:23:09,343 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:23:09,345 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:23:09,346 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:23:09,343 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:23:09,345 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:23:09,346 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:23:14,458 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+2025-10-21 16:23:14,458 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 167, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 37, in <module>
+    from .image_utils import ChannelDimension, ImageInput, is_vision_available
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\image_utils.py", line 55, in <module>
+    from torchvision.transforms import InterpolationMode
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\__init__.py", line 2, in <module>
+    from .convnext import *
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\models\convnext.py", line 8, in <module>
+    from ..ops.misc import Conv2dNormActivation, Permute
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\__init__.py", line 23, in <module>
+    from .poolers import MultiScaleRoIAlign
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\poolers.py", line 10, in <module>
+    from .roi_align import roi_align
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torchvision\ops\roi_align.py", line 4, in <module>
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:23:20,356 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 16:23:20,356 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 16:24:08,171 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET / HTTP/1.1" 200 -
+2025-10-21 16:24:08,171 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET / HTTP/1.1" 200 -
+2025-10-21 16:24:08,458 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/main-DEHa6zRv.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,458 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/main-DEHa6zRv.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,478 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 16:24:08,478 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 16:24:08,504 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/LandingPage-GuiaqGy8.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:08,508 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/Phone3D-_txtZFTy.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:08,508 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/LandingPage-GuiaqGy8.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,504 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/LandingPage-GuiaqGy8.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:08,508 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/Phone3D-_txtZFTy.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:08,508 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/LandingPage-GuiaqGy8.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,520 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/Phone3D-_txtZFTy.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,528 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 16:24:08,520 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /static/dist/assets/Phone3D-_txtZFTy.js HTTP/1.1" 200 -
+2025-10-21 16:24:08,528 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 16:24:08,551 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:24:08,551 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:08] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:24:12,135 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "[33mGET /assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:12,143 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "GET /static/dist/assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1" 200 -
+2025-10-21 16:24:12,135 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "[33mGET /assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1[0m" 404 -
+2025-10-21 16:24:12,143 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "GET /static/dist/assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1" 200 -
+2025-10-21 16:24:12,180 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:24:12,180 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:12] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:24:16,403 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:16] "GET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1" 200 -
+2025-10-21 16:24:16,403 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:16] "GET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1" 200 -
+2025-10-21 16:24:16,478 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:16] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 16:24:16,478 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:16] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 16:24:35,131 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:35] "GET /static/dist/assets/MessageUnderstandingDemo-BoXnmNDe.js HTTP/1.1" 200 -
+2025-10-21 16:24:35,131 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:35] "GET /static/dist/assets/MessageUnderstandingDemo-BoXnmNDe.js HTTP/1.1" 200 -
+2025-10-21 16:24:51,074 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:51] "POST /api/messages/process HTTP/1.1" 200 -
+2025-10-21 16:24:51,074 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:24:51] "POST /api/messages/process HTTP/1.1" 200 -
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_162309.log
+Max file size: 10485760 bytes, Backup count: 5
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_162309.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B]633;B[?2004h]633;A(pvenv) ]633;A]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B]633;B📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251021.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 2s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+1 moderate severity vulnerability
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x269d63181d0; CallSession> to <Mapper at 0x269d639e210; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x269d63415d0; ChatSession> to <Mapper at 0x269d63ae1d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 16:32:08,593 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:32:08,595 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:32:08,596 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:32:13,557 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 171, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 75, in <module>
+    from .modeling_utils import PreTrainedAudioTokenizerBase
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_utils.py", line 57, in <module>
+    from .integrations.flex_attention import flex_attention_forward
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\integrations\flex_attention.py", line 46, in <module>
+    class WrappedFlexAttention:
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\integrations\flex_attention.py", line 61, in WrappedFlexAttention
+    @torch.compiler.disable(recursive=False)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\compiler\__init__.py", line 96, in disable
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:32:18,047 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_163208.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-21 16:32:18,085 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-21 16:32:18,087 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-21 16:32:18,088 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1b988b18150; CallSession> to <Mapper at 0x1b988b9e2d0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1b988b3d710; ChatSession> to <Mapper at 0x1b988baa2d0; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-21 16:32:20,631 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-21 16:32:20,633 - api.db.connection - WARNING - psycopg_pool (psycopg3) is not installed; database features will be disabled
+2025-10-21 16:32:20,634 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-21 16:32:25,235 - api.models.ollama_service - INFO - Loading OLLama model from C:\Users\033690343\OneDrive - csulb\Models-LLM\Llama-3.2-1B-Instruct
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.3.4 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 6, in <module>
+    sys.exit(main())
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1383, in main
+    rv = self.invoke(ctx)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1850, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1246, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 814, in invoke
+    return callback(*args, **kwargs)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 264, in locate_app
+    return find_app_by_string(module, app_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 178, in find_app_by_string
+    app = attr(*args, **kwargs)
+  File "E:\ai-call-copilot\backend\api\app.py", line 171, in create_app
+    app.config["OLLAMA_SERVICE"] = OllamaService(
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 34, in __init__
+    self._initialize_model()
+  File "E:\ai-call-copilot\backend\api\models\ollama_service.py", line 67, in _initialize_model
+    self.model = AutoModel.from_pretrained(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 601, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 394, in _get_model_class
+    supported_models = model_mapping[type(config)]
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 807, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 821, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\auto\auto_factory.py", line 733, in getattribute_from_module
+    if hasattr(module, attr):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2317, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\utils\import_utils.py", line 2345, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\models\llama\modeling_llama.py", line 30, in <module>
+    from ...modeling_layers import (
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_layers.py", line 28, in <module>
+    from .processing_utils import Unpack
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\processing_utils.py", line 75, in <module>
+    from .modeling_utils import PreTrainedAudioTokenizerBase
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\modeling_utils.py", line 57, in <module>
+    from .integrations.flex_attention import flex_attention_forward
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\integrations\flex_attention.py", line 46, in <module>
+    class WrappedFlexAttention:
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\transformers\integrations\flex_attention.py", line 61, in WrappedFlexAttention
+    @torch.compiler.disable(recursive=False)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\compiler\__init__.py", line 96, in disable
+    import torch._dynamo
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\__init__.py", line 64, in <module>
+    torch.manual_seed = disable(torch.manual_seed)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\decorators.py", line 50, in disable
+    return DisableContext()(fn)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\eval_frame.py", line 410, in __call__
+    (filename is None or trace_rules.check(fn))
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3378, in check
+    return check_verbose(obj, is_inlined_call).skipped
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3361, in check_verbose
+    rule = torch._dynamo.trace_rules.lookup_inner(
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 3442, in lookup_inner
+    rule = get_torch_obj_rule_map().get(obj, None)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2782, in get_torch_obj_rule_map
+    obj = load_object(k)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2811, in load_object
+    val = _load_obj_from_str(x[0])
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\_dynamo\trace_rules.py", line 2795, in _load_obj_from_str
+    return getattr(importlib.import_module(module), obj_name)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py", line 417, in <module>
+    values=torch.randn(3, 3, device="meta"),
+E:\ai-call-copilot\pvenv\Lib\site-packages\torch\nested\_internal\nested_tensor.py:417: UserWarning: Failed to initialize NumPy: _ARRAY_API not found (Triggered internally at ..\torch\csrc\utils\tensor_numpy.cpp:84.)
+  values=torch.randn(3, 3, device="meta"),
+2025-10-21 16:32:32,526 - api.models.ollama_service - INFO - Model loaded successfully on cpu
+2025-10-21 16:35:11,073 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET / HTTP/1.1" 200 -
+2025-10-21 16:35:11,454 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET /static/dist/assets/main-1Gz-woDd.css HTTP/1.1" 200 -
+2025-10-21 16:35:11,538 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET /static/dist/assets/main-DEHa6zRv.js HTTP/1.1" 200 -
+2025-10-21 16:35:11,598 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "[33mGET /assets/LandingPage-GuiaqGy8.js HTTP/1.1[0m" 404 -
+2025-10-21 16:35:11,608 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "[33mGET /assets/Phone3D-_txtZFTy.js HTTP/1.1[0m" 404 -
+2025-10-21 16:35:11,614 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET /static/dist/assets/LandingPage-GuiaqGy8.js HTTP/1.1" 200 -
+2025-10-21 16:35:11,655 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET /static/dist/assets/Phone3D-_txtZFTy.js HTTP/1.1" 200 -
+2025-10-21 16:35:11,665 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-21 16:35:11,723 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:11] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:35:15,133 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:15] "[33mGET /assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1[0m" 404 -
+2025-10-21 16:35:15,213 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:15] "GET /static/dist/assets/WhyQuellAI-CqZWmpIg.js HTTP/1.1" 200 -
+2025-10-21 16:35:15,267 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:15] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-21 16:35:23,623 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:23] "GET /static/dist/assets/LabsPlayground-VR6AAzU9.js HTTP/1.1" 200 -
+2025-10-21 16:35:23,715 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:35:23] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+2025-10-21 16:37:34,303 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:37:34] "[31m[1mPOST /api/labs/api-key HTTP/1.1[0m" 405 -
+2025-10-21 16:37:35,595 - werkzeug - INFO - 127.0.0.1 - - [21/Oct/2025 16:37:35] "[33mGET /api/labs/status HTTP/1.1[0m" 404 -
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251021_163220.log
+Max file size: 10485760 bytes, Backup count: 5
+]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B

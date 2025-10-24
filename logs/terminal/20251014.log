@@ -1,0 +1,201 @@
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251014.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+up to date, audited 390 packages in 2s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+2025-10-14 11:39:26,631 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-14 11:39:26,733 - api.db.connection - INFO - Database connection pool initialized
+2025-10-14 11:39:26,813 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-14 11:39:27,409 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /unitary/toxic-bert/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:27,432 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/unitary/toxic-bert/4d6c22e74ba2fdd26bc4f7238f50766b045a0d94/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:27,801 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/unitary/toxic-bert/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-14 11:39:27,917 - api.models.spam_detector - INFO - No pre-trained models found, using default initialization
+2025-10-14 11:39:27,917 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-10-14 11:39:27,917 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-14 11:39:28,016 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,031 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-14 11:39:28,140 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,158 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json HTTP/1.1" 200 0
+2025-10-14 11:39:28,271 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md HTTP/1.1" 307 0
+2025-10-14 11:39:28,297 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/README.md HTTP/1.1" 200 0
+2025-10-14 11:39:28,436 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,452 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-14 11:39:28,584 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,606 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:28,701 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,719 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:28,914 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:28,930 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:29,069 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:29,248 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/revision/main HTTP/1.1" 200 6876
+2025-10-14 11:39:29,402 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2 HTTP/1.1" 200 6876
+2025-10-14 11:39:29,497 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:29,502 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:29,735 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-14 11:39:29,748 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-14 11:39:30,533 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium HTTP/1.1" 200 4663
+2025-10-14 11:39:30,849 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/main HTTP/1.1" 200 5803
+2025-10-14 11:39:31,338 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/discussions?p=0 HTTP/1.1" 200 12509
+2025-10-14 11:39:31,467 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/refs%2Fpr%2F22 HTTP/1.1" 200 6768
+2025-10-14 11:39:31,567 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-14 11:39:31,674 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors HTTP/1.1" 302 0
+2025-10-14 11:39:31,829 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/generation_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:31,863 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/generation_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:31,988 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/custom_generate/generate.py HTTP/1.1" 404 0
+2025-10-14 11:39:32,079 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:32,096 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:32,278 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:32,614 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:32,631 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/cardiffnlp/twitter-roberta-base-sentiment-latest/3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:32,848 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-14 11:39:32,855 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+Some weights of the model checkpoint at cardiffnlp/twitter-roberta-base-sentiment-latest were not used when initializing RobertaForSequenceClassification: ['roberta.pooler.dense.bias', 'roberta.pooler.dense.weight']
+- This IS expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-14 11:39:33,463 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest HTTP/1.1" 200 5301
+2025-10-14 11:39:33,485 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:33,594 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/main HTTP/1.1" 200 3435
+2025-10-14 11:39:33,717 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/discussions?p=0 HTTP/1.1" 200 28287
+Device set to use cpu
+2025-10-14 11:39:33,819 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /dbmdz/bert-large-cased-finetuned-conll03-english/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:33,830 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/dbmdz/bert-large-cased-finetuned-conll03-english/4c534963167c08d4b8ff1f88733cf2930f86add0/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:33,830 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/refs%2Fpr%2F43 HTTP/1.1" 200 4400
+2025-10-14 11:39:33,943 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-14 11:39:34,039 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors HTTP/1.1" 302 0
+Some weights of the model checkpoint at dbmdz/bert-large-cased-finetuned-conll03-english were not used when initializing BertForTokenClassification: ['bert.pooler.dense.bias', 'bert.pooler.dense.weight']
+- This IS expected if you are initializing BertForTokenClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertForTokenClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-14 11:39:34,370 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/dbmdz/bert-large-cased-finetuned-conll03-english/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-14 11:39:34,545 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /facebook/bart-large-mnli/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:34,576 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/facebook/bart-large-mnli/d7645e127eaf1aefc7862fd59a17a5aa8558b8ce/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:35,411 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/facebook/bart-large-mnli/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251014_113926.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-14 11:39:35,665 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-14 11:39:35,665 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-14 11:39:35,665 - werkzeug - INFO -  * Restarting with stat
+2025-10-14 11:39:44,142 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-14 11:39:44,246 - api.db.connection - INFO - Database connection pool initialized
+2025-10-14 11:39:44,263 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-14 11:39:44,798 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /unitary/toxic-bert/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:44,814 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/unitary/toxic-bert/4d6c22e74ba2fdd26bc4f7238f50766b045a0d94/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:45,046 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/unitary/toxic-bert/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-14 11:39:45,130 - api.models.spam_detector - INFO - No pre-trained models found, using default initialization
+2025-10-14 11:39:45,134 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-10-14 11:39:45,135 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-14 11:39:45,226 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-14 11:39:45,242 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-14 11:39:45,337 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
+2025-10-14 11:39:45,350 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json HTTP/1.1" 200 0
+2025-10-14 11:39:45,444 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md HTTP/1.1" 307 0
+2025-10-14 11:39:45,468 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/README.md HTTP/1.1" 200 0
+2025-10-14 11:39:45,593 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-14 11:39:45,617 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-14 11:39:45,729 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:45,751 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:45,850 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:45,866 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:46,009 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:46,022 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:46,139 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:46,289 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/revision/main HTTP/1.1" 200 6876
+2025-10-14 11:39:46,399 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2 HTTP/1.1" 200 6876
+2025-10-14 11:39:46,494 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:46,531 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:46,991 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-14 11:39:47,007 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-14 11:39:47,815 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium HTTP/1.1" 200 4663
+2025-10-14 11:39:48,252 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/main HTTP/1.1" 200 5803
+2025-10-14 11:39:48,453 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/discussions?p=0 HTTP/1.1" 200 12509
+2025-10-14 11:39:48,594 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/refs%2Fpr%2F22 HTTP/1.1" 200 6768
+2025-10-14 11:39:48,738 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-14 11:39:48,844 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors HTTP/1.1" 302 0
+2025-10-14 11:39:49,089 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/generation_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:49,108 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/generation_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:49,203 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/custom_generate/generate.py HTTP/1.1" 404 0
+2025-10-14 11:39:49,305 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-14 11:39:49,318 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-14 11:39:49,432 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:49,680 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:49,695 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/cardiffnlp/twitter-roberta-base-sentiment-latest/3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:49,831 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-14 11:39:49,837 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+Some weights of the model checkpoint at cardiffnlp/twitter-roberta-base-sentiment-latest were not used when initializing RobertaForSequenceClassification: ['roberta.pooler.dense.bias', 'roberta.pooler.dense.weight']
+- This IS expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-14 11:39:50,198 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-14 11:39:50,447 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest HTTP/1.1" 200 5301
+2025-10-14 11:39:50,457 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /dbmdz/bert-large-cased-finetuned-conll03-english/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:50,485 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/dbmdz/bert-large-cased-finetuned-conll03-english/4c534963167c08d4b8ff1f88733cf2930f86add0/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:50,565 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/main HTTP/1.1" 200 3435
+2025-10-14 11:39:50,678 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/discussions?p=0 HTTP/1.1" 200 28287
+2025-10-14 11:39:50,794 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/refs%2Fpr%2F43 HTTP/1.1" 200 4400
+Some weights of the model checkpoint at dbmdz/bert-large-cased-finetuned-conll03-english were not used when initializing BertForTokenClassification: ['bert.pooler.dense.bias', 'bert.pooler.dense.weight']
+- This IS expected if you are initializing BertForTokenClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertForTokenClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-14 11:39:50,898 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-14 11:39:50,950 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/dbmdz/bert-large-cased-finetuned-conll03-english/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-14 11:39:51,001 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors HTTP/1.1" 302 0
+Device set to use cpu
+2025-10-14 11:39:51,122 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /facebook/bart-large-mnli/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-14 11:39:51,135 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/facebook/bart-large-mnli/d7645e127eaf1aefc7862fd59a17a5aa8558b8ce/config.json HTTP/1.1" 200 0
+2025-10-14 11:39:51,799 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/facebook/bart-large-mnli/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-14 11:39:52,309 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET / HTTP/1.1" 200 -
+2025-10-14 11:39:52,651 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET /static/dist/assets/main-D1SR8usY.css HTTP/1.1" 200 -
+2025-10-14 11:39:52,756 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET /static/dist/assets/main-B916rOaZ.js HTTP/1.1" 200 -
+2025-10-14 11:39:52,802 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "[33mGET /assets/LandingPage-B-vOwQE1.js HTTP/1.1[0m" 404 -
+2025-10-14 11:39:52,802 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "[33mGET /assets/Phone3D-7ahgsGOB.js HTTP/1.1[0m" 404 -
+2025-10-14 11:39:52,834 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET /static/dist/assets/LandingPage-B-vOwQE1.js HTTP/1.1" 200 -
+2025-10-14 11:39:52,864 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET /static/dist/assets/Phone3D-7ahgsGOB.js HTTP/1.1" 200 -
+2025-10-14 11:39:52,870 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-14 11:39:52,898 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:39:52] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-14 11:40:01,006 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:01] "[33mGET /assets/WhyQuellAI-BRTtdEGK.js HTTP/1.1[0m" 404 -
+2025-10-14 11:40:01,084 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:01] "GET /static/dist/assets/WhyQuellAI-BRTtdEGK.js HTTP/1.1" 200 -
+2025-10-14 11:40:01,130 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:01] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-14 11:40:03,149 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:03] "GET /static/dist/assets/DashboardPage-B0HMxnEM.js HTTP/1.1" 200 -
+2025-10-14 11:40:04,255 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:04] "GET /static/dist/assets/CallsPage-G-d8eYgh.js HTTP/1.1" 200 -
+2025-10-14 11:40:05,217 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:05] "GET /static/dist/assets/ContactsPage-C07SQGrO.js HTTP/1.1" 200 -
+2025-10-14 11:40:07,888 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:07] "GET /static/dist/assets/TextsPage-C-qEuBMi.js HTTP/1.1" 200 -
+2025-10-14 11:40:09,944 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:09] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-14 11:40:18,532 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:18] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-14 11:40:23,530 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:23] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-14 11:40:28,986 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:28] "GET /legacy/login.html HTTP/1.1" 200 -
+2025-10-14 11:40:29,112 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:29] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-14 11:40:31,133 - werkzeug - INFO - 127.0.0.1 - - [14/Oct/2025 11:40:31] "GET /favicon.ico HTTP/1.1" 200 -

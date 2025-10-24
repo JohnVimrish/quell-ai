@@ -1,0 +1,1014 @@
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+added 389 packages, and audited 390 packages in 22s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 11.6.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+npm notice To update run: npm install -g npm@11.6.2
+npm notice
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 7, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 11, in <module>
+    from api.db.connection import DatabaseManager
+  File "E:\ai-call-copilot\backend\api\db\__init__.py", line 3, in <module>
+    from functionalities.call import Call, CallTranscript
+  File "E:\ai-call-copilot\backend\functionalities\call.py", line 5, in <module>
+    from functionalities.communication_session import (
+  File "E:\ai-call-copilot\backend\functionalities\communication_session.py", line 151, in <module>
+    class SessionParticipant(Base):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_api.py", line 196, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 244, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 325, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 572, in __init__
+    self._extract_mappable_attributes()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 1523, in _extract_mappable_attributes
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Attribute name 'metadata' is reserved when using the Declarative API.
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+changed 435 packages, and audited 390 packages in 17s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 7, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 11, in <module>
+    from api.db.connection import DatabaseManager
+  File "E:\ai-call-copilot\backend\api\db\__init__.py", line 3, in <module>
+    from functionalities.call import Call, CallTranscript
+  File "E:\ai-call-copilot\backend\functionalities\call.py", line 5, in <module>
+    from functionalities.communication_session import (
+  File "E:\ai-call-copilot\backend\functionalities\communication_session.py", line 151, in <module>
+    class SessionParticipant(Base):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_api.py", line 196, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 244, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 325, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 572, in __init__
+    self._extract_mappable_attributes()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 1523, in _extract_mappable_attributes
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Attribute name 'metadata' is reserved when using the Declarative API.
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+changed 435 packages, and audited 390 packages in 11s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 7, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 11, in <module>
+    from api.db.connection import DatabaseManager
+  File "E:\ai-call-copilot\backend\api\db\__init__.py", line 3, in <module>
+    from functionalities.call import Call, CallTranscript
+  File "E:\ai-call-copilot\backend\functionalities\call.py", line 5, in <module>
+    from functionalities.communication_session import (
+  File "E:\ai-call-copilot\backend\functionalities\communication_session.py", line 151, in <module>
+    class SessionParticipant(Base):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_api.py", line 196, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 244, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 325, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 572, in __init__
+    self._extract_mappable_attributes()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 1523, in _extract_mappable_attributes
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Attribute name 'metadata' is reserved when using the Declarative API.
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+changed 435 packages, and audited 390 packages in 12s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+🧠 Starting Flask backend on http://127.0.0.1:5000
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ai-call-copilot\pvenv\Scripts\flask.exe\__main__.py", line 7, in <module>
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 1105, in main
+    cli.main()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1830, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\decorators.py", line 93, in new_func
+    return ctx.invoke(f, obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 953, in run_command
+    raise e from None
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 937, in run_command
+    app: WSGIApplication = info.load_app()
+                           ^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 335, in load_app
+    app = locate_app(import_name, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\flask\cli.py", line 245, in locate_app
+    __import__(module_name)
+  File "E:\ai-call-copilot\backend\api\app.py", line 11, in <module>
+    from api.db.connection import DatabaseManager
+  File "E:\ai-call-copilot\backend\api\db\__init__.py", line 3, in <module>
+    from functionalities.call import Call, CallTranscript
+  File "E:\ai-call-copilot\backend\functionalities\call.py", line 5, in <module>
+    from functionalities.communication_session import (
+  File "E:\ai-call-copilot\backend\functionalities\communication_session.py", line 151, in <module>
+    class SessionParticipant(Base):
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_api.py", line 196, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 244, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 325, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 572, in __init__
+    self._extract_mappable_attributes()
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\orm\decl_base.py", line 1523, in _extract_mappable_attributes
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Attribute name 'metadata' is reserved when using the Declarative API.
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+added 321 packages, changed 68 packages, and audited 390 packages in 14s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 11.6.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+npm notice To update run: npm install -g npm@11.6.2
+npm notice
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x173d9a04750; CallSession> to <Mapper at 0x173d9a92750; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x173d9a31dd0; ChatSession> to <Mapper at 0x173d9aa2650; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 17:57:25,231 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 17:57:25,374 - api.db.connection - INFO - Database connection pool initialized
+2025-10-19 17:57:25,454 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-19 17:57:26,008 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /unitary/toxic-bert/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:26,027 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/unitary/toxic-bert/4d6c22e74ba2fdd26bc4f7238f50766b045a0d94/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:26,371 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/unitary/toxic-bert/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 17:57:26,501 - api.models.spam_detector - INFO - No pre-trained models found, using default initialization
+2025-10-19 17:57:26,504 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-10-19 17:57:26,505 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-19 17:57:26,605 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-19 17:57:26,624 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-19 17:57:26,747 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
+2025-10-19 17:57:26,764 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json HTTP/1.1" 200 0
+2025-10-19 17:57:26,879 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md HTTP/1.1" 307 0
+2025-10-19 17:57:26,902 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/README.md HTTP/1.1" 200 0
+2025-10-19 17:57:27,044 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-19 17:57:27,057 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-19 17:57:27,162 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:27,180 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:27,290 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:27,304 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:27,507 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:27,520 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:27,655 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-19 17:57:27,827 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/revision/main HTTP/1.1" 200 6876
+2025-10-19 17:57:27,967 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2 HTTP/1.1" 200 6876
+2025-10-19 17:57:28,062 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:28,074 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:28,270 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-19 17:57:28,276 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-19 17:57:28,927 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium HTTP/1.1" 200 4660
+2025-10-19 17:57:29,222 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/main HTTP/1.1" 200 5803
+2025-10-19 17:57:29,472 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/discussions?p=0 HTTP/1.1" 200 13150
+2025-10-19 17:57:29,897 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/refs%2Fpr%2F22 HTTP/1.1" 200 6768
+2025-10-19 17:57:30,006 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-19 17:57:30,107 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors HTTP/1.1" 302 0
+2025-10-19 17:57:31,501 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/generation_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:31,516 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/generation_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:31,628 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/custom_generate/generate.py HTTP/1.1" 404 0
+2025-10-19 17:57:31,725 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:31,739 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:31,932 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-19 17:57:32,259 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:32,281 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/cardiffnlp/twitter-roberta-base-sentiment-latest/3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:32,478 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-19 17:57:32,483 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+Some weights of the model checkpoint at cardiffnlp/twitter-roberta-base-sentiment-latest were not used when initializing RobertaForSequenceClassification: ['roberta.pooler.dense.bias', 'roberta.pooler.dense.weight']
+- This IS expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-19 17:57:33,146 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest HTTP/1.1" 200 5265
+2025-10-19 17:57:33,204 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-19 17:57:33,246 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/main HTTP/1.1" 200 3435
+2025-10-19 17:57:33,366 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/discussions?p=0 HTTP/1.1" 200 28287
+Device set to use cpu
+2025-10-19 17:57:33,607 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /dbmdz/bert-large-cased-finetuned-conll03-english/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:33,617 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/dbmdz/bert-large-cased-finetuned-conll03-english/4c534963167c08d4b8ff1f88733cf2930f86add0/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:33,679 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/refs%2Fpr%2F43 HTTP/1.1" 200 4400
+2025-10-19 17:57:33,844 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-19 17:57:34,020 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors HTTP/1.1" 302 0
+Some weights of the model checkpoint at dbmdz/bert-large-cased-finetuned-conll03-english were not used when initializing BertForTokenClassification: ['bert.pooler.dense.bias', 'bert.pooler.dense.weight']
+- This IS expected if you are initializing BertForTokenClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertForTokenClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-19 17:57:34,371 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/dbmdz/bert-large-cased-finetuned-conll03-english/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 17:57:34,593 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /facebook/bart-large-mnli/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:34,606 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/facebook/bart-large-mnli/d7645e127eaf1aefc7862fd59a17a5aa8558b8ce/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:35,387 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/facebook/bart-large-mnli/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_175725.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-19 17:57:35,678 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-19 17:57:35,680 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-19 17:57:35,683 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x192dfe04ad0; CallSession> to <Mapper at 0x192dfe92a10; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x192dfe36010; ChatSession> to <Mapper at 0x192dfea2950; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 17:57:44,601 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 17:57:44,693 - api.db.connection - INFO - Database connection pool initialized
+2025-10-19 17:57:44,704 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-19 17:57:45,232 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /unitary/toxic-bert/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:45,246 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/unitary/toxic-bert/4d6c22e74ba2fdd26bc4f7238f50766b045a0d94/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:45,471 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/unitary/toxic-bert/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 17:57:45,571 - api.models.spam_detector - INFO - No pre-trained models found, using default initialization
+2025-10-19 17:57:45,575 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-10-19 17:57:45,577 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-10-19 17:57:45,674 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-19 17:57:45,690 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-19 17:57:45,791 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json HTTP/1.1" 307 0
+2025-10-19 17:57:45,816 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json HTTP/1.1" 200 0
+2025-10-19 17:57:45,913 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md HTTP/1.1" 307 0
+2025-10-19 17:57:45,928 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/README.md HTTP/1.1" 200 0
+2025-10-19 17:57:46,018 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json HTTP/1.1" 307 0
+2025-10-19 17:57:46,032 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json HTTP/1.1" 200 0
+2025-10-19 17:57:46,124 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:46,146 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:46,247 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:46,262 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:46,408 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:46,422 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:46,548 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-19 17:57:46,726 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2/revision/main HTTP/1.1" 200 6876
+2025-10-19 17:57:46,825 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/sentence-transformers/all-MiniLM-L6-v2 HTTP/1.1" 200 6876
+2025-10-19 17:57:46,917 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:46,933 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:47,058 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-19 17:57:47,071 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-19 17:57:48,151 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium HTTP/1.1" 200 4660
+2025-10-19 17:57:48,514 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/main HTTP/1.1" 200 5803
+2025-10-19 17:57:48,868 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/discussions?p=0 HTTP/1.1" 200 13150
+2025-10-19 17:57:49,166 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/commits/refs%2Fpr%2F22 HTTP/1.1" 200 6768
+2025-10-19 17:57:49,480 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors.index.json HTTP/1.1" 404 0
+2025-10-19 17:57:49,879 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/refs%2Fpr%2F22/model.safetensors HTTP/1.1" 302 0
+2025-10-19 17:57:50,538 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/generation_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:50,564 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/generation_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:50,680 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/custom_generate/generate.py HTTP/1.1" 404 0
+2025-10-19 17:57:50,788 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /microsoft/DialoGPT-medium/resolve/main/tokenizer_config.json HTTP/1.1" 307 0
+2025-10-19 17:57:50,816 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/microsoft/DialoGPT-medium/7b40bb0f92c45fefa957d088000d8648e5c7fa33/tokenizer_config.json HTTP/1.1" 200 0
+2025-10-19 17:57:50,932 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/microsoft/DialoGPT-medium/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+2025-10-19 17:57:51,251 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:51,264 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/cardiffnlp/twitter-roberta-base-sentiment-latest/3216a57f2a0d9c45a2e6c20157c20c49fb4bf9c7/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:51,402 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-10-19 17:57:51,412 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+Some weights of the model checkpoint at cardiffnlp/twitter-roberta-base-sentiment-latest were not used when initializing RobertaForSequenceClassification: ['roberta.pooler.dense.bias', 'roberta.pooler.dense.weight']
+- This IS expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-19 17:57:51,866 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 17:57:52,078 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest HTTP/1.1" 200 5265
+2025-10-19 17:57:52,165 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /dbmdz/bert-large-cased-finetuned-conll03-english/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:52,181 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/dbmdz/bert-large-cased-finetuned-conll03-english/4c534963167c08d4b8ff1f88733cf2930f86add0/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:52,184 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/main HTTP/1.1" 200 3435
+2025-10-19 17:57:52,479 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/discussions?p=0 HTTP/1.1" 200 28287
+2025-10-19 17:57:52,591 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/cardiffnlp/twitter-roberta-base-sentiment-latest/commits/refs%2Fpr%2F43 HTTP/1.1" 200 4400
+2025-10-19 17:57:52,706 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors.index.json HTTP/1.1" 404 0
+Some weights of the model checkpoint at dbmdz/bert-large-cased-finetuned-conll03-english were not used when initializing BertForTokenClassification: ['bert.pooler.dense.bias', 'bert.pooler.dense.weight']
+- This IS expected if you are initializing BertForTokenClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing BertForTokenClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+2025-10-19 17:57:52,811 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /cardiffnlp/twitter-roberta-base-sentiment-latest/resolve/refs%2Fpr%2F43/model.safetensors HTTP/1.1" 302 0
+2025-10-19 17:57:52,825 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/dbmdz/bert-large-cased-finetuned-conll03-english/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 17:57:53,006 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /facebook/bart-large-mnli/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 17:57:53,025 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/facebook/bart-large-mnli/d7645e127eaf1aefc7862fd59a17a5aa8558b8ce/config.json HTTP/1.1" 200 0
+2025-10-19 17:57:53,750 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/facebook/bart-large-mnli/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 18:17:13,614 - werkzeug - INFO -  * Detected change in 'E:\\ai-call-copilot\\backend\\api\\models\\rag_system.py', reloading
+Exception in thread Thread-2 (serve_forever):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\threading.py", line 1045, in _bootstrap_inner
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_175744.log
+Max file size: 10485760 bytes, Backup count: 5
+2025-10-19 18:17:14,743 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x193df504a10; CallSession> to <Mapper at 0x193df596890; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x193df535d90; ChatSession> to <Mapper at 0x193dc9e2710; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 18:17:23,896 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 18:17:24,000 - api.db.connection - INFO - Database connection pool initialized
+2025-10-19 18:17:24,015 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-10-19 18:17:24,581 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /unitary/toxic-bert/resolve/main/config.json HTTP/1.1" 307 0
+2025-10-19 18:17:24,597 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/unitary/toxic-bert/4d6c22e74ba2fdd26bc4f7238f50766b045a0d94/config.json HTTP/1.1" 200 0
+2025-10-19 18:17:24,862 - urllib3.connectionpool - DEBUG - https://huggingface.co:443 "GET /api/models/unitary/toxic-bert/tree/main/additional_chat_templates?recursive=False&expand=False HTTP/1.1" 404 64
+Device set to use cpu
+2025-10-19 18:17:24,938 - api.models.spam_detector - INFO - No pre-trained models found, using default initialization
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_181723.log
+Max file size: 10485760 bytes, Backup count: 5
+]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;Bdeac[K[K[K[K📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 4s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1ad75901850; CallSession> to <Mapper at 0x1ad75987890; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1ad7592ac90; ChatSession> to <Mapper at 0x1ad7599b890; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:08:38,976 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:08:38,977 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:08:38,979 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-19 19:08:38,982 - api.app - ERROR - AI model initialization failed
+Traceback (most recent call last):
+  File "E:\ai-call-copilot\backend\api\app.py", line 139, in create_app
+    app.config["SPAM_DETECTOR"] = SpamDetector(cfg)
+                                  ^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\backend\api\models\spam_detector.py", line 29, in __init__
+    engine = create_engine(self.config.database_url, future=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in create_engine
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\util\deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\engine\create.py", line 599, in create_engine
+    dbapi = dbapi_meth(**dbapi_args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\dialects\postgresql\psycopg2.py", line 690, in import_dbapi
+    import psycopg2
+ModuleNotFoundError: No module named 'psycopg2'
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_190838.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-19 19:08:39,155 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-19 19:08:39,157 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-19 19:08:39,159 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x1c5f6f01b90; CallSession> to <Mapper at 0x1c5f6f87e50; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x1c5f6f2b350; ChatSession> to <Mapper at 0x1c5f6f9bd90; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:08:41,999 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:08:42,001 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:08:42,002 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-19 19:08:42,005 - api.app - ERROR - AI model initialization failed
+Traceback (most recent call last):
+  File "E:\ai-call-copilot\backend\api\app.py", line 139, in create_app
+    app.config["SPAM_DETECTOR"] = SpamDetector(cfg)
+                                  ^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\backend\api\models\spam_detector.py", line 29, in __init__
+    engine = create_engine(self.config.database_url, future=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in create_engine
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\util\deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\engine\create.py", line 599, in create_engine
+    dbapi = dbapi_meth(**dbapi_args)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ai-call-copilot\pvenv\Lib\site-packages\sqlalchemy\dialects\postgresql\psycopg2.py", line 690, in import_dbapi
+    import psycopg2
+ModuleNotFoundError: No module named 'psycopg2'
+2025-10-19 19:15:23,481 - werkzeug - INFO -  * Detected change in 'E:\\ai-call-copilot\\backend\\api\\utils\\config.py', reloading
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_190841.log
+Max file size: 10485760 bytes, Backup count: 5
+2025-10-19 19:15:23,840 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x20cbc201d10; CallSession> to <Mapper at 0x20cbc287ed0; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x20cbc2333d0; ChatSession> to <Mapper at 0x20cbc29be50; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:15:28,307 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:15:28,308 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:15:28,311 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_191528.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;Bxcopy /E /I /Y frontend\dist backend\static\distxcopy /E /I /Y frontend\dist backend\static\dist[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5l[?5h[?5lsource ./setup/run_dev.sh
+[?2004l]633;E;source ./setup/run_dev.sh;e3b409f6-a89f-4015-b7db-4095ff8543e0]633;Cbash: ./setup/run_dev.sh: No such file or directory
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
+📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Network extras_default  Creating
+ Network extras_default  Created
+ Container node-frontend  Creating
+ Container node-frontend  Created
+ Container node-frontend  Starting
+ Container node-frontend  Started
+
+added 389 packages, and audited 390 packages in 12s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 11.6.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+npm notice To update run: npm install -g npm@11.6.2
+npm notice
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x29f31201850; CallSession> to <Mapper at 0x29f31287950; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x29f3122ed10; ChatSession> to <Mapper at 0x29f3129b990; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:17:07,248 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:17:07,248 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:17:07,251 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_191707.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-19 19:17:07,354 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-19 19:17:07,354 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-19 19:17:07,359 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x26fb7201dd0; CallSession> to <Mapper at 0x26fb7287e50; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x26fb7233250; ChatSession> to <Mapper at 0x26fb729bd50; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:17:09,875 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:17:09,876 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:17:09,877 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-19 19:20:29,724 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:29] "GET / HTTP/1.1" 200 -
+2025-10-19 19:20:30,073 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "GET /static/dist/assets/main-BgNRP4W0.css HTTP/1.1" 200 -
+2025-10-19 19:20:30,116 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "GET /static/dist/assets/main-BfAPip_X.js HTTP/1.1" 200 -
+2025-10-19 19:20:30,190 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "[33mGET /assets/LandingPage-CXgzg5g_.js HTTP/1.1[0m" 404 -
+2025-10-19 19:20:30,195 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "[33mGET /assets/Phone3D-Ox5sf_oQ.js HTTP/1.1[0m" 404 -
+2025-10-19 19:20:30,204 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "GET /static/dist/assets/LandingPage-CXgzg5g_.js HTTP/1.1" 200 -
+2025-10-19 19:20:30,239 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:20:30,248 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "GET /static/dist/assets/Phone3D-Ox5sf_oQ.js HTTP/1.1" 200 -
+2025-10-19 19:20:30,280 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:20:30,549 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:30] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:20:35,978 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:35] "[33mGET /assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1[0m" 404 -
+2025-10-19 19:20:35,990 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:35] "GET /static/dist/assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1" 200 -
+2025-10-19 19:20:35,996 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:35] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:20:36,050 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:36] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:20:43,442 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:43] "GET /static/dist/assets/MessageUnderstandingDemo-CY_sYQUW.js HTTP/1.1" 200 -
+2025-10-19 19:20:43,448 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:20:43] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:21:05,740 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:05] "GET / HTTP/1.1" 200 -
+2025-10-19 19:21:05,915 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:05] "GET /static/dist/assets/main-BgNRP4W0.css HTTP/1.1" 200 -
+2025-10-19 19:21:05,917 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:05] "GET /static/dist/assets/main-BfAPip_X.js HTTP/1.1" 200 -
+2025-10-19 19:21:06,018 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "[33mGET /assets/LandingPage-CXgzg5g_.js HTTP/1.1[0m" 404 -
+2025-10-19 19:21:06,024 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "[33mGET /assets/Phone3D-Ox5sf_oQ.js HTTP/1.1[0m" 404 -
+2025-10-19 19:21:06,029 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "GET /static/dist/assets/LandingPage-CXgzg5g_.js HTTP/1.1" 200 -
+2025-10-19 19:21:06,051 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "GET /static/dist/assets/Phone3D-Ox5sf_oQ.js HTTP/1.1" 200 -
+2025-10-19 19:21:06,068 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:21:06,104 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:06] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:21:09,573 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:09] "[33mGET /assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1[0m" 404 -
+2025-10-19 19:21:09,580 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:09] "GET /static/dist/assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1" 200 -
+2025-10-19 19:21:09,627 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:09] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:21:32,036 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:32] "GET /static/dist/assets/DashboardPage-CK-9VmET.js HTTP/1.1" 200 -
+2025-10-19 19:21:32,095 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:32] "[31m[1mGET /api/calls?page=1&limit=5 HTTP/1.1[0m" 401 -
+2025-10-19 19:21:32,112 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:32] "[31m[1mGET /api/meetings?page=1&limit=5 HTTP/1.1[0m" 401 -
+2025-10-19 19:21:32,118 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:32] "[31m[1mGET /api/texts/conversations?page=1&limit=5 HTTP/1.1[0m" 401 -
+2025-10-19 19:21:34,107 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:34] "GET /static/dist/assets/MeetingsPage-Dv9uh1YS.js HTTP/1.1" 200 -
+2025-10-19 19:21:34,136 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:34] "[31m[1mGET /api/meetings?page=1&limit=20 HTTP/1.1[0m" 401 -
+2025-10-19 19:21:35,162 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:35] "GET /static/dist/assets/CallsPage-Q9wj_w3f.js HTTP/1.1" 200 -
+2025-10-19 19:21:48,108 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:21:48] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:22:46,036 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "GET / HTTP/1.1" 200 -
+2025-10-19 19:22:46,086 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "GET /static/dist/assets/main-BgNRP4W0.css HTTP/1.1" 200 -
+2025-10-19 19:22:46,092 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "GET /static/dist/assets/main-BfAPip_X.js HTTP/1.1" 200 -
+2025-10-19 19:22:46,159 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "[33mGET /assets/LandingPage-CXgzg5g_.js HTTP/1.1[0m" 404 -
+2025-10-19 19:22:46,160 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "[33mGET /assets/Phone3D-Ox5sf_oQ.js HTTP/1.1[0m" 404 -
+2025-10-19 19:22:46,167 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "GET /static/dist/assets/LandingPage-CXgzg5g_.js HTTP/1.1" 200 -
+2025-10-19 19:22:46,179 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "GET /static/dist/assets/Phone3D-Ox5sf_oQ.js HTTP/1.1" 200 -
+2025-10-19 19:22:46,202 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:22:46] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:25:04,768 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:25:04] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:25:04,771 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:25:04] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:25:26,598 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:25:26] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:25:26,604 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:25:26] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:42,429 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:42] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:26:42,441 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:42] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:44,669 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:44] "GET /legacy/login.html HTTP/1.1" 200 -
+2025-10-19 19:26:44,797 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:44] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:48,982 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:48] "GET /legacy/signup.html HTTP/1.1" 200 -
+2025-10-19 19:26:49,058 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:49] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:50,751 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:50] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:52,208 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:52] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:55,631 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:55] "[36mGET /legacy/login.html HTTP/1.1[0m" 304 -
+2025-10-19 19:26:55,734 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:55] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:26:56,983 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:26:56] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:27:00,638 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:27:00] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:27:00,646 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:27:00] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:27:02,761 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:27:02] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:27:02,766 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:27:02] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:31:49,287 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:31:49] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:31:49,291 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:31:49] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:47:10,351 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "GET / HTTP/1.1" 200 -
+2025-10-19 19:47:10,454 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "GET /static/dist/assets/main-BgNRP4W0.css HTTP/1.1" 200 -
+2025-10-19 19:47:10,454 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[36mGET /static/dist/assets/main-BfAPip_X.js HTTP/1.1[0m" 304 -
+2025-10-19 19:47:10,538 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[33mGET /assets/LandingPage-CXgzg5g_.js HTTP/1.1[0m" 404 -
+2025-10-19 19:47:10,540 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[33mGET /assets/Phone3D-Ox5sf_oQ.js HTTP/1.1[0m" 404 -
+2025-10-19 19:47:10,541 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[36mGET /static/dist/assets/LandingPage-CXgzg5g_.js HTTP/1.1[0m" 304 -
+2025-10-19 19:47:10,559 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[36mGET /static/dist/assets/Phone3D-Ox5sf_oQ.js HTTP/1.1[0m" 304 -
+2025-10-19 19:47:10,568 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:47:10,604 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:10] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:47:13,612 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:13] "[33mGET /assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1[0m" 404 -
+2025-10-19 19:47:13,616 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:13] "[36mGET /static/dist/assets/WhyQuellAI-zjkhVGXl.js HTTP/1.1[0m" 304 -
+2025-10-19 19:47:13,679 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:13] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_191709.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend📝 Logging run_dev.sh output to /e/ai-call-copilot/logs/terminal/20251019.log
+🚀 Setting up Quell AI environment...
+📁 Project root: /e/ai-call-copilot
+🔧 PYTHONPATH set to: /e/ai-call-copilot/backend:E:\ai-call-copilot\backend \
+🔧 Activating virtual environment...
+🔍 Verifying Python path...
+Python paths:
+  
+  E:\e\ai-call-copilot\backend:E:\ai-call-copilot\backend
+  E:\ai-call-copilot\pvenv
+  E:\ai-call-copilot\pvenv\Lib\site-packages
+✅ Environment setup complete!
+
+🎯 Quick commands:
+  Start backend: flask --app api.app:create_app run --reload
+  Frontend dev server: docker compose -f extras/node.yml up
+  Run tests: cd backend && pytest
+  Check health: curl http://localhost:5000/api/status
+
+📝 Don't forget to update environment variables for your local credentials and API keys.
+🎨 Starting Vite dev server via node-frontend container...
+ Container node-frontend  Running
+
+up to date, audited 390 packages in 2s
+
+148 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+[1]+  Done                    start_frontend
+🧠 Starting Flask backend on http://127.0.0.1:5000
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x178fe005850; CallSession> to <Mapper at 0x178fe087810; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x178fe032c10; ChatSession> to <Mapper at 0x178fe09b810; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:47:38,678 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:47:38,679 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:47:38,681 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_194738.log
+Max file size: 10485760 bytes, Backup count: 5
+ * Serving Flask app 'api.app:create_app'
+ * Debug mode: off
+2025-10-19 19:47:38,784 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-19 19:47:38,787 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-19 19:47:38,790 - werkzeug - INFO -  * Restarting with stat
+E:\ai-call-copilot\backend\functionalities\call.py:12: SAWarning: Reassigning polymorphic association for identity 'call' from <Mapper at 0x2ce84401d50; CallSession> to <Mapper at 0x2ce84483f10; Call>: Check for duplicate use of 'call' as value for polymorphic_identity.
+  class Call(CallSession):
+E:\ai-call-copilot\backend\functionalities\text_message.py:11: SAWarning: Reassigning polymorphic association for identity 'chat' from <Mapper at 0x2ce844333d0; ChatSession> to <Mapper at 0x2ce84497d90; TextConversation>: Check for duplicate use of 'chat' as value for polymorphic_identity.
+  class TextConversation(ChatSession):
+2025-10-19 19:47:41,678 - root - INFO - Logging configured: {'level': 'DEBUG', 'service_name': 'quell-ai', 'graylog': {'host': 'localhost', 'port': 12201}}
+2025-10-19 19:47:41,680 - api.db.connection - WARNING - psycopg2 is not installed; database features will be disabled
+2025-10-19 19:47:41,682 - api.db.connection - WARNING - Database pool not initialised; treating as unavailable
+2025-10-19 19:47:58,212 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET / HTTP/1.1" 200 -
+2025-10-19 19:47:58,580 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET /static/dist/assets/main-Cl_-djoV.css HTTP/1.1" 200 -
+2025-10-19 19:47:58,676 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET /static/dist/assets/main-BY7oEhUj.js HTTP/1.1" 200 -
+2025-10-19 19:47:58,736 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "[33mGET /assets/LandingPage-DTU494-b.js HTTP/1.1[0m" 404 -
+2025-10-19 19:47:58,758 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "[33mGET /assets/Phone3D-ttoHS-hH.js HTTP/1.1[0m" 404 -
+2025-10-19 19:47:58,758 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:47:58,795 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET /static/dist/assets/LandingPage-DTU494-b.js HTTP/1.1" 200 -
+2025-10-19 19:47:58,830 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "GET /static/dist/assets/Phone3D-ttoHS-hH.js HTTP/1.1" 200 -
+2025-10-19 19:47:58,848 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:58] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:47:59,104 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:47:59] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:08,287 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:08] "[33mGET /assets/WhyQuellAI-Tp1OiwHz.js HTTP/1.1[0m" 404 -
+2025-10-19 19:48:08,293 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:08] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:08,416 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:08] "GET /static/dist/assets/WhyQuellAI-Tp1OiwHz.js HTTP/1.1" 200 -
+2025-10-19 19:48:08,491 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:08] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:16,681 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:16] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:16,684 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:16] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:19,469 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:19] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:19,475 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:19] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:35,265 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:35] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:35,265 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:35] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:37,686 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:37] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:37,691 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:37] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:41,060 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:41] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:41,063 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:41] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:42,173 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:42] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:48:42,177 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:42] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:44,788 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:44] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:48:44,900 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:48:44] "GET /static/dist/assets/MessageUnderstandingDemo-BpjcV-Lp.js HTTP/1.1" 200 -
+2025-10-19 19:49:32,890 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:32] "GET /why HTTP/1.1" 200 -
+2025-10-19 19:49:32,976 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:32] "[36mGET /static/dist/assets/main-Cl_-djoV.css HTTP/1.1[0m" 304 -
+2025-10-19 19:49:32,978 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:32] "[36mGET /static/dist/assets/main-BY7oEhUj.js HTTP/1.1[0m" 304 -
+2025-10-19 19:49:33,027 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[33mGET /assets/WhyQuellAI-Tp1OiwHz.js HTTP/1.1[0m" 404 -
+2025-10-19 19:49:33,030 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[33mGET /assets/Phone3D-ttoHS-hH.js HTTP/1.1[0m" 404 -
+2025-10-19 19:49:33,033 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[36mGET /static/dist/assets/WhyQuellAI-Tp1OiwHz.js HTTP/1.1[0m" 304 -
+2025-10-19 19:49:33,058 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-19 19:49:33,061 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[36mGET /static/dist/assets/Phone3D-ttoHS-hH.js HTTP/1.1[0m" 304 -
+2025-10-19 19:49:33,092 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+2025-10-19 19:49:33,452 - werkzeug - INFO - 127.0.0.1 - - [19/Oct/2025 19:49:33] "[33mGET /assets/videos/demo-placeholder.mp4 HTTP/1.1[0m" 404 -
+Timestamped file logging configured: E:\ai-call-copilot\backend\logs\quell-ai_20251019_194741.log
+Max file size: 10485760 bytes, Backup count: 5
+
+]633;D;130]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;B[K$ ]633;B]633;Bsource ./setup/run_dev.sh[C[Cdocker exec node-frontend npm run build
+[?2004l]633;E;docker exec node-frontend npm run build;a77d018e-a0bc-436c-ad88-73045d36c29e]633;C
+> frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.1.7 building for production...
+transforming...
+✓ 62 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/.vite/manifest.json                                     6.27 kB │ gzip:  0.92 kB
+dist/assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2     10.25 kB
+dist/assets/inter-greek-ext-wght-normal-DlzME5K_.woff2      11.23 kB
+dist/assets/inter-cyrillic-wght-normal-DqGufNeO.woff2       18.75 kB
+dist/assets/inter-greek-wght-normal-CkhJZR-_.woff2          19.00 kB
+dist/assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2   25.96 kB
+dist/assets/inter-latin-wght-normal-Dx4kXJAl.woff2          48.26 kB
+dist/assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2      85.07 kB
+dist/assets/main-1Gz-woDd.css                               24.21 kB │ gzip:  5.49 kB
+dist/assets/ReportsPage-B9ULgfSv.js                          0.35 kB │ gzip:  0.27 kB
+dist/assets/Phone3D-47cQfGB4.js                              0.68 kB │ gzip:  0.42 kB
+dist/assets/TextsPage-Dq2bFIJW.js                            1.13 kB │ gzip:  0.60 kB
+dist/assets/LoginPage--ZK5zTBC.js                            1.51 kB │ gzip:  0.69 kB
+dist/assets/SignupPage-BHWefHSc.js                           2.14 kB │ gzip:  0.83 kB
+dist/assets/DashboardPage-DlqRXCkJ.js                        3.37 kB │ gzip:  1.32 kB
+dist/assets/DocumentsPage-C2VJCj8K.js                        3.40 kB │ gzip:  1.26 kB
+dist/assets/LandingPage-tRWiIppc.js                          3.94 kB │ gzip:  1.46 kB
+dist/assets/MeetingsPage-YDY7n7Eo.js                         4.09 kB │ gzip:  1.44 kB
+dist/assets/ContactsPage-DMsxx-DR.js                         4.16 kB │ gzip:  1.31 kB
+dist/assets/CallsPage-BhaMHm6j.js                            4.42 kB │ gzip:  1.27 kB
+dist/assets/SettingsPage-DN6rDBAt.js                         5.43 kB │ gzip:  2.05 kB
+dist/assets/MessageUnderstandingDemo-4QuxBCEo.js             6.21 kB │ gzip:  2.08 kB
+dist/assets/WhyQuellAI-Bezs97lX.js                           7.33 kB │ gzip:  2.47 kB
+dist/assets/LabsPlayground-DMVCbHRi.js                      17.96 kB │ gzip:  4.87 kB
+dist/assets/main-CqeJaehZ.js                               230.17 kB │ gzip: 74.00 kB
+✓ built in 2.60s
+]633;D;0]633;P;Cwd=E:/ai-call-copilot/backend[?2004h]633;A(pvenv) ]633;A]0;MINGW64:/e/ai-call-copilot/backend
+[32mCAMPUS-DOMAIN+033690343@VimrishLaptop [35mMINGW64 [33m/e/ai-call-copilot/backend[36m (development)[0m
+$ ]633;B]633;Bdocker exec node-frontend npm run build[C[C[14Psource ./setup/run_dev.sh
+[?2004l]633;E;source ./setup/run_dev.sh;a77d018e-a0bc-436c-ad88-73045d36c29e]633;Cbash: ./setup/run_dev.sh: No such file or directory
+🛑 Shutting down development services...
+ Container node-frontend  Stopping
+ Container node-frontend  Stopped
+ Container node-frontend  Removing
+ Container node-frontend  Removed
+ Network extras_default  Removing
+ Network extras_default  Removed
