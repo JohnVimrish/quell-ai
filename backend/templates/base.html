@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NLP Codex - Deep Dive Edition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&amp;family=Open+Sans:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <style type="text/tailwindcss">
+      :root {--color-primary-blue: #2a3a5b;--color-secondary-grey: #4e5a6a;--color-accent-metallic: #aeb8c4;--color-light-background: #f8f8f8;--color-dark-text: #2c2c2c;
+        --color-light-text: #6b7280;
+        --color-border-grey: #d1d5db;
+        --color-hover-blue: #3d5073;
+        --color-accent-green: #9ae6b4;}
+      .animated-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -2;}
+      .animated-bg > div {
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(120px);opacity: 0.3;animation: float 25s infinite alternate;}
+      .shape1 {
+        background-color: var(--color-primary-blue);
+        width: 500px;
+        height: 500px;
+        top: 5%;
+        left: 10%;
+        animation-duration: 28s;
+        animation-delay: 0s;
+      }
+      .shape2 {
+        background-color: var(--color-secondary-grey);
+        width: 400px;
+        height: 400px;
+        top: 55%;
+        left: 35%;
+        animation-duration: 22s;
+        animation-delay: 3s;
+      }
+      .shape3 {
+        background-color: var(--color-accent-metallic);
+        width: 450px;
+        height: 450px;
+        top: 25%;
+        right: 8%;
+        animation-duration: 26s;
+        animation-delay: 6s;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0px) translateX(0px) rotate(0deg);
+        }
+        50% {
+          transform: translateY(60px) translateX(40px) rotate(15deg);
+        }
+        100% {
+          transform: translateY(0px) translateX(0px) rotate(0deg);
+        }
+      }
+      .book-container {
+        perspective: 2500px;
+      }
+      .book {
+        position: relative;
+        width: 100%;
+        height: 600px;transform-style: preserve-3d;
+        transition: transform 0.5s;
+      }
+      .page {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        top: 0;
+        left: 50%;
+        transform-origin: left center;
+        transition: transform 1.5s cubic-bezier(0.645, 0.045, 0.355, 1);
+        backface-visibility: hidden;
+        transform-style: preserve-3d;
+      }
+      .page.flipped {
+        transform: rotateY(-180deg);
+      }
+      .page-content {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        transform-style: preserve-3d;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(16px);
+      }
+      .page-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 10%);
+        transition: opacity 0.5s ease;
+        opacity: 0;
+        z-index: 10;
+      }
+      .page-content::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to left, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 10%);
+        box-shadow: inset -5px 0 15px -5px rgba(0,0,0,0.2);
+        transition: opacity 0.5s ease;
+        opacity: 0;
+        z-index: 10;
+      }
+      .page.turning .page-front::before {
+        opacity: 1;
+        transition-delay: 0.2s;
+      }
+      .page.turning .page-back::after {
+        opacity: 1;
+        transition-delay: 0.2s;
+      }
+      .page.flipped .page-front::before,
+      .page.flipped .page-back::after {
+        opacity: 0;
+        transition-delay: 0s;
+      }
+      .page-front, .page-back {
+        overflow-y: auto;
+      }
+      .page-back {
+        transform: rotateY(180deg);
+      }
+      .book-cover {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        top: 0;
+        left: 0%;
+        transform-origin: right center;
+        background: rgba(42, 58, 91, 0.9);
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 10;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+      .book-back-cover {
+         position: absolute;
+        width: 50%;
+        height: 100%;
+        top: 0;
+        right: 0%;
+        background: rgba(42, 58, 91, 0.9);
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: -1;
+      }
+      .page-turn-btn {
+        position: absolute;
+        bottom: 20px;
+        z-index: 50;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid var(--color-border-grey);
+        border-radius: 9999px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+      .page-turn-btn:hover {
+        background: var(--color-primary-blue);
+        color: white;
+        transform: scale(1.1);
+      }
+      .page-turn-btn.prev {
+        left: 20px;
+      }
+      .page-turn-btn.next {
+        right: 20px;
+      }
+      /* 3D interaction helpers for navbar */
+      .nav-3d, .btn-3d {
+        will-change: transform, box-shadow;
+        transform: translateZ(0);
+        transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease;
+      }
+      .nav-3d {
+        box-shadow: 0 6px 18px rgba(42,58,91,.08);
+      }
+      .nav-3d:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(42,58,91,.16);
+      }
+      .nav-3d:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 20px rgba(42,58,91,.14);
+      }
+      .btn-3d {
+        box-shadow: 0 10px 24px rgba(42,58,91,.22);
+      }
+      .btn-3d:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(42,58,91,.28);
+      }
+      .btn-3d:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(42,58,91,.2);
+      }
+      .active-nav {
+        background: var(--color-primary-blue);
+        color: #ffffff !important;
+        box-shadow: 0 18px 36px rgba(42,58,91,.28);
+      }
+    </style>
+<script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'primary-blue': 'var(--color-primary-blue)',
+              'secondary-grey': 'var(--color-secondary-grey)',
+              'accent-metallic': 'var(--color-accent-metallic)',
+              'light-background': 'var(--color-light-background)',
+              'dark-text': 'var(--color-dark-text)',
+              'light-text': 'var(--color-light-text)',
+              'border-grey': 'var(--color-border-grey)',
+              'hover-blue': 'var(--color-hover-blue)',
+              'accent-green': 'var(--color-accent-green)',
+            },
+            fontFamily: {
+              serif: ['Merriweather', 'serif'],
+              sans: ['Open Sans', 'sans-serif'],
+            },
+            borderRadius: {
+              DEFAULT: '0.375rem', 
+              md: '0.5rem',
+              lg: '0.75rem',
+              xl: '1rem',
+              '2xl': '1.5rem',
+              full: '9999px',
+            },
+          },
+        },
+      };
+    </script>
+</head>
+<body class="bg-light-background font-sans text-dark-text antialiased">
+<div class="relative min-h-screen w-full overflow-x-hidden">
+<div class="animated-bg">
+<div class="shape1"></div>
+<div class="shape2"></div>
+<div class="shape3"></div>
+</div>
+<div class="pointer-events-none fixed inset-0 z-[100] opacity-0 transition-opacity duration-500 ease-in-out" id="toc-overlay">
+<div class="absolute inset-0 bg-black/30 backdrop-blur-sm transition-all duration-500 ease-in-out"></div>
+<div class="absolute left-0 top-0 h-full w-full max-w-md -translate-x-full transform transition-transform duration-500 ease-in-out">
+<div class="flex h-full w-full flex-col border-r border-white/20 bg-white/20 p-8 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-in-out">
+<div class="flex items-center justify-between">
+<h3 class="font-serif text-3xl font-bold text-dark-text">Table of Contents</h3>
+<button class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/30 text-dark-text transition-all hover:scale-110 hover:bg-white/50" id="close-toc">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<nav class="mt-10 flex-grow">
+<ul class="space-y-4">
+<li><a class="group relative flex items-center gap-4 rounded-lg px-4 py-3 text-lg font-semibold text-dark-text transition-all duration-300 hover:bg-white/30" href="#"><span class="text-xl font-bold text-primary-blue/50 transition-colors group-hover:text-primary-blue">01</span><span>Generative Text</span></a></li>
+<li><a class="group relative flex items-center gap-4 rounded-lg bg-accent-green/30 px-4 py-3 text-lg font-semibold text-dark-text ring-2 ring-accent-green/80 transition-all duration-300" href="#"><span class="text-xl font-bold text-primary-blue">02</span><span>Summarization</span><span class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-primary-blue px-2 py-0.5 text-xs font-bold text-white">Active</span></a></li>
+<li><a class="group relative flex items-center gap-4 rounded-lg px-4 py-3 text-lg font-semibold text-dark-text transition-all duration-300 hover:bg-white/30" href="#"><span class="text-xl font-bold text-primary-blue/50 transition-colors group-hover:text-primary-blue">03</span><span>Machine Translation</span></a></li>
+<li><a class="group relative flex items-center gap-4 rounded-lg px-4 py-3 text-lg font-semibold text-dark-text transition-all duration-300 hover:bg-white/30" href="#"><span class="text-xl font-bold text-primary-blue/50 transition-colors group-hover:text-primary-blue">04</span><span>Sentiment Analysis</span></a></li>
+<li><a class="group relative flex items-center gap-4 rounded-lg px-4 py-3 text-lg font-semibold text-dark-text transition-all duration-300 hover:bg-white/30" href="#"><span class="text-xl font-bold text-primary-blue/50 transition-colors group-hover:text-primary-blue">05</span><span>Question Answering</span></a></li>
+<li><a class="group relative flex items-center gap-4 rounded-lg px-4 py-3 text-lg font-semibold text-dark-text transition-all duration-300 hover:bg-white/30" href="#"><span class="text-xl font-bold text-primary-blue/50 transition-colors group-hover:text-primary-blue">06</span><span>Named Entity Recognition</span></a></li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <header class="sticky top-6 z-50 mt-6 grid h-16 grid-cols-3 items-center rounded-lg border border-border-grey bg-light-background/90 px-4 shadow-md backdrop-blur-md sm:px-6">
+        <div class="flex items-center gap-3 justify-self-start">
+          <div class="flex h-10 w-10 items-center justify-center rounded-md bg-primary-blue/10 text-primary-blue">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <h2 class="hidden text-xl font-bold text-dark-text sm:block">Quell AI</h2>
+        </div>
+        <nav class="hidden md:flex items-center gap-2 justify-center justify-self-center">
+          <a href="#about" class="nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50">About</a>
+          <a href="#conversation-lab" class="nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50">Conversation Lab</a>
+        </nav>
+        <div class="flex items-center gap-3 justify-self-end">
+          <button id="loginBtn" aria-label="Log In" class="btn-3d hidden h-10 cursor-pointer items-center justify-center rounded-md border border-primary-blue/30 bg-white/80 px-5 text-sm font-bold text-dark-text shadow-lg hover:bg-primary-blue/10 hover:text-primary-blue sm:flex">Log In</button>
+        </div>
+      </header>
+<main class="flex flex-col">
+<section class="relative flex min-h-[calc(100vh-120px)] flex-col items-center justify-center py-20 text-center">
+<div class="relative z-10 w-full max-w-5xl rounded-xl border border-border-grey bg-white/80 p-8 shadow-xl backdrop-blur-md sm:p-12 md:p-16">
+<div class="flex flex-col items-center gap-6">
+<h1 class="max-w-4xl font-serif text-5xl font-bold leading-tight tracking-tight text-dark-text md:text-6xl">
+                  Deep Dive into Natural Language Processing.
+                </h1>
+<p class="max-w-2xl text-lg text-light-text">
+                  A comprehensive codex for scholars and researchers exploring
+                  the multifaceted capabilities of NLP.
+                </p>
+<button class="mt-4 flex h-12 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-md border border-primary-blue/30 bg-primary-blue px-6 text-base font-bold text-white shadow-lg shadow-primary-blue/20 transition-all hover:scale-105 hover:bg-hover-blue">
+<span class="truncate">Explore the Codex</span>
+</button>
+</div>
+</div>
+</section>
+<section class="py-24">
+<div class="mb-16 flex flex-col items-center text-center">
+<h2 class="font-serif text-4xl font-bold text-dark-text">
+                NLP Capabilities: A Scholarly Overview
+              </h2>
+<p class="mt-2 max-w-2xl text-lg text-light-text">
+                Turn the pages to gain in-depth understanding of core NLP functionalities.
+              </p>
+</div>
+<div class="book-container mx-auto max-w-6xl">
+<div class="book relative" id="book">
+<div class="book-cover flex flex-col items-center justify-center p-8 text-center text-white">
+<span class="material-symbols-outlined mb-4 text-6xl">auto_stories</span>
+<h3 class="font-serif text-3xl font-bold">CogniLex Codex</h3>
+<p class="mt-2 text-lg text-accent-metallic">An Interactive Guide to NLP</p>
+</div>
+<div class="page" id="page1" style="z-index: 6;">
+<div class="page-content page-front">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-primary-blue">auto_stories</span>
+<h3 class="text-2xl font-bold text-dark-text">Generative Text</h3>
+</div>
+<p class="text-base text-light-text">
+                        Text generation involves algorithms that produce human-like text, ranging from creative narratives to factual reports, by learning patterns from vast datasets. This capability underpins applications in content creation, dialogue systems, and data augmentation.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Utilizing Transformer architectures to synthesize academic abstracts or long-form articles based on a concise prompt.
+                      </p>
+<img alt="3D model representing text tokenization and sequence generation." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+<div class="page-content page-back">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-secondary-grey">compress</span>
+<h3 class="text-2xl font-bold text-dark-text">Summarization</h3>
+</div>
+<p class="text-base text-light-text">
+                        This function distills lengthy documents into concise versions. Extractive summarization identifies and concatenates salient sentences, while abstractive methods generate entirely new sentences to convey core information.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Condensing a 50-page research paper into a two-paragraph executive summary, preserving key findings and methodologies.
+                      </p>
+<img alt="3D model depicting data compression and information extraction." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+</div>
+<div class="page" id="page2" style="z-index: 5;">
+<div class="page-content page-front">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-primary-blue">language</span>
+<h3 class="text-2xl font-bold text-dark-text">Machine Translation</h3>
+</div>
+<p class="text-base text-light-text">
+                        Machine translation facilitates automatic conversion of text from a source language to a target language. Modern approaches, particularly neural machine translation, leverage deep learning for enhanced fluency and accuracy across diverse language pairs.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Translating complex technical specifications from German to English, maintaining semantic and contextual fidelity.
+                      </p>
+<img alt="3D model representing language conversion pathways or graph structures." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+<div class="page-content page-back">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-secondary-grey">sentiment_satisfied_alt</span>
+<h3 class="text-2xl font-bold text-dark-text">Sentiment Analysis</h3>
+</div>
+<p class="text-base text-light-text">
+                        This capability identifies and categorizes the emotional tone or subjective opinion expressed in a piece of text. It's crucial for understanding public perception, customer feedback, and market sentiment, often classifying text as positive, negative, or neutral.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Analyzing thousands of research paper reviews to identify overall acceptance rates and common critiques based on sentiment polarity.
+                      </p>
+<img alt="3D model illustrating data clustering or emotional spectrum." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+</div>
+<div class="page" id="page3" style="z-index: 4;">
+<div class="page-content page-front">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-primary-blue">quiz</span>
+<h3 class="text-2xl font-bold text-dark-text">Question Answering</h3>
+</div>
+<p class="text-base text-light-text">
+                        Question Answering (QA) systems extract precise answers to user queries from a given text corpus or knowledge base. This sophisticated task often involves comprehension, reasoning, and information synthesis.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Posing a complex question about a biological process to a QA system trained on medical journals and receiving a direct, evidence-based answer.
+                      </p>
+<img alt="3D model representing a knowledge graph or a decision tree." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+<div class="page-content page-back">
+<div class="flex h-full flex-col gap-6 p-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-4xl text-secondary-grey">travel_explore</span>
+<h3 class="text-2xl font-bold text-dark-text">Named Entity Recognition</h3>
+</div>
+<p class="text-base text-light-text">
+                        NER identifies and classifies named entities in text into predefined categories such as person, organization, location, expressions of times, quantities, monetary values, percentages, etc. It's a fundamental step in information extraction and text mining.
+                      </p>
+<p class="text-sm italic text-light-text">
+                        **Example:** Automatically extracting author names, university affiliations, and publication dates from a large corpus of scientific abstracts.
+                      </p>
+<img alt="3D model depicting data nodes with highlighted connections." class="mt-auto h-auto w-full max-w-sm self-center rounded-lg object-contain p-4 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAY4caYb5dAIF4rXt_Ktghc4VHCzca3qGHBcJcy1iptUP2fb-bHm5AR2mvx5TJbiWSUklSx-egF8AJU-CQhbvWuhlsgQIZFYECq5iQlEf8KrVgpIs_x1q_BVxNs36mt0wVb9aYcED7Wha_H2I7DDX_XSA9Kkawygw3MiaXo3GAQS86CIKqplwTWgdS3xRKp-IWgAedyN8vQ6mku60elggcfT9xUQ_83HSIKbvhJxXORl8uOk6iCY2dClm0uHhFwvZq5oTb37cm4IE0" style="filter: grayscale(15%) drop-shadow(0 0 8px rgba(0,0,0,0.2));"/>
+</div>
+</div>
+</div>
+<div class="book-back-cover"></div>
+</div>
+</div>
+<div class="relative mx-auto mt-8 flex max-w-6xl justify-between">
+<button aria-label="Previous Page" class="page-turn-btn prev" id="prevBtn">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<button aria-label="Next Page" class="page-turn-btn next" id="nextBtn">
+<span class="material-symbols-outlined">arrow_forward_ios</span>
+</button>
+</div>
+</section>
+</main>
+</div>
+<footer class="relative z-10 mx-auto mt-20 max-w-7xl border-t border-border-grey bg-light-background/90 px-4 py-10 text-center backdrop-blur-sm sm:px-6 lg:px-8">
+<div class="grid grid-cols-2 gap-8 text-left md:grid-cols-4">
+<div>
+<h4 class="font-bold text-dark-text">Institution</h4>
+<ul class="mt-4 space-y-2">
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">About</a>
+</li>
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Research Faculty</a>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-dark-text">Resources</h4>
+<ul class="mt-4 space-y-2">
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Codex Chapters</a>
+</li>
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Methodologies</a>
+</li>
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Datasets</a>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-dark-text">Legal Framework</h4>
+<ul class="mt-4 space-y-2">
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Privacy Policies</a>
+</li>
+<li>
+<a class="text-sm text-light-text hover:text-dark-text" href="#">Terms of Use</a>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-dark-text">Connect</h4>
+<div class="mt-4 flex gap-4">
+<a class="text-light-text hover:text-dark-text" href="#">
+<svg aria-hidden="true" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+<path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+</svg>
+</a>
+<a class="text-light-text hover:text-dark-text" href="#">
+<svg aria-hidden="true" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+<path clip-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.206v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.225-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.47 1.344h2.94v8.59H3.535v-8.59z" fill-rule="evenodd"></path>
+</svg>
+</a>
+</div>
+</div>
+</div>
+<div class="mt-10 border-t border-border-grey pt-6">
+<p class="text-sm text-light-text">
+            © 2024 CogniLex Codex. All Rights Reserved.
+          </p>
+</div>
+</footer>
+</div>
+<audio id="page-flip-sound" preload="auto" src="https://assets.codepen.io/165585/page-flip.mp3"></audio>
+<script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // Book turning logic
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const book = document.getElementById('book');
+        const pages = book.querySelectorAll('.page');
+        const pageFlipSound = document.getElementById('page-flip-sound');
+        let currentLocation = 1;
+        const numPages = pages.length;
+        const maxLocation = numPages + 1;
+        function playPageFlipSound() {
+            if (pageFlipSound) {
+                pageFlipSound.currentTime = 0;
+                pageFlipSound.volume = 0.2; // Low volume
+                pageFlipSound.play();
+                let fadeAudio = setInterval(function () {
+                    if ((pageFlipSound.volume - 0.02) > 0) {
+                        pageFlipSound.volume -= 0.02;
+                    } else {
+                        pageFlipSound.pause();
+                        clearInterval(fadeAudio);
+                    }
+                }, 150);
+            }
+        }
+        function addTurningEffect(page) {
+            playPageFlipSound();
+            page.classList.add('turning');
+            setTimeout(() => {
+                page.classList.remove('turning');
+            }, 1500);
+        }
+        function openBook() {
+          book.style.transform = "translateX(50%)";
+          prevBtn.style.transform = "translateX(-180px)";
+          nextBtn.style.transform = "translateX(180px)";
+        }
+        function closeBook(isAtBeginning) {
+          if (isAtBeginning) {
+            book.style.transform = "translateX(0%)";
+          } else {
+            book.style.transform = "translateX(100%)";
+          }
+           prevBtn.style.transform = "translateX(0px)";
+           nextBtn.style.transform = "translateX(0px)";
+        }
+        function goNextPage() {
+            if(currentLocation < maxLocation) {
+                switch(currentLocation) {
+                    case 1:
+                        openBook();
+                        addTurningEffect(pages[0]);
+                        pages[0].classList.add("flipped");
+                        pages[0].style.zIndex = 1;
+                        break;
+                    case 2:
+                        addTurningEffect(pages[1]);
+                        pages[1].classList.add("flipped");
+                        pages[1].style.zIndex = 2;
+                        break;
+                    case 3:
+                        addTurningEffect(pages[2]);
+                        pages[2].classList.add("flipped");
+                        pages[2].style.zIndex = 3;
+                        closeBook(false);
+                        break;
+                    default:
+                        throw new Error("unknown state");
+                }
+                currentLocation++;
+            }
+        }
+        function goPrevPage() {
+            if(currentLocation > 1) {
+                switch(currentLocation) {
+                    case 2:
+                        closeBook(true);
+                        addTurningEffect(pages[0]);
+                        pages[0].classList.remove("flipped");
+                        pages[0].style.zIndex = 6;
+                        break;
+                    case 3:
+                        addTurningEffect(pages[1]);
+                        pages[1].classList.remove("flipped");
+                        pages[1].style.zIndex = 5;
+                        break;
+                    case 4:
+                        openBook();
+                        addTurningEffect(pages[2]);
+                        pages[2].classList.remove("flipped");
+                        pages[2].style.zIndex = 4;
+                        break;
+                    default:
+                        throw new Error("unknown state");
+                }
+                currentLocation--;
+            }
+        }
+        prevBtn.addEventListener('click', goPrevPage);
+        nextBtn.addEventListener('click', goNextPage);
+        // Table of Contents Overlay Logic
+        const tocOverlay = document.getElementById('toc-overlay');
+        const backdrop = tocOverlay.querySelector('div:first-child');
+        const tocPanel = tocOverlay.querySelector('div:last-child');
+        const tocPanelInner = tocPanel.querySelector('div');
+        const openTocBtn = document.getElementById('open-toc');
+        const closeTocBtn = document.getElementById('close-toc');
+        function openToc() {
+            tocOverlay.classList.remove('pointer-events-none');
+            tocOverlay.classList.remove('opacity-0');
+            backdrop.classList.remove('backdrop-blur-sm');
+            backdrop.classList.add('backdrop-blur-md');
+            tocPanel.classList.remove('-translate-x-full');
+            tocPanel.classList.add('translate-x-0');
+            tocPanelInner.classList.remove('backdrop-blur-xl');
+            tocPanelInner.classList.add('backdrop-blur-2xl');
+        }
+        function closeToc() {
+            tocOverlay.classList.add('opacity-0');
+            tocOverlay.classList.add('pointer-events-none');
+            backdrop.classList.remove('backdrop-blur-md');
+            backdrop.classList.add('backdrop-blur-sm');
+            tocPanel.classList.add('-translate-x-full');
+            tocPanel.classList.remove('translate-x-0');
+            tocPanelInner.classList.remove('backdrop-blur-2xl');
+            tocPanelInner.classList.add('backdrop-blur-xl');
+        }
+        if (openTocBtn) openTocBtn.addEventListener('click', openToc);
+        if (closeTocBtn) closeTocBtn.addEventListener('click', closeToc);
+        if (backdrop) backdrop.addEventListener('click', closeToc); // Close on backdrop click
+        // Header nav active/highlight logic
+        const headerNavLinks = document.querySelectorAll('header nav a');
+        headerNavLinks.forEach((link) => {
+          link.addEventListener('click', (e) => {
+            headerNavLinks.forEach((l) => {
+              l.classList.remove('active-nav');
+              l.removeAttribute('aria-current');
+            });
+            const el = e.currentTarget;
+            el.classList.add('active-nav');
+            el.setAttribute('aria-current', 'page');
+          });
+        });
+        // Login button active-on-click (turns blue on click)
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+          loginBtn.addEventListener('click', () => {
+            const active = loginBtn.classList.toggle('active-nav');
+            loginBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+        }
+      });
+    </script>
+</body></html>
+
+

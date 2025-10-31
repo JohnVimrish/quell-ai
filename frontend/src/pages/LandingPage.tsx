@@ -1,4 +1,4 @@
-﻿import Phone3D from "../components/Phone3D";
+// import Phone3D from "../components/Phone3D"; // archived
 import { useAuth } from "../components/AuthProvider";
 
 export default function LandingPage() {
@@ -23,7 +23,7 @@ export default function LandingPage() {
             <button className="button-engage" onClick={engage}>Engage with the Application</button>
           </div>
         </div>
-        <Phone3D />
+        {/* Phone3D archived */}
       </section>
 
       {/* Mission Section */}
@@ -131,6 +131,8 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
 
 
 
