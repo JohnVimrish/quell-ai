@@ -1,10 +1,11 @@
-import { Suspense, lazy } from "react";
+﻿import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./components/AuthProvider";
 import Layout from "./layouts/Layout";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
-// Use the unified authenticator for consistency with base.html
-import Authenticator from "./auth/Authenticator";
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const SignupPage = lazy(() => import("./pages/SignupPage"));
 const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const LabsPlayground = lazy(() => import("./pages/LabsPlayground"));
 
@@ -17,22 +18,22 @@ function LoadingFallback() {
   );
 }
 
-// Archived routes removed: dashboard, meetings, texts, settings, why, message-understanding, register, simple pages
-
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route element={<Layout />}>
+      <AuthProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
             <Route index element={<LandingPage />} />
-            <Route path="documents" element={<DocumentsPage />} />
-            <Route path="labs/dev-playground" element={<LabsPlayground />} />
-            <Route path="login" element={<Authenticator />} />
-            { /* Removed register and simple pages */ }
-          </Route>
-        </Routes>
-      </Suspense>
+            <Route path="login" element={<LoginPage />} />
+            <Route path="signup" element={<SignupPage />} />
+            <Route element={<Layout />}>
+              <Route path="documents" element={<DocumentsPage />} />
+              <Route path="labs/dev-playground" element={<LabsPlayground />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

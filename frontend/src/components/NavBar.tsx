@@ -80,7 +80,6 @@ export default function NavBar() {
   const navigate = useNavigate();
   const { isAuthed, isEngaged, engage, logout, backToAbout } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [loginActive, setLoginActive] = useState(false);
 
   const navItems = useMemo<NavItem[]>(() => ([
     { type: "link", to: "/", label: "About" },
@@ -89,7 +88,6 @@ export default function NavBar() {
 
   useEffect(() => {
     setOpenDropdown(null);
-    setLoginActive(false);
   }, [pathname]);
 
   const handleDropdownSelect = useCallback((option: DropdownOption) => {
@@ -196,12 +194,8 @@ export default function NavBar() {
       <button
         id="loginBtn"
         type="button"
-        className={`nav-pill btn-3d ${loginActive ? "active-nav" : ""}`.trim()}
-        onClick={() => {
-          setLoginActive((prev) => !prev);
-          navigate("/login");
-        }}
-        aria-pressed={loginActive}
+        className="nav-pill btn-3d"
+        onClick={() => navigate("/login")}
       >
         Log In
       </button>

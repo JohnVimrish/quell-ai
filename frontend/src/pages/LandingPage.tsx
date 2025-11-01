@@ -1,138 +1,220 @@
-// import Phone3D from "../components/Phone3D"; // archived
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import FloatingOrbs from "../components/FloatingOrbs";
+import FlipbookViewer from "../components/FlipbookViewer";
+import { ensurePublicTheme } from "../utils/publicTheme";
 import { useAuth } from "../components/AuthProvider";
+
+type NavId = "about" | "lab";
+
+const FLIPBOOK_DOCUMENT_PATH = "/static/documents/quell_ai_interactive.pdf";
+
+const FOOTER_COLUMNS = [
+  {
+    heading: "Institution",
+    links: ["About", "Research Faculty"],
+  },
+  {
+    heading: "Resources",
+    links: ["Codex Chapters", "Methodologies", "Datasets"],
+  },
+  {
+    heading: "Legal Framework",
+    links: ["Privacy Policies", "Terms of Use"],
+  },
+];
+
+function classNames(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
 
 export default function LandingPage() {
   const { engage } = useAuth();
-  return (
-    <div className="landing-page">
-      {/* Hero Section */}
-      <section className="hero section-padding" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '48px',
-        alignItems: 'center'
-      }}>
-        <div>
-          <h1 className="headline" style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', marginBottom: '24px' }}>
-            Your communicator copilot that respects every call
-          </h1>
-          <p className="subheadline" style={{ fontSize: '1.25rem', marginBottom: '32px', color: '#666' }}>
-            Quell-AI filters the noise, captures the signal, and keeps your attention on high-impact work.
-          </p>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <button className="button-engage" onClick={engage}>Engage with the Application</button>
+  const navigate = useNavigate();
+  const [activeNav, setActiveNav] = useState<NavId>("about");
+  const [flipbookReady, setFlipbookReady] = useState(false);
+  const [flipbookError, setFlipbookError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    ensurePublicTheme();
+  }, []);
+
+  const handleNavClick = (target: NavId) => {
+    setActiveNav(target);
+    if (target === "about") {
+      navigate("/");
+    } else {
+      navigate("/labs/dev-playground");
+    }
+  };
+
+  const renderFlipbookOverlay = () => {
+    if (flipbookError) {
+      return (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">
+          <div className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center rounded-2xl border border-red-200/80 bg-red-50/85 p-12 text-center shadow-xl shadow-red-200/30 backdrop-blur">
+            <span className="text-lg font-semibold text-red-700">Unable to load the interactive codex.</span>
+            <span className="mt-3 text-sm text-red-600">
+              {flipbookError.message}
+            </span>
           </div>
         </div>
-        {/* Phone3D archived */}
-      </section>
+      );
+    }
 
-      {/* Mission Section */}
-      <section className="section-padding" style={{ background: '#f9f9f9' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '24px' }}>Our Mission</h2>
-          <p style={{ fontSize: '1.1rem', lineHeight: '1.8', color: '#666' }}>
-            We believe communication should enhance productivity, not interrupt it. Quell-AI is built on the principle that AI should serve as an intelligent assistant that filters spam, manages routine interactions, and makes sure you never miss what matters.
-          </p>
+    if (!flipbookReady) {
+      return (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">
+          <div className="mx-auto flex w-full max-w-3xl flex-col items-center justify-center rounded-2xl border border-border-grey/70 bg-white/80 p-12 text-center shadow-xl shadow-primary-blue/20 backdrop-blur">
+            <span className="text-lg font-semibold text-dark-text">Preparing the interactive codex.</span>
+            <span className="mt-2 text-sm text-light-text">Rendering pages from the PDF document.</span>
+            <span className="mt-6 h-1.5 w-40 animate-pulse rounded-full bg-primary-blue/60" />
+          </div>
         </div>
-      </section>
+      );
+    }
 
-      {/* Core Values */}
-      <section className="section-padding">
-        <h2 style={{ fontSize: '2rem', textAlign: 'center', marginBottom: '48px' }}>Why Choose Quell-AI</h2>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-          gap: '32px'
-        }}>
-          {[
-            {
-              title: "Call Screening",
-              description: "Answer the right conversations - Quell-AI politely handles the rest.",
-              icon: "[Call]"
-            },
-            {
-              title: "Memory on Tap",
-              description: "Every call summarized instantly with action items you can trust.",
-              icon: "[Memory]"
-            },
-            {
-              title: "Trusted Boundaries",
-              description: "Respect priority contacts and protect your evenings without missing a beat.",
-              icon: "[Trust]"
-            }
-          ].map((feature, idx) => (
-            <div key={idx} style={{
-              padding: '32px',
-              background: 'white',
-              borderRadius: '12px',
-              border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.25s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
-            }}
-            >
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{feature.icon}</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>{feature.title}</h3>
-              <p style={{ color: '#666', lineHeight: '1.6' }}>{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+    return null;
+  };
 
-      {/* Story Gallery Placeholder */}
-      <section className="section-padding" style={{ background: '#f9f9f9' }}>
-        <h2 style={{ fontSize: '2rem', textAlign: 'center', marginBottom: '48px' }}>How It Works</h2>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-          gap: '24px',
-          maxWidth: '1000px',
-          margin: '0 auto'
-        }}>
-          {[
-            { step: "1", title: "Connect", desc: "Link your phone system in minutes" },
-            { step: "2", title: "Configure", desc: "Set your preferences and priorities" },
-            { step: "3", title: "Relax", desc: "Let AI handle the noise" }
-          ].map((item) => (
-            <div key={item.step} style={{
-              padding: '24px',
-              background: 'white',
-              borderRadius: '12px',
-              textAlign: 'center',
-              border: '1px solid #e0e0e0'
-            }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                background: 'var(--accent-pastel-green)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem',
-                fontWeight: '600',
-                margin: '0 auto 16px'
-              }}>
-                {item.step}
+  return (
+    <div className="bg-light-background font-sans text-dark-text antialiased">
+      <div className="relative min-h-screen w-full overflow-x-hidden">
+        <FloatingOrbs />
+
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <header className="sticky top-6 z-50 mt-6 grid h-16 grid-cols-3 items-center rounded-lg border border-border-grey bg-light-background/90 px-4 shadow-md backdrop-blur-md sm:px-6">
+            <div className="flex items-center gap-3 justify-self-start">
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-blue/10 text-primary-blue">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor" />
+                </svg>
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>{item.title}</h3>
-              <p style={{ color: '#666' }}>{item.desc}</p>
+              <span className="hidden text-xl font-bold text-dark-text sm:block">Quell AI</span>
             </div>
-          ))}
+            <nav className="hidden items-center justify-center gap-2 justify-self-center md:flex">
+              <button
+                type="button"
+                className={classNames(
+                  "nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50",
+                  activeNav === "about" && "active-nav",
+                )}
+                aria-current={activeNav === "about" ? "page" : undefined}
+                onClick={() => handleNavClick("about")}
+              >
+                About
+              </button>
+              <button
+                type="button"
+                className={classNames(
+                  "nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50",
+                  activeNav === "lab" && "active-nav",
+                )}
+                aria-current={activeNav === "lab" ? "page" : undefined}
+                onClick={() => handleNavClick("lab")}
+              >
+                Conversation Lab
+              </button>
+            </nav>
+            <div className="flex items-center gap-3 justify-self-end">
+              <button
+                type="button"
+                className="btn-3d hidden h-10 cursor-pointer items-center justify-center rounded-md border border-primary-blue/30 bg-white/80 px-5 text-sm font-bold text-dark-text shadow-lg hover:bg-primary-blue/10 hover:text-primary-blue sm:flex"
+                onClick={() => navigate("/login")}
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                className="flex h-10 min-w-[108px] cursor-pointer items-center justify-center overflow-hidden rounded-md border border-primary-blue/30 bg-primary-blue px-5 text-sm font-bold text-white shadow-lg shadow-primary-blue/20 transition-all hover:scale-105 hover:bg-hover-blue"
+                onClick={() => engage()}
+              >
+                Access Portal
+              </button>
+            </div>
+          </header>
+
+          <main className="flex flex-col">
+            <section
+              id="about"
+              className="relative flex min-h-[calc(100vh-120px)] flex-col items-center justify-center pt-6 pb-16 text-center"
+            >
+              <div className="relative z-10 w-full max-w-5xl rounded-xl border border-border-grey bg-white/80 p-8 shadow-xl backdrop-blur-md sm:p-12 md:p-16">
+                <div className="flex flex-col items-center gap-6">
+                  <h1 className="max-w-4xl font-serif text-5xl font-bold leading-tight tracking-tight text-dark-text md:text-6xl">
+                    Deep Dive into Natural Language Processing.
+                  </h1>
+                  <p className="max-w-2xl text-lg text-light-text">
+                    A comprehensive codex for scholars and researchers exploring the multifaceted capabilities of NLP.
+                  </p>
+                  <button
+                    className="mt-4 flex h-12 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-md border border-primary-blue/30 bg-primary-blue px-6 text-base font-bold text-white shadow-lg shadow-primary-blue/20 transition-all hover:scale-105 hover:bg-hover-blue"
+                    onClick={() => engage()}
+                  >
+                    Explore the Codex
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="relative w-full pb-24" style={{ marginTop: "2in" }}>
+              <div className="relative mx-auto w-full max-w-6xl">
+                {renderFlipbookOverlay()}
+                <FlipbookViewer
+                  pdfUrl={FLIPBOOK_DOCUMENT_PATH}
+                  className="relative z-10"
+                  onLoading={() => {
+                    setFlipbookReady(false);
+                    setFlipbookError(null);
+                  }}
+                  onReady={() => setFlipbookReady(true)}
+                  onError={(error) => {
+                    setFlipbookReady(false);
+                    setFlipbookError(error);
+                  }}
+                />
+              </div>
+            </section>
+          </main>
+
+          <footer className="relative z-10 mx-auto mt-20 max-w-7xl border-t border-border-grey bg-light-background/90 px-4 py-10 text-center backdrop-blur-sm sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 gap-8 text-left md:grid-cols-4">
+              {FOOTER_COLUMNS.map((column) => (
+                <div key={column.heading}>
+                  <h4 className="font-bold text-dark-text">{column.heading}</h4>
+                  <ul className="mt-4 space-y-2">
+                    {column.links.map((link) => (
+                      <li key={link}>
+                        <a className="text-sm text-light-text hover:text-dark-text" href="#">
+                          {link}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <div>
+                <h4 className="font-bold text-dark-text">Connect</h4>
+                <div className="mt-4 flex gap-4">
+                  <a className="text-light-text hover:text-dark-text" href="#" aria-label="Twitter">
+                    <svg aria-hidden="true" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.71v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+                    </svg>
+                  </a>
+                  <a className="text-light-text hover:text-dark-text" href="#" aria-label="LinkedIn">
+                    <svg aria-hidden="true" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                      <path clipRule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.206v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.225-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.47 1.344h2.94v8.59H3.535v-8.59z" fillRule="evenodd"></path>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="mt-10 border-t border-border-grey pt-6">
+              <p className="text-sm text-light-text">&copy; 2024 CogniLex Codex. All Rights Reserved.</p>
+            </div>
+          </footer>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
-
-
-
-
-

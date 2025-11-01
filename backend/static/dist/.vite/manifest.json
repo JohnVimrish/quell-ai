@@ -1,4 +1,8 @@
 {
+  "_publicTheme-DMQodtD7.js": {
+    "file": "assets/publicTheme-DMQodtD7.js",
+    "name": "publicTheme"
+  },
   "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2": {
     "file": "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
     "src": "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2"
@@ -27,18 +31,24 @@
     "file": "assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2",
     "src": "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2"
   },
+  "node_modules/pdfjs-dist/build/pdf.worker.mjs": {
+    "file": "assets/pdf.worker-9aISQa3R.mjs",
+    "src": "node_modules/pdfjs-dist/build/pdf.worker.mjs"
+  },
   "src/main.tsx": {
-    "file": "assets/main-D8zzOSB3.js",
+    "file": "assets/main-6gTcqBrH.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
     "dynamicImports": [
       "src/pages/LandingPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/SignupPage.tsx",
       "src/pages/DocumentsPage.tsx",
       "src/pages/LabsPlayground.tsx"
     ],
     "css": [
-      "assets/main-B0h9am1A.css"
+      "assets/main-BG-ZWHFz.css"
     ],
     "assets": [
       "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -51,7 +61,7 @@
     ]
   },
   "src/pages/DocumentsPage.tsx": {
-    "file": "assets/DocumentsPage-CT2QawVV.js",
+    "file": "assets/DocumentsPage-TNEha_V2.js",
     "name": "DocumentsPage",
     "src": "src/pages/DocumentsPage.tsx",
     "isDynamicEntry": true,
@@ -60,7 +70,7 @@
     ]
   },
   "src/pages/LabsPlayground.tsx": {
-    "file": "assets/LabsPlayground-CmGWzfhq.js",
+    "file": "assets/LabsPlayground-BBGdFR-Q.js",
     "name": "LabsPlayground",
     "src": "src/pages/LabsPlayground.tsx",
     "isDynamicEntry": true,
@@ -69,12 +79,36 @@
     ]
   },
   "src/pages/LandingPage.tsx": {
-    "file": "assets/LandingPage-C7YwO0RX.js",
+    "file": "assets/LandingPage-DploPKXZ.js",
     "name": "LandingPage",
     "src": "src/pages/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
-      "src/main.tsx"
+      "src/main.tsx",
+      "_publicTheme-DMQodtD7.js"
+    ],
+    "assets": [
+      "assets/pdf.worker-9aISQa3R.mjs"
+    ]
+  },
+  "src/pages/LoginPage.tsx": {
+    "file": "assets/LoginPage-INtXyOTb.js",
+    "name": "LoginPage",
+    "src": "src/pages/LoginPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_publicTheme-DMQodtD7.js"
+    ]
+  },
+  "src/pages/SignupPage.tsx": {
+    "file": "assets/SignupPage-DmmBFE2R.js",
+    "name": "SignupPage",
+    "src": "src/pages/SignupPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_publicTheme-DMQodtD7.js"
     ]
   }
 }

@@ -3,6 +3,7 @@ __pycache__/
 **/__pycache__/
 .pytest_cache/
 pvenv/
+quellvenv/
 .vscode/
 # Project-specific directories
 backend/ui/
@@ -42,3 +43,8 @@ backend/voice_samples/
 /frontend/*.njsproj
 /frontend/*.sln
 /frontend/*.sw?
+
+
+test.html
+training_model/*
+
