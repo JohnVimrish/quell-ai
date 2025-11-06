@@ -13,11 +13,6 @@ backend/uploads/
 backend/utils/
 backend/voice_samples/
 
-# ========================
-# FRONTEND IGNORE RULES
-# ========================
-
-
 # Logs
 /frontend/logs
 /frontend/*.log
@@ -46,5 +41,6 @@ backend/voice_samples/
 
 
 test.html
+test-2.html
 training_model/*
 
