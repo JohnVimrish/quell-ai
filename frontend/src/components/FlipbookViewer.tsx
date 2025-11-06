@@ -344,11 +344,26 @@ export default function FlipbookViewer({
 
   const computedWidth = Math.min(measuredWidth || maxWidth, maxWidth);
   const computedHeight = Math.round(computedWidth * aspectRatio);
-  const totalSpreads = useMemo(() => Math.max(1, Math.ceil(totalPages / 2)), [totalPages]);
+  // Total spreads: cover (page 1 alone) + pairs for remaining pages
+  const totalSpreads = useMemo(
+    () => (totalPages <= 1 ? 1 : 1 + Math.ceil((totalPages - 1) / 2)),
+    [totalPages],
+  );
   const currentSpread = useMemo(
     () => Math.min(totalSpreads, Math.max(1, Math.floor(currentPageIndex / 2) + 1)),
     [currentPageIndex, totalSpreads],
   );
+
+  // Derive label pages respecting cover-as-single rule
+  const leftPage = useMemo(() => {
+    if (currentSpread === 1) return 1;
+    const p = (currentSpread - 1) * 2; // 2-3, 4-5, ...
+    return Math.max(1, Math.min(totalPages, p));
+  }, [currentSpread, totalPages]);
+  const rightPage = useMemo(() => {
+    if (currentSpread === 1) return 1; // cover is single
+    return Math.max(1, Math.min(totalPages, leftPage + 1));
+  }, [currentSpread, leftPage, totalPages]);
 
   const showOpeningBlend = status === "ready" && currentSpread === 1;
   const baseBackdropStyle = useMemo<CSSProperties>(
@@ -450,7 +465,9 @@ export default function FlipbookViewer({
             </button>
 
             <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full border border-border-grey/60 bg-white/85 px-5 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-light-text shadow-md shadow-primary-blue/15">
-              Spread {currentSpread} / {totalSpreads}
+              {currentSpread === 1
+                ? `Page 1 / ${totalPages}`
+                : `Page ${leftPage}–${rightPage} / ${totalPages}`}
             </div>
 
             <button

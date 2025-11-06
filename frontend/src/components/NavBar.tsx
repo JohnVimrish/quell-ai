@@ -80,6 +80,10 @@ export default function NavBar() {
   const navigate = useNavigate();
   const { isAuthed, isEngaged, engage, logout, backToAbout } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const isLoginActive = useMemo(() => {
+    // Treat both "/login" and "/auth/login" as active states just in case
+    return pathname.startsWith("/login") || pathname.startsWith("/auth/login");
+  }, [pathname]);
 
   const navItems = useMemo<NavItem[]>(() => ([
     { type: "link", to: "/", label: "About" },
@@ -194,7 +198,7 @@ export default function NavBar() {
       <button
         id="loginBtn"
         type="button"
-        className="nav-pill btn-3d"
+        className={`nav-pill btn-3d ${isLoginActive ? "active-nav" : ""}`}
         onClick={() => navigate("/login")}
       >
         Log In

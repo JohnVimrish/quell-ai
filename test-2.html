@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quell AI - Conversation Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+        body {
+            position: relative;
+            overflow: hidden;
+        }
+        .concrete-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url(https://images.unsplash.com/photo-1594911726514-061001f37e8c?q=80&w=2574&auto=format&fit=crop);
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+        .concrete-bg::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iNTAwIiBoZWlnaHQ9IjUwMCI+CjxmaWx0ZXIgaWQ9Im4iIHg9IjAiIHk9IjAiPgo8ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9IjAuNzUiIHN0aXRjaFRpbGVzPSJzdGl0Y2giIG51bU9jdGF2ZXM9IjgiIHR5cGU9ImZyYWN0YWxOb2lzZSIvPgo8L2ZpbHRlcj4KPHJlY3Qgd2lkdGg9IjUwMCIgaGVpZ2h0PSI1MDAiIGZpbGw9IiMwMDAiLz4KPHJlY3Qgd2lkdGg9IjUwMCIgaGVpZ2h0PSI1MDAiIGZpbHRlcj0idXJsKCNuKSIgb3BhY2l0eT0iMC4xNSIvPgo8L3N2Zz4=');opacity: 0.15;
+            z-index: -1;
+        }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .glass-button {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+        .glass-button-primary {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.3));
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+        }
+        .glass-input {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .glass-input:focus {
+            background-color: rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(255, 255, 255, 0.4);
+        }
+        .chat-bubble-ai {
+             background-color: rgba(255, 255, 255, 0.1);
+        }
+        .chat-bubble-user {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .media-player-glass {
+            background-color: rgba(255,255,255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .progress-track {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .progress-fill {
+            background-color: #FFFFFF;
+        }
+    </style>
+</head>
+<body class="font-display text-gray-800">
+<div class="concrete-bg"></div>
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden" style='font-family: "Space Grotesk", "Noto Sans", sans-serif;'>
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 sm:px-10 md:px-20 lg:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col w-full max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap px-4 sm:px-10 py-3">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-current">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12.0799 24L4 19.2479L9.95537 8.75216L18.04 13.4961L18.0446 4H29.9554L29.96 13.4961L38.0446 8.75216L44 19.2479L35.92 24L44 28.7521L38.0446 39.2479L29.96 34.5039L29.9554 44H18.0446L18.04 34.5039L9.95537 39.2479L4 28.7521L12.0799 24Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em]">Quell AI</h2>
+</div>
+<div class="hidden sm:flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9 text-white">
+<a class="text-white/80 hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Home</a>
+<a class="text-white/80 hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Features</a>
+<a class="text-white text-sm font-bold leading-normal" href="#">Conversation Lab</a>
+<a class="text-white/80 hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Pricing</a>
+<a class="text-white/80 hover:text-white transition-colors text-sm font-medium leading-normal" href="#">Contact</a>
+</div>
+</div>
+</header>
+<main class="flex-grow mt-8 mb-8">
+<div class="glass-card rounded-xl flex flex-col h-full max-h-[80vh]">
+<div class="p-6 border-b border-white/20">
+<div class="flex flex-col gap-2 text-center text-white">
+<p class="text-4xl font-black leading-tight tracking-[-0.033em]">Conversation Lab</p>
+<p class="text-base font-normal leading-normal opacity-80">Interact with our latest AI model and experience the future of conversation.</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6 text-white">
+<div class="flex items-end gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border-2 border-white/30" data-alt="Quell AI Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCXgu05FAvtB1QG_UDz-qs7l7iuEa5c1wmFz5S-yLjzJSfj8QlBHaqaM1DbPqvMhLIvsdPDo2fQ8JXre7KZDWTDUQEKucBPo7J9IH1RlnPTsf0ejIiUMPM8DaeviQc91vWMAWw-fnQhoqW3dBuG9jh7OkDKwB7MykmsLuClE80vdSfOClQ-Dw6fAy7lK1GiL3UiuWmyFU_3oPlqh5bfGaAuSsK4xXiilj10KBGYHKOnZBuO3wTN3iNignoSm9AgElR3D8n_kmwoTnA");'></div>
+<div class="flex flex-col gap-1 items-start">
+<p class="text-xs font-normal leading-normal max-w-[360px] opacity-80">Quell AI</p>
+<div class="text-base font-normal leading-normal flex max-w-sm rounded-lg px-4 py-2.5 chat-bubble-ai">
+                                        Hello! I'm Quell AI. Type your message below to start our conversation.
+                                    </div>
+</div>
+</div>
+<div class="flex items-end gap-3 justify-end">
+<div class="flex flex-col gap-1 items-end">
+<p class="text-xs font-normal leading-normal max-w-[360px] text-right opacity-80">You</p>
+<div class="text-base font-normal leading-normal flex max-w-sm rounded-lg px-4 py-2.5 chat-bubble-user">
+                                        Tell me about the key features of this AI.
+                                    </div>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border-2 border-white/30" data-alt="User Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCtAOEZfDNJyTVj6zVKBy174ksu0wB0BV3TVGpg2xdbHI0PQQiwjAJtCe71v14TxSMiuGkXoRddwrJ5ocHATP_lbbL64iW4KFRkWdy-N4A7k2j1-qeJZ_QsPwLhT72WJOT9ptgyOmZSJEywVnqlsqkamw0kYTGtL_y-emfwCmXet52o611KtQR24-Ukk7pclVUNHjPYDoPqri2YSfjU3VjKV8zaHTLGON4zYo1SSTK3mfJ5kVUdmLr77nNGgOWCtA075vAKyXj4O4w");'></div>
+</div>
+<div class="flex items-end gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 h-8 shrink-0 border-2 border-white/30" data-alt="Quell AI Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVCcDE6G2X8r5T55siOwnU2-64Vd9guaBQKHmonww3Rc9FqwjnFk9mW8XjVGhPSJWgcuCeyz6F4tkZ8uURN2Riu08eBl7y2IWeUrT12pAxbG5wKw4Q9giAt9IWzmRJxbf68hpoAZJtpa3GUrnsePmirJSaeEOmG9-rJyVPz5VCm7BYOlpa2_XhoxEJBNC6H9x1HkS4HreTK1WN1HZhgCVtuSX_-P3eSAdRXIC4EukjXW_CQ7-Zr4Kk13447nNJC0N7b2aGz5e17fY");'></div>
+<div class="flex flex-col gap-1 items-start">
+<p class="text-xs font-normal leading-normal max-w-[360px] opacity-80">Quell AI</p>
+<div class="text-base font-normal leading-normal flex max-w-sm rounded-lg px-4 py-2.5 chat-bubble-ai">
+                                       Certainly. I can generate human-like text, summarize long documents, translate languages, and even create audio from text. Here's a sample.
+                                    </div>
+<div class="mt-2 w-full max-w-sm">
+<div class="flex flex-col gap-3 rounded-lg media-player-glass px-4 py-3">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-12 shrink-0 border-2 border-white/20" data-alt="Abstract soundwave pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCGB3bApRXfIne2sRIa8Q6igDb8ip1HG7iDL69S66cH7OAmgl3yRrsoNmgNhLN_PRp3hA3zG0V7G7yQfku4mpiFuQGb1BpcRFg9tTBPGWZnMvIyDK-FGAb1kVa3YYxQBCyoSOY32VfLV8TKTAft6zdQtlG6bSM7IenfECQU_GeqVhCIPlfBPrjYTj4Dn6etywa4VPDwKymLvNTTXy8Q-Bcd3fFfF4TmnwRwVEKtFYjo-jpahBYaUXo-DMiXwhAeILvGwZ1PJ2s6Gc8");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold leading-tight truncate">Generated Audio Sample</p>
+<p class="text-xs font-normal leading-normal truncate opacity-80">Quell AI Voice Synthesis</p>
+</div>
+<button class="flex shrink-0 items-center justify-center rounded-full size-10 glass-button text-white">
+<span class="material-symbols-outlined text-2xl" data-icon="Play">play_arrow</span>
+</button>
+</div>
+<div class="pt-1.5">
+<div class="flex h-4 items-center justify-center">
+<div class="h-1 flex-1 rounded-full progress-fill w-1/2"></div>
+<div class="relative"><div class="absolute -left-1.5 -top-1.5 size-3 rounded-full bg-white shadow-md"></div></div>
+<div class="h-1 flex-1 rounded-full progress-track w-1/2"></div>
+</div>
+<div class="flex items-center justify-between opacity-80">
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">1:17</p>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">2:23</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-white/20">
+<div class="flex items-center gap-4">
+<input class="flex-1 w-full bg-transparent border-0 rounded-lg glass-input text-white placeholder:text-white/60 focus:ring-0 h-12 px-4 transition-all" placeholder="Type your message or ask Quell AI anything..." type="text"/>
+<button class="flex min-w-[48px] h-12 cursor-pointer items-center justify-center overflow-hidden rounded-lg glass-button-primary text-white text-sm font-bold leading-normal tracking-[0.015em] transition-transform duration-150 active:scale-95">
+<span class="material-symbols-outlined text-2xl">send</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div></body></html>
