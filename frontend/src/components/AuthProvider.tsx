@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+﻿import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type AuthContextValue = {
   isAuthed: boolean;
   isEngaged: boolean;
   engage: () => void;
-  login: () => void;
+  login: (redirectPath?: string) => void;
   logout: () => void;
   backToAbout: () => void;
 };
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Archived (Oct 2025): calls, contacts, reports
-    const engagedRoutes = ["/why", "/dashboard", "/texts", "/settings", "/labs"];
+    const engagedRoutes = ["/dashboard", "/documents", "/texts", "/settings", "/labs", "/labs/dev-playground"];
     if (!isEngaged && engagedRoutes.some((route) => location.pathname.startsWith(route))) {
       setIsEngaged(true);
     }
@@ -67,15 +67,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isEngaged,
     engage: () => {
       setIsEngaged((prev) => (prev ? prev : true));
-      if (location.pathname !== "/why") {
-        navigate("/why");
+      if (location.pathname !== "/labs/dev-playground") {
+        navigate("/labs/dev-playground");
       }
     },
-    login: () => {
+    login: (redirectPath?: string) => {
       setIsAuthed(true);
       setIsEngaged(true);
-      if (location.pathname !== "/dashboard") {
-        navigate("/dashboard");
+      const target = redirectPath && redirectPath.startsWith('/') ? redirectPath : '/dashboard';
+      if (location.pathname !== target) {
+        navigate(target);
       }
     },
     logout: () => {
@@ -101,6 +102,10 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+
+
+
+
 
 
 

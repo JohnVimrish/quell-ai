@@ -3,6 +3,7 @@ __pycache__/
 **/__pycache__/
 .pytest_cache/
 pvenv/
+quellvenv/
 .vscode/
 # Project-specific directories
 backend/ui/
@@ -11,11 +12,6 @@ logs/
 backend/uploads/
 backend/utils/
 backend/voice_samples/
-
-# ========================
-# FRONTEND IGNORE RULES
-# ========================
-
 
 # Logs
 /frontend/logs
@@ -42,3 +38,9 @@ backend/voice_samples/
 /frontend/*.njsproj
 /frontend/*.sln
 /frontend/*.sw?
+
+
+test.html
+test-2.html
+training_model/*
+

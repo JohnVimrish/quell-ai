@@ -80,52 +80,15 @@ export default function NavBar() {
   const navigate = useNavigate();
   const { isAuthed, isEngaged, engage, logout, backToAbout } = useAuth();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const isLoginActive = useMemo(() => {
+    // Treat both "/login" and "/auth/login" as active states just in case
+    return pathname.startsWith("/login") || pathname.startsWith("/auth/login");
+  }, [pathname]);
 
-  const navItems = useMemo<NavItem[]>(() => {
-    const dropdowns: NavItem[] = [
-      {
-        type: "dropdown",
-        id: "about",
-        label: "About",
-        options: [
-          { to: "/", label: "Main Landing", onSelect: backToAbout },
-        ],
-      },
-      {
-        type: "dropdown",
-        id: "quell",
-        label: "Quell AI",
-        options: [
-          { to: "/why", label: "Why Quell AI" },
-          { to: "/labs/dev-playground", label: "Dev Playground" },
-        ],
-      },
-    ];
-
-    if (isAuthed) {
-      return [
-        ...dropdowns,
-        { type: "link", to: "/documents", label: "Documents" },
-        // Archived (Oct 2025): Contacts link
-        // { type: "link", to: "/contacts", label: "Contacts" },
-        { type: "link", to: "/settings", label: "Settings" },
-        { type: "button", action: "logout", label: "Log out" },
-      ];
-    }
-
-    if (isEngaged) {
-      return [
-        ...dropdowns,
-        { type: "external", href: "/legacy/login.html", label: "Log in" },
-      ];
-    }
-
-    return [
-      ...dropdowns,
-      { type: "button", action: "engage", label: "Engage with the Application" },
-      { type: "external", href: "/legacy/login.html", label: "Log in" },
-    ];
-  }, [isAuthed, isEngaged, backToAbout]);
+  const navItems = useMemo<NavItem[]>(() => ([
+    { type: "link", to: "/", label: "About" },
+    { type: "link", to: "/labs/dev-playground", label: "Conversation Lab" },
+  ]), []);
 
   useEffect(() => {
     setOpenDropdown(null);
@@ -154,8 +117,8 @@ export default function NavBar() {
           Back to About
         </button>
       )}
-      <div className={`brand ${showBrand ? "" : "brand-hidden"}`} aria-label={showBrand ? "Quell-AI" : undefined} aria-hidden={showBrand ? undefined : "true"}>
-        <span>Quell-AI</span>
+      <div className="brand" aria-label={showBrand ? "Quell AI" : undefined} aria-hidden={showBrand ? undefined : "true"}>
+        <span>Quell AI</span>
       </div>
       <nav className={`nav-links ${!isAuthed && !isEngaged ? "nav-centered" : "nav-expanded"}`}>
         {navItems.map((item) => {
@@ -166,7 +129,7 @@ export default function NavBar() {
                 to={item.to}
                 end={item.to === "/"}
                 className={({ isActive }) =>
-                  `nav-pill ${isActive ? "nav-pill-active" : ""}`
+                  `nav-pill nav-3d ${isActive ? "active-nav" : ""}`
                 }
                 onClick={() => {
                   if (item.to === "/") {
@@ -199,7 +162,7 @@ export default function NavBar() {
 
           if (item.type === "external") {
             return (
-              <a key={item.href} href={item.href} className="nav-pill nav-pill-outline">
+              <a key={item.href} href={item.href} className="nav-pill nav-3d nav-pill-outline">
                 {item.label}
               </a>
             );
@@ -232,8 +195,16 @@ export default function NavBar() {
           );
         })}
       </nav>
-      {/* Keep layout balance */}
-      <div className="nav-spacer" aria-hidden="true" />
+      <button
+        id="loginBtn"
+        type="button"
+        className={`nav-pill btn-3d ${isLoginActive ? "active-nav" : ""}`}
+        onClick={() => navigate("/login")}
+      >
+        Log In
+      </button>
     </header>
   );
 }
+
+

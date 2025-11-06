@@ -7,7 +7,7 @@ from datetime import datetime
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 
 # Ensure 'backend' root (which contains the 'api' package) is importable when running this file directly
@@ -365,9 +365,11 @@ def ingest_single_file(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Ingest a single file into the backend pipeline (parse, translate, analyze, and optionally save)."
+        description="Ingest file(s) into the backend pipeline (parse, translate, analyze, and optionally save)."
     )
-    parser.add_argument("--file", required=True, help="Path to .txt/.csv/.xlsx/.json file")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--file", help="Path to .txt/.csv/.xlsx/.json file")
+    group.add_argument("--files", nargs="+", help="Multiple file paths (.txt/.csv/.xlsx/.json)")
     parser.add_argument("--save", action="store_true", help="Persist into DB and save a copy under uploads")
     parser.add_argument("--user_id", type=int, default=1, help="User ID for DB record (default: 1)")
     parser.add_argument("--user-email", dest="user_email", default=None, help="Resolve user by email (overrides --user_id)")
@@ -413,5 +415,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
 

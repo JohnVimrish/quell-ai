@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@types/pdfjs-dist": "^2.10.377",
+    "flipbook-viewer": "^1.6.1",
+    "pdfjs-dist": "^5.4.296",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.0.2"
