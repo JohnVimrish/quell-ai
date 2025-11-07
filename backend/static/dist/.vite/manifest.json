@@ -1,7 +1,10 @@
 {
-  "_publicTheme-DMQodtD7.js": {
-    "file": "assets/publicTheme-DMQodtD7.js",
-    "name": "publicTheme"
+  "_publicTheme-BufINbMF.js": {
+    "file": "assets/publicTheme-BufINbMF.js",
+    "name": "publicTheme",
+    "imports": [
+      "src/main.tsx"
+    ]
   },
   "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2": {
     "file": "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -48,7 +51,7 @@
     "src": "src/assets/images/worry_picture.png"
   },
   "src/main.tsx": {
-    "file": "assets/main-C3MwaQcz.js",
+    "file": "assets/main-DvSMHpUV.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -57,10 +60,10 @@
       "src/pages/LoginPage.tsx",
       "src/pages/SignupPage.tsx",
       "src/pages/DocumentsPage.tsx",
-      "src/pages/LabsPlayground.tsx"
+      "src/pages/ConversationLab.tsx"
     ],
     "css": [
-      "assets/main--ubPd89V.css"
+      "assets/main-DwXAfVxn.css"
     ],
     "assets": [
       "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -72,8 +75,20 @@
       "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
     ]
   },
+  "src/pages/ConversationLab.tsx": {
+    "file": "assets/ConversationLab-Dxw7ThtU.js",
+    "name": "ConversationLab",
+    "src": "src/pages/ConversationLab.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ],
+    "css": [
+      "assets/ConversationLab-COesXCp2.css"
+    ]
+  },
   "src/pages/DocumentsPage.tsx": {
-    "file": "assets/DocumentsPage-CCS1jxpK.js",
+    "file": "assets/DocumentsPage-DpKX0Bn3.js",
     "name": "DocumentsPage",
     "src": "src/pages/DocumentsPage.tsx",
     "isDynamicEntry": true,
@@ -81,23 +96,14 @@
       "src/main.tsx"
     ]
   },
-  "src/pages/LabsPlayground.tsx": {
-    "file": "assets/LabsPlayground-CllTzLAt.js",
-    "name": "LabsPlayground",
-    "src": "src/pages/LabsPlayground.tsx",
-    "isDynamicEntry": true,
-    "imports": [
-      "src/main.tsx"
-    ]
-  },
   "src/pages/LandingPage.tsx": {
-    "file": "assets/LandingPage-BXTscC7Q.js",
+    "file": "assets/LandingPage-B03HAbi7.js",
     "name": "LandingPage",
     "src": "src/pages/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-BufINbMF.js"
     ],
     "css": [
       "assets/LandingPage-NDNSozaH.css"
@@ -110,23 +116,23 @@
     ]
   },
   "src/pages/LoginPage.tsx": {
-    "file": "assets/LoginPage-hzBv-lG3.js",
+    "file": "assets/LoginPage-D7xvwYiI.js",
     "name": "LoginPage",
     "src": "src/pages/LoginPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-BufINbMF.js"
     ]
   },
   "src/pages/SignupPage.tsx": {
-    "file": "assets/SignupPage-Copr_OsI.js",
+    "file": "assets/SignupPage-B331LXbr.js",
     "name": "SignupPage",
     "src": "src/pages/SignupPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-BufINbMF.js"
     ]
   }
 }

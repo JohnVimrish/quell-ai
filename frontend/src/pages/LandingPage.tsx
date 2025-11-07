@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import FloatingOrbs from "../components/FloatingOrbs";
 import FlipbookViewer from "../components/FlipbookViewer";
+import NavBar from "../components/NavBar";
 import { ensurePublicTheme } from "../utils/publicTheme";
 import "./LandingPage.css";
 import usePrefersReducedMotion from "../hooks/usePrefersReducedMotion";
@@ -11,22 +12,22 @@ import storyboardChaos from "../assets/images/worry_picture.png";
 import storyboardIdea from "../assets/images/solution_address_picture.png";
 import storyboardSupport from "../assets/images/relax_picture.png";
 
-type NavId = "about";
-
 const FLIPBOOK_DOCUMENT_PATH = "/static/documents/quell_ai_interactive.pdf";
 
 const FOOTER_SECTIONS = [
   {
     heading: "Pages",
     links: [
-      { label: "About", href: "/about" },
+      // About should always point to the Landing page
+      { label: "About", href: "/" },
     ],
   },
   {
     heading: "Resources",
     links: [
-      { label: "ChatLab", href: "/chatlab" },
-      { label: "VoiceLab", href: "/voicelab" },
+      // Both lab links route to Conversation Lab
+      { label: "ChatLab", href: "/labs/conversation-lab" },
+      { label: "VoiceLab", href: "/labs/conversation-lab" },
     ],
   },
 ];
@@ -126,7 +127,6 @@ function classNames(...parts: Array<string | false | null | undefined>) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState<NavId>("about");
   const [flipbookReady, setFlipbookReady] = useState(false);
   const [flipbookError, setFlipbookError] = useState<Error | null>(null);
   const [activeProposalButton, setActiveProposalButton] = useState<"hero" | "vision" | null>(null);
@@ -136,13 +136,6 @@ export default function LandingPage() {
   useEffect(() => {
     ensurePublicTheme();
   }, []);
-
-  const handleNavClick = (target: NavId) => {
-    setActiveNav(target);
-    if (target === "about") {
-      navigate("/");
-    }
-  };
 
   const handleScrollToCodex = (source: "hero" | "vision") => {
     const node = codexSectionRef.current;
@@ -191,46 +184,7 @@ export default function LandingPage() {
         <FloatingOrbs />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <header className="sticky top-6 z-50 mt-6 grid h-16 grid-cols-3 items-center rounded-lg border border-border-grey bg-light-background/90 px-4 shadow-md backdrop-blur-md sm:px-6">
-            <div className="flex items-center gap-3 justify-self-start">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-blue/10 text-primary-blue">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor" />
-                </svg>
-              </div>
-              <span className="hidden text-xl font-bold text-dark-text sm:block">Quell AI</span>
-            </div>
-            <nav className="hidden items-center justify-center gap-2 justify-self-center md:flex">
-              <button
-                type="button"
-                className={classNames(
-                  "nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50",
-                  activeNav === "about" && "active-nav",
-                )}
-                aria-current={activeNav === "about" ? "page" : undefined}
-                onClick={() => handleNavClick("about")}
-              >
-                About
-              </button>
-              <span
-                className="nav-3d nav-disabled rounded-md px-4 py-2 text-sm font-semibold text-light-text"
-                title="Archived section – coming soon."
-                aria-disabled="true"
-              >
-                Conversation Lab
-              </span>
-            </nav>
-            <div className="flex items-center gap-3 justify-self-end">
-              <button
-                type="button"
-                className="btn-3d hidden h-10 cursor-pointer items-center justify-center rounded-md border border-primary-blue/30 bg-white/80 px-5 text-sm font-bold text-dark-text shadow-lg hover:bg-primary-blue/10 hover:text-primary-blue sm:flex"
-                onClick={() => navigate("/login")}
-              >
-                Log In
-              </button>
-            </div>
-          </header>
-
+          <NavBar />
           <main className="snap-container flex flex-col">
             <section
               id="about"

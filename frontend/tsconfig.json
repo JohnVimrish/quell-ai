@@ -23,6 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
+  "include": ["src", "archive/src/section/HeroPhone.tsx", "archive/src/section/StoryGallery.tsx", "archive/src/pages/LabsPlayground.tsx"],
   "exclude": ["legacy"]
 }

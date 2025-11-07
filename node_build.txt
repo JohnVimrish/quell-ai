@@ -1,4 +1,3 @@
-docker exec node-frontend npm run build
-
 Remove-Item -Recurse -Force backend\static\dist
+docker exec node-frontend npm run build
 xcopy /E /I /Y frontend\dist backend\static\dist

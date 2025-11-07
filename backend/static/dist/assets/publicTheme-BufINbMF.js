@@ -1,4 +1,4 @@
-const a="https://cdn.tailwindcss.com?plugins=forms,container-queries",r=`tailwind.config = {
+import{j as t}from"./main-DvSMHpUV.js";function c(){return t.jsxs("div",{className:"animated-bg","aria-hidden":"true",children:[t.jsx("div",{className:"shape1"}),t.jsx("div",{className:"shape2"}),t.jsx("div",{className:"shape3"})]})}const r="https://cdn.tailwindcss.com?plugins=forms,container-queries",o=`tailwind.config = {
   darkMode: 'class',
   theme: {
     extend: {
@@ -27,7 +27,7 @@ const a="https://cdn.tailwindcss.com?plugins=forms,container-queries",r=`tailwin
       },
     },
   },
-};`,o=`
+};`,n=`
 .nav-3d,.btn-3d{will-change:transform,box-shadow;transform:translateZ(0);transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease,color .2s ease;}
 .nav-3d{box-shadow:0 6px 18px rgba(42,58,91,.08);}
 .nav-3d:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(42,58,91,.16);}
@@ -36,7 +36,7 @@ const a="https://cdn.tailwindcss.com?plugins=forms,container-queries",r=`tailwin
 .btn-3d:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(42,58,91,.28);}
 .btn-3d:active{transform:translateY(0);box-shadow:0 8px 18px rgba(42,58,91,.2);}
 .active-nav{background:var(--color-primary-blue);color:#fff!important;box-shadow:0 18px 36px rgba(42,58,91,.28);}
-`,n=`
+`,i=`
 .book-container{perspective:2500px;}
 .book{position:relative;width:100%;height:600px;transform-style:preserve-3d;transition:transform .5s;}
 .page{position:absolute;width:50%;height:100%;top:0;left:50%;transform-origin:left center;transition:transform 1.5s cubic-bezier(.645,.045,.355,1);backface-visibility:hidden;transform-style:preserve-3d;}
@@ -55,4 +55,4 @@ const a="https://cdn.tailwindcss.com?plugins=forms,container-queries",r=`tailwin
 .page-turn-btn:hover{background:var(--color-primary-blue);color:#fff;transform:scale(1.1);}
 .page-turn-btn.prev{left:20px;}
 .page-turn-btn.next{right:20px;}
-`,i="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined";function s({includeBookStyles:t=!1}={}){if(!(typeof document>"u")){if(!document.querySelector('script[data-qlx="public-tailwind-cdn"]')){const e=document.createElement("script");e.src=a,e.async=!0,e.dataset.qlx="public-tailwind-cdn",document.head.appendChild(e)}if(!document.querySelector('script[data-qlx="public-tailwind-config"]')){const e=document.createElement("script");e.type="text/javascript",e.dataset.qlx="public-tailwind-config",e.innerHTML=r,document.head.appendChild(e)}if(!document.querySelector('style[data-qlx="public-tailwind-base"]')){const e=document.createElement("style");e.type="text/tailwindcss",e.dataset.qlx="public-tailwind-base",e.innerHTML=o,document.head.appendChild(e)}if(t&&!document.querySelector('style[data-qlx="public-tailwind-book"]')){const e=document.createElement("style");e.type="text/tailwindcss",e.dataset.qlx="public-tailwind-book",e.innerHTML=n,document.head.appendChild(e)}if(!document.querySelector('link[data-qlx="material-symbols"]')){const e=document.createElement("link");e.rel="stylesheet",e.href=i,e.dataset.qlx="material-symbols",document.head.appendChild(e)}}}export{s as e};
+`,s="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined";function d({includeBookStyles:a=!1}={}){if(!(typeof document>"u")){if(!document.querySelector('script[data-qlx="public-tailwind-cdn"]')){const e=document.createElement("script");e.src=r,e.async=!0,e.dataset.qlx="public-tailwind-cdn",document.head.appendChild(e)}if(!document.querySelector('script[data-qlx="public-tailwind-config"]')){const e=document.createElement("script");e.type="text/javascript",e.dataset.qlx="public-tailwind-config",e.innerHTML=o,document.head.appendChild(e)}if(!document.querySelector('style[data-qlx="public-tailwind-base"]')){const e=document.createElement("style");e.type="text/tailwindcss",e.dataset.qlx="public-tailwind-base",e.innerHTML=n,document.head.appendChild(e)}if(a&&!document.querySelector('style[data-qlx="public-tailwind-book"]')){const e=document.createElement("style");e.type="text/tailwindcss",e.dataset.qlx="public-tailwind-book",e.innerHTML=i,document.head.appendChild(e)}if(!document.querySelector('link[data-qlx="material-symbols"]')){const e=document.createElement("link");e.rel="stylesheet",e.href=s,e.dataset.qlx="material-symbols",document.head.appendChild(e)}}}export{c as F,d as e};

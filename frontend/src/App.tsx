@@ -7,7 +7,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
-const LabsPlayground = lazy(() => import("./pages/LabsPlayground"));
+const ConversationLab = lazy(() => import("./pages/ConversationLab"));
 
 function LoadingFallback() {
   return (
@@ -29,7 +29,7 @@ export default function App() {
             <Route path="signup" element={<SignupPage />} />
             <Route element={<Layout />}>
               <Route path="documents" element={<DocumentsPage />} />
-              <Route path="labs/dev-playground" element={<LabsPlayground />} />
+              <Route path="labs/conversation-lab" element={<ConversationLab />} />
             </Route>
           </Routes>
         </Suspense>

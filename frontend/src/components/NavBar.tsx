@@ -1,210 +1,90 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAuth } from "./AuthProvider";
+import { useMemo } from "react";
 
-type NavItem =
-  | { type: "link"; to: string; label: string }
-  | { type: "external"; href: string; label: string }
-  | { type: "button"; action: "engage" | "logout"; label: string }
-  | { type: "dropdown"; id: string; label: string; options: DropdownOption[] };
+type NavItem = { to: string; label: string; exact?: boolean };
+type CtaConfig = { to: string; label: string; highlight: boolean };
 
-type DropdownOption = {
-  to: string;
-  label: string;
-  onSelect?: () => void;
+type NavConfig = {
+  navItems: NavItem[];
+  cta: CtaConfig;
 };
-
-function Dropdown({
-  item,
-  isActive,
-  isOpen,
-  currentPath,
-  onToggle,
-  onOpen,
-  onClose,
-  onSelect,
-}: {
-  item: Extract<NavItem, { type: "dropdown" }>;
-  isActive: boolean;
-  isOpen: boolean;
-  currentPath: string;
-  onToggle: (id: string) => void;
-  onOpen: (id: string) => void;
-  onClose: () => void;
-  onSelect: (option: DropdownOption) => void;
-}) {
-  return (
-    <div
-      className={`nav-dropdown nav-dropdown-${item.id} ${isOpen ? "nav-dropdown-open" : ""}`}
-      onMouseLeave={onClose}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-          onClose();
-        }
-      }}
-    >
-      <button
-        type="button"
-        className={`nav-pill nav-dropdown-trigger ${isActive ? "nav-pill-active" : ""}`}
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        onClick={() => onToggle(item.id)}
-        onMouseEnter={() => onOpen(item.id)}
-        onFocus={() => onOpen(item.id)}
-      >
-        <span>{item.label}</span>
-        <span className="nav-dropdown-caret" aria-hidden="true">▾</span>
-      </button>
-      <div className="nav-dropdown-menu" role="menu">
-        {item.options.map((option) => {
-          const optionActive = option.to === currentPath;
-          return (
-            <button
-              key={option.to}
-              type="button"
-              className={`nav-dropdown-option ${optionActive ? "nav-dropdown-option-active" : ""}`}
-              role="menuitem"
-              onClick={() => onSelect(option)}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 export default function NavBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { isAuthed, isEngaged, engage, logout, backToAbout } = useAuth();
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const isLoginActive = useMemo(() => {
-    // Treat both "/login" and "/auth/login" as active states just in case
-    return pathname.startsWith("/login") || pathname.startsWith("/auth/login");
-  }, [pathname]);
 
-  const navItems = useMemo<NavItem[]>(() => ([
-    { type: "link", to: "/", label: "About" },
-    { type: "link", to: "/labs/dev-playground", label: "Conversation Lab" },
-  ]), []);
-
-  useEffect(() => {
-    setOpenDropdown(null);
-  }, [pathname]);
-
-  const handleDropdownSelect = useCallback((option: DropdownOption) => {
-    if (option.onSelect) {
-      option.onSelect();
-    } else if (option.to !== pathname) {
-      navigate(option.to);
+  const config = useMemo<NavConfig>(() => {
+    if (pathname.startsWith("/login")) {
+      return {
+        navItems: [
+          { to: "/", label: "About", exact: true },
+          { to: "/signup", label: "Create Account" },
+        ],
+        cta: { to: "/login", label: "Sign In", highlight: true },
+      };
     }
-    setOpenDropdown(null);
-  }, [navigate, pathname]);
 
-  const showBackToAbout = isEngaged && pathname !== "/";
-  const showBrand = pathname === "/";
+    if (pathname.startsWith("/signup")) {
+      return {
+        navItems: [
+          { to: "/", label: "About", exact: true },
+          { to: "/signup", label: "Create Account" },
+        ],
+        cta: { to: "/login", label: "Sign In", highlight: false },
+      };
+    }
+
+    return {
+      navItems: [
+        { to: "/", label: "About", exact: true },
+        { to: "/labs/conversation-lab", label: "Conversation Lab" },
+        { to: "/login", label: "Login" },
+      ],
+      cta: { to: "/signup", label: "Create Account", highlight: pathname.startsWith("/signup") },
+    };
+  }, [pathname]);
 
   return (
-    <header className={`navbar ${isEngaged || isAuthed ? "navbar-expanded" : ""}`} data-ui="navbar">
-      {showBackToAbout && (
-        <button
-          className="nav-back-button"
-          onClick={backToAbout}
-          type="button"
-        >
-          Back to About
-        </button>
-      )}
-      <div className="brand" aria-label={showBrand ? "Quell AI" : undefined} aria-hidden={showBrand ? undefined : "true"}>
-        <span>Quell AI</span>
-      </div>
-      <nav className={`nav-links ${!isAuthed && !isEngaged ? "nav-centered" : "nav-expanded"}`}>
-        {navItems.map((item) => {
-          if (item.type === "link") {
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/"}
-                className={({ isActive }) =>
-                  `nav-pill nav-3d ${isActive ? "active-nav" : ""}`
-                }
-                onClick={() => {
-                  if (item.to === "/") {
-                    backToAbout();
-                  }
-                }}
-              >
-                {item.label}
-              </NavLink>
-            );
-          }
-
-          if (item.type === "dropdown") {
-            const isActive = item.options.some((option) => option.to === pathname);
-            const isOpen = openDropdown === item.id;
-            return (
-              <Dropdown
-                key={item.id}
-                item={item}
-                isActive={isActive}
-                isOpen={isOpen}
-                currentPath={pathname}
-                onToggle={(id) => setOpenDropdown((prev) => (prev === id ? null : id))}
-                onOpen={(id) => setOpenDropdown(id)}
-                onClose={() => setOpenDropdown((prev) => (prev === item.id ? null : prev))}
-                onSelect={handleDropdownSelect}
-              />
-            );
-          }
-
-          if (item.type === "external") {
-            return (
-              <a key={item.href} href={item.href} className="nav-pill nav-3d nav-pill-outline">
-                {item.label}
-              </a>
-            );
-          }
-
-          const extraClasses =
-            item.action === "engage"
-              ? isEngaged
-                ? "nav-pill-active"
-                : ""
-              : item.action === "logout"
-                ? "nav-pill-outline"
-                : "";
-
-          return (
-            <button
-              key={item.action}
-              type="button"
-              className={`nav-pill nav-pill-button ${extraClasses}`.trim()}
-              onClick={() => {
-                if (item.action === "engage") {
-                  engage();
-                } else if (item.action === "logout") {
-                  logout();
-                }
-              }}
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-6 z-50 mt-6 grid h-16 grid-cols-3 items-center rounded-lg border border-border-grey bg-light-background/90 px-4 shadow-md backdrop-blur-md sm:px-6">
+        <div className="flex items-center gap-3 justify-self-start">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-blue/10 text-primary-blue">
+            <svg className="h-6 w-6" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor" />
+            </svg>
+          </div>
+          <button type="button" className="hidden text-xl font-bold text-dark-text sm:block" onClick={() => navigate("/")}>
+            Quell AI
+          </button>
+        </div>
+        <nav className="hidden md:flex items-center gap-2 justify-center justify-self-center">
+          {config.navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.exact === true}
+              className={({ isActive }) =>
+                `nav-3d rounded-md px-4 py-2 text-sm font-semibold text-light-text transition-all hover:bg-primary-blue/10 hover:text-primary-blue focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-blue/50 ${
+                  isActive ? "active-nav" : ""
+                }`
+              }
             >
               {item.label}
-            </button>
-          );
-        })}
-      </nav>
-      <button
-        id="loginBtn"
-        type="button"
-        className={`nav-pill btn-3d ${isLoginActive ? "active-nav" : ""}`}
-        onClick={() => navigate("/login")}
-      >
-        Log In
-      </button>
-    </header>
+            </NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center gap-3 justify-self-end">
+          <button
+            type="button"
+            className={`btn-3d hidden h-10 cursor-pointer items-center justify-center rounded-md border border-primary-blue/30 bg-white/80 px-5 text-sm font-bold text-dark-text shadow-lg hover:bg-primary-blue/10 hover:text-primary-blue sm:flex ${
+              config.cta.highlight ? "active-nav" : ""
+            }`}
+            onClick={() => navigate(config.cta.to)}
+          >
+            {config.cta.label}
+          </button>
+        </div>
+      </header>
+    </div>
   );
 }
-
-
