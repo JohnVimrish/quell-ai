@@ -6,7 +6,6 @@ import Layout from "./layouts/Layout";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
-const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const ConversationLab = lazy(() => import("./pages/ConversationLab"));
 
 function LoadingFallback() {
@@ -28,7 +27,6 @@ export default function App() {
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<SignupPage />} />
             <Route element={<Layout />}>
-              <Route path="documents" element={<DocumentsPage />} />
               <Route path="labs/conversation-lab" element={<ConversationLab />} />
             </Route>
           </Routes>

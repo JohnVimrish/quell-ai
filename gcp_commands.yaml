@@ -1,0 +1,20 @@
+
+gcloud compute ssh john.vimrish01@john-quellai --zone=us-central1-c
+
+gcloud compute scp --recurse "E:/docker_folders/" john.vimrish01@john-quellai:/home/john.vimrish01/docker_packages --zone=us-central1-c
+
+docker save lcpostgresimg | gzip > "E:\lcpostgresimg.tar.gz"
+
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock red5d/docker-autocompose \aa702878c05f879e96a6b98c2beae27d6a2251708fb6975617619f7a5bb21439 > "E:\node-frontend.yml"
+
+
+cp -v /home/john.vimrish01/docker_packages/docker-lcpostgres.yml /home/john.vimrish01/docker_compose/
+
+
+gcloud compute instances add-tags john.vimrish01@john-quellai   --tags=pg-db --zone=us-central1-c
+
+
+docker exec -it docker-lcpostgres psql -U postgres -d postgres -c "\l"
+
+
+sed -i '/^# IPv4 local connections:/a host all all  134.139.201.21/32 md5' pg_hba.conf

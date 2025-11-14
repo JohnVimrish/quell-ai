@@ -281,9 +281,13 @@ export default function LandingPage() {
                   <ul className="mt-4 space-y-2">
                     {section.links.map((link) => (
                       <li key={link.label}>
-                        <a className="text-sm text-light-text hover:text-dark-text" href={link.href}>
+                        <button
+                          type="button"
+                          className="text-left text-sm text-light-text hover:text-dark-text"
+                          onClick={() => navigate(link.href)}
+                        >
                           {link.label}
-                        </a>
+                        </button>
                       </li>
                     ))}
                   </ul>

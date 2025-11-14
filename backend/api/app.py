@@ -22,17 +22,9 @@ from api.models.voice_model import VoiceModel
 from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
-    copilot_controller,
-    # archived: contacts_controller,
-    # archived: calls_controller,
-    texts_controller,
     documents_controller,
-    settings_controller,
-    # archived: report_controller,
-    webhooks_controller,
     auth_controller,
     labs_controller,
-    meetings_controller,
 )
 from flask import send_from_directory
 
@@ -91,11 +83,6 @@ def create_app(config_override=None):
             AI_MODEL_PATH=os.getenv("AI_MODEL_PATH", "models/"),
             VOICE_SAMPLES_PATH=os.getenv("VOICE_SAMPLES_PATH", "voice_samples/"),
             TRANSCRIPTS_PATH=os.getenv("TRANSCRIPTS_PATH", "transcripts/"),
-            # TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID"),
-            # TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN"),
-            # DEEPGRAM_API_KEY=os.getenv("DEEPGRAM_API_KEY"),
-            # ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
-            # OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
             FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
             DATABASE_URL= cfg.database_url,
             DEBUG=cfg.debug,
@@ -223,17 +210,8 @@ def create_app(config_override=None):
 
     # Register API blueprints
     app.register_blueprint(auth_controller.bp, url_prefix="/api/auth")
-    app.register_blueprint(copilot_controller.bp, url_prefix="/api/copilot")
     app.register_blueprint(feed_controller.bp, url_prefix="/api/feed")
-    # Archived endpoints (Oct 2025)
-    # app.register_blueprint(contacts_controller.bp, url_prefix="/api/contacts")
-    # app.register_blueprint(calls_controller.bp, url_prefix="/api/calls")
-    app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
     app.register_blueprint(documents_controller.bp, url_prefix="/api/documents")
-    app.register_blueprint(meetings_controller.bp, url_prefix="/api/meetings")
-    app.register_blueprint(settings_controller.bp, url_prefix="/api/settings")
-    # app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
-    app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
     app.register_blueprint(labs_controller.bp, url_prefix="/api")
 
     # Simple API status endpoint

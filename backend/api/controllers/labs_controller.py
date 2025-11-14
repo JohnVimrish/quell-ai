@@ -5,22 +5,34 @@ import math
 import os
 import re
 import uuid
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session
+from werkzeug.utils import secure_filename
 
 from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+from api.repositories.temp_user_repo import TempUserRepository
 import numpy as np
 import soundfile as sf
 
+try:
+    from scripts.ingest_file import ingest_single_file
+except Exception:  # pragma: no cover - fallback when CLI script unavailable
+    ingest_single_file = None  # type: ignore[misc]
+
 bp = Blueprint("labs", __name__)
+logger = logging.getLogger(__name__)
 
 TOKEN_LIMIT = 500
 CHAR_FALLBACK = 1200
 CHAR_OVERLAP = 200
 PIPELINE_CLIENT = LanguagePipelineClient.from_env()
 EMBED_DIM = PIPELINE_CLIENT.config.embed_dim or DEFAULT_EMBED_DIM
+LAB_ALLOWED_EXTENSIONS = {"txt", "csv", "xlsx"}
+ASSISTANT_NAME = "Quell-Ai"
+DEFAULT_GREETING = "Hello! How can I help you today? To personalize things, may I have your name?"
 
 
 @dataclass
@@ -28,6 +40,103 @@ class Chunk:
     identifier: uuid.UUID
     order: int
     text: str
+
+
+def _temp_user_repo() -> TempUserRepository:
+    repo = current_app.config.get("LAB_TEMP_USER_REPO")
+    if repo is None:
+        cfg = current_app.config["APP_CONFIG"]
+        repo = TempUserRepository(cfg.database_url)
+        current_app.config["LAB_TEMP_USER_REPO"] = repo
+    return repo
+
+
+def _ensure_lab_user() -> Dict[str, Any]:
+    repo = _temp_user_repo()
+    temp_user_id = session.get("lab_temp_user_id")
+    if temp_user_id:
+        user = repo.get_user(temp_user_id)
+        if user:
+            return user
+    session_id = uuid.uuid4().hex
+    user = repo.create_user(session_id)
+    session["lab_temp_user_id"] = user.get("id")
+    session["lab_temp_session_id"] = user.get("session_id")
+    session.setdefault("lab_chat_history", [])
+    session.setdefault("lab_uploaded_summaries", [])
+    session.modified = True
+    return user
+
+
+def _load_history() -> List[Dict[str, str]]:
+    return list(session.get("lab_chat_history", []))
+
+
+def _save_history(history: List[Dict[str, str]]) -> None:
+    session["lab_chat_history"] = history[-10:]
+    session.modified = True
+
+
+def _append_history(role: str, text: str) -> None:
+    history = _load_history()
+    history.append({"role": role, "text": text})
+    _save_history(history)
+
+
+def _conversation_context() -> str:
+    history = _load_history()
+    lines = []
+    for entry in history[-10:]:
+        speaker = "User" if entry.get("role") == "user" else ASSISTANT_NAME
+        lines.append(f"{speaker}: {entry.get('text')}")
+    return "\n".join(lines).strip()
+
+
+def _uploads_context() -> str:
+    uploads = session.get("lab_uploaded_summaries", [])
+    return "\n".join(f"- {summary}" for summary in uploads if summary)
+
+
+def _record_upload_summary(summary: str) -> None:
+    if not summary:
+        return
+    uploads = list(session.get("lab_uploaded_summaries", []))
+    uploads.append(summary)
+    session["lab_uploaded_summaries"] = uploads[-5:]
+    session.modified = True
+
+
+def _summarize_ingest_payload(payload: Dict[str, Any]) -> str:
+    analytics = payload.get("analytics") or {}
+    file_type = payload.get("file_type") or ""
+    pieces: List[str] = []
+
+    if "row_count" in analytics:
+        row_count = analytics.get("row_count")
+        col_count = analytics.get("column_count")
+        pieces.append(f"{row_count} row{'s' if row_count != 1 else ''}")
+        if col_count is not None:
+            pieces.append(f"{col_count} column{'s' if col_count != 1 else ''}")
+    elif "word_count" in analytics:
+        words = analytics.get("word_count")
+        lines = analytics.get("line_count")
+        pieces.append(f"{words} words")
+        if lines is not None:
+            pieces.append(f"{lines} lines")
+    elif "char_count" in analytics:
+        pieces.append(f"{analytics.get('char_count')} characters")
+
+    if not pieces:
+        pieces.append("Processed document")
+
+    if file_type:
+        pieces.append(file_type.upper())
+
+    language = payload.get("language")
+    if language and language not in {"en", "english"}:
+        pieces.append(f"language {language}")
+
+    return " · ".join(str(part) for part in pieces if part)
 
 
 @bp.get("/status")
@@ -156,6 +265,156 @@ def chat_session() -> Any:
         reply = fallback_chat_response(conversation)
 
     return jsonify({"reply": reply})
+
+
+@bp.post("/labs/conversation/session")
+def conversation_lab_session() -> Any:
+    user = _ensure_lab_user()
+    session.setdefault("lab_chat_history", [])
+    session.setdefault("lab_uploaded_summaries", [])
+    session.modified = True
+    return jsonify(
+        {
+            "userId": user.get("id"),
+            "sessionId": user.get("session_id"),
+            "assistantName": ASSISTANT_NAME,
+            "greeting": DEFAULT_GREETING,
+            "hasName": bool(user.get("display_name")),
+            "displayName": user.get("display_name"),
+        }
+    )
+
+
+@bp.post("/labs/conversation/name")
+def conversation_lab_set_name() -> Any:
+    user = _ensure_lab_user()
+    payload = request.get_json(force=True) or {}
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    user_message = str(payload.get("message") or name).strip()
+    if user_message:
+        _append_history("user", user_message)
+
+    repo = _temp_user_repo()
+    updated = repo.update_name(user["id"], name)
+    session["lab_display_name"] = name
+    session.modified = True
+
+    ack = f"Great to meet you, {name}! Let me know what you'd like to explore."
+    _append_history("assistant", ack)
+    return jsonify(
+        {
+            "ok": True,
+            "displayName": updated.get("display_name") if updated else name,
+            "assistantReply": ack,
+            "assistantName": ASSISTANT_NAME,
+        }
+    )
+
+
+@bp.post("/labs/conversation/chat")
+def conversation_lab_chat() -> Any:
+    user = _ensure_lab_user()
+    payload = request.get_json(force=True) or {}
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    _append_history("user", message)
+
+    context_sections: List[str] = []
+    uploads_context = _uploads_context()
+    if uploads_context:
+        context_sections.append("Recent uploads:\n" + uploads_context)
+    conversation_context = _conversation_context()
+    if conversation_context:
+        context_sections.append("Recent chat:\n" + conversation_context)
+    context = "\n\n".join(context_sections) or "User is starting a new Conversation Lab session. Respond helpfully and concisely."
+
+    ollama_service = current_app.config.get("OLLAMA_SERVICE")
+    if not (ollama_service and ollama_service.is_available()):
+        reply = "I'm unable to reach the Quell-Ai model right now. Please try again shortly."
+    else:
+        reply = ollama_service.generate_response(message, context)
+
+    _append_history("assistant", reply)
+    return jsonify(
+        {
+            "reply": reply,
+            "assistantName": ASSISTANT_NAME,
+            "displayName": user.get("display_name"),
+        }
+    )
+
+
+@bp.post("/labs/conversation/ingest")
+def conversation_lab_ingest() -> Any:
+    if ingest_single_file is None:
+        return jsonify({"error": "ingestion pipeline unavailable"}), 503
+
+    _ensure_lab_user()
+
+    storage = request.files.get("file")
+    if storage is None:
+        return jsonify({"error": "file is required"}), 400
+
+    original_name = storage.filename or ""
+    filename = secure_filename(original_name)
+    if not filename:
+        return jsonify({"error": "valid filename required"}), 400
+
+    ext = filename.rsplit(".", 1)[-1].lower()
+    if ext not in LAB_ALLOWED_EXTENSIONS:
+        return (
+            jsonify(
+                {
+                    "error": "unsupported file type",
+                    "allowed": sorted(LAB_ALLOWED_EXTENSIONS),
+                }
+            ),
+            400,
+        )
+
+    file_bytes = storage.read()
+    if not file_bytes:
+        return jsonify({"error": "file is empty"}), 400
+
+    description = request.form.get("description", "Conversation Lab upload")
+    ask = request.form.get("ask")
+    user_id = session.get("user_id") or 0
+
+    try:
+        result = ingest_single_file(
+            file_path=None,
+            file_data=file_bytes,
+            filename_override=filename,
+            save=False,
+            user_id=user_id,
+            description=description,
+            classification="internal",
+            ask=ask,
+            user_email=None,
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Conversation Lab ingest failed")
+        return jsonify({"error": "failed to process file"}), 500
+
+    response_payload = {
+        "ok": True,
+        "filename": result.get("filename") or filename,
+        "fileType": result.get("file_type") or ext,
+        "summary": _summarize_ingest_payload(result),
+        "language": result.get("language"),
+        "analytics": result.get("analytics") or {},
+        "concepts": result.get("concepts") or {},
+        "translated": bool(result.get("translated_to_english")),
+    }
+    _record_upload_summary(response_payload["summary"])
+    return jsonify(response_payload)
 
 
 @bp.post("/rag/workbench")

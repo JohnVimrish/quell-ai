@@ -29,7 +29,7 @@ export DEBUG=${DEBUG:-true}
 export FRONTEND_DEV_URL=${FRONTEND_DEV_URL:-http://localhost:5173}
 
 # Database configuration (override in .env as needed)
-export DATABASE_URL=${DATABASE_URL:-'postgresql+psycopg://user_ai:Abc$12345@localhost:15433/quell_ai'}
+export DATABASE_URL=${DATABASE_URL:-'postgresql+psycopg://user_ai:abc12345987654321@localhost:15433/quell_ai'}
 
 
 # Logging configuration

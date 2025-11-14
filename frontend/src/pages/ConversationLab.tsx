@@ -1,186 +1,401 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ConversationLab.css";
 
-const HERO_METRICS = [
-  { label: "Avg response", value: "02:17" },
-  { label: "Context recall", value: "98%" },
-  { label: "Voice confidence", value: "4.8/5" },
-  { label: "Meetings covered", value: "126" },
-];
+const ACCEPTED_FILE_TYPES = [".txt", ".csv", ".xlsx"];
+const ASSISTANT_NAME = "Quell-Ai";
 
-const PROMPT_IDEAS = [
-  "Create a meeting recap in my voice",
-  "Draft a response for the client update",
-  "Summarize the RFP thread",
-  "Translate the voice note to English",
-];
+type SessionInfo = {
+  userId: number;
+  sessionId: string;
+  assistantName: string;
+  greeting: string;
+  hasName: boolean;
+  displayName?: string | null;
+};
 
-const FEATURE_CARDS = [
-  {
-    title: "Realtime Collaboration",
-    body: "Route live audio or chat requests into the lab environment. The assistant keeps up with nuance and mirrors your tone.",
-  },
-  {
-    title: "Voice + Text Modes",
-    body: "Switch between generated audio answers and concise text summaries. Each mode inherits your access controls.",
-  },
-  {
-    title: "Model Memory",
-    body: "Every interaction is staged and can be approved before being published to your system of record.",
-  },
-];
+type ChatRole = "user" | "assistant";
 
-type ChatMessage = { id: string; role: "ai" | "user"; text: string };
+type AttachmentInsight = {
+  filename: string;
+  fileType: string;
+  summary: string;
+  analytics: Record<string, any>;
+  concepts: Record<string, any>;
+  translated: boolean;
+};
+
+type ChatMessage = {
+  id: string;
+  role: ChatRole;
+  text: string;
+  timestamp: string;
+  attachment?: AttachmentInsight;
+  senderName?: string;
+};
+
+const generateId = () => `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const formatTimestamp = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
 export default function ConversationLab() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "m-1",
-      role: "ai",
-      text:
-        "Welcome back. I can join meetings, synthesize context, or produce a quick voice draft. What should we explore?",
-    },
-  ]);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSend = () => {
+  useEffect(() => {
+    initializeSession();
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  async function initializeSession() {
+    setInitializing(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/labs/conversation/session", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to initialize Conversation Lab session.");
+      }
+      setSessionInfo(data);
+      setMessages([
+        {
+          id: generateId(),
+          role: "assistant",
+          text: data.greeting,
+          timestamp: formatTimestamp(),
+          senderName: data.assistantName ?? ASSISTANT_NAME,
+        },
+      ]);
+    } catch (err) {
+      const fallback = err instanceof Error ? err.message : "Unable to start the session.";
+      setError(fallback);
+      setMessages([
+        {
+          id: generateId(),
+          role: "assistant",
+          text: `${ASSISTANT_NAME} here. ${fallback}`,
+          timestamp: formatTimestamp(),
+        },
+      ]);
+    } finally {
+      setInitializing(false);
+    }
+  }
+
+  const needsName = Boolean(sessionInfo && !sessionInfo.hasName);
+
+  const buildAssistantMessage = (text: string): ChatMessage => ({
+    id: generateId(),
+    role: "assistant",
+    text,
+    timestamp: formatTimestamp(),
+    senderName: sessionInfo?.assistantName ?? ASSISTANT_NAME,
+  });
+
+  const handleSend = async () => {
+    if (!sessionInfo) return;
     const trimmed = draft.trim();
-    if (!trimmed) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: `u-${Date.now()}`, role: "user", text: trimmed },
-      {
-        id: `a-${Date.now() + 1}`,
-        role: "ai",
-        text:
-          "(Demo reply) Got it. In the full experience this response is generated from your approved knowledge sources.",
-      },
-    ]);
+    if (!trimmed || isSending || isUploading) return;
+
     setDraft("");
+    setIsSending(true);
+    setError(null);
+
+    const userMessage: ChatMessage = {
+      id: generateId(),
+      role: "user",
+      text: trimmed,
+      timestamp: formatTimestamp(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      if (needsName) {
+        const nameResponse = await setNameOnServer(trimmed);
+        setSessionInfo((prev) =>
+          prev
+            ? {
+                ...prev,
+                hasName: true,
+                displayName: nameResponse.displayName,
+              }
+            : prev,
+        );
+        setMessages((prev) => [...prev, buildAssistantMessage(nameResponse.assistantReply)]);
+      } else {
+        const chatResponse = await sendChat(trimmed);
+        setMessages((prev) => [...prev, buildAssistantMessage(chatResponse.reply)]);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to send message.";
+      setError(message);
+      setMessages((prev) => [
+        ...prev,
+        buildAssistantMessage("I hit a snag while reaching the model. Please try again in a moment."),
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleAttachmentButton = () => {
+    if (!initializing) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileSelection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    setError(null);
+    setIsUploading(true);
+
+    for (const file of Array.from(files)) {
+      const ext = `.${file.name.split(".").pop()?.toLowerCase() || ""}`;
+      if (!ACCEPTED_FILE_TYPES.includes(ext)) {
+        setError(`Unsupported file type: ${ext}. Please upload ${ACCEPTED_FILE_TYPES.join(", ")}`);
+        continue;
+      }
+
+      const userMessage: ChatMessage = {
+        id: generateId(),
+        role: "user",
+        text: `Uploading ${file.name} for review...`,
+        timestamp: formatTimestamp(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+
+      try {
+        const uploadResult = await ingestFile(file);
+        const attachment: AttachmentInsight = {
+          filename: uploadResult.filename,
+          fileType: uploadResult.fileType,
+          summary: uploadResult.summary,
+          analytics: uploadResult.analytics,
+          concepts: uploadResult.concepts,
+          translated: Boolean(uploadResult.translated),
+        };
+
+        const assistantMessage: ChatMessage = {
+          ...buildAssistantMessage(`Here is a quick breakdown of ${uploadResult.filename}.`),
+          attachment,
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+      } catch (uploadError) {
+        const message = uploadError instanceof Error ? uploadError.message : "Upload failed.";
+        setError(message);
+        setMessages((prev) => [
+          ...prev,
+          buildAssistantMessage(`I could not process ${file.name}: ${message}`),
+        ]);
+      }
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setIsUploading(false);
+  };
+
+  const setNameOnServer = async (name: string) => {
+    const response = await fetch("/api/labs/conversation/name", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, message: name }),
+    });
+    const payload = await response.json();
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || "Failed to store name.");
+    }
+    return payload as { displayName: string; assistantReply: string; assistantName: string };
+  };
+
+  const sendChat = async (message: string) => {
+    const response = await fetch("/api/labs/conversation/chat", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    const payload = await response.json();
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.error || "Failed to reach Quell-Ai.");
+    }
+    return payload as { reply: string };
+  };
+
+  const ingestFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("description", "Conversation Lab upload");
+
+    const response = await fetch("/api/labs/conversation/ingest", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const payload = await response.json();
+    if (!response.ok || payload?.ok === false) {
+      throw new Error(payload?.error || "Failed to process file");
+    }
+    return payload;
+  };
+
+  const attachmentSummary = (attachment: AttachmentInsight) => {
+    const analytics = attachment.analytics || {};
+    if ("row_count" in analytics) {
+      return `${analytics.row_count} rows • ${analytics.column_count ?? 0} columns`;
+    }
+    if ("word_count" in analytics) {
+      return `${analytics.word_count} words • ${analytics.line_count ?? 0} lines`;
+    }
+    return attachment.summary;
+  };
+
+  const attachmentChips = (attachment: AttachmentInsight) => {
+    const chips: string[] = [];
+    if (attachment.analytics?.row_count) {
+      chips.push(`${attachment.analytics.row_count} rows`);
+    }
+    if (attachment.analytics?.column_count) {
+      chips.push(`${attachment.analytics.column_count} columns`);
+    }
+    if (attachment.analytics?.word_count) {
+      chips.push(`${attachment.analytics.word_count} words`);
+    }
+    const keyPhrase = attachment.concepts?.key_phrases?.[0];
+    if (keyPhrase) {
+      chips.push(`Key phrase: ${keyPhrase}`);
+    }
+    if (attachment.translated) {
+      chips.push("Translated to English");
+    }
+    return chips.slice(0, 3);
+  };
+
+  const attachmentContext = ACCEPTED_FILE_TYPES.join(", ");
+
+  if (initializing) {
+    return (
+      <div className="conversation-lab">
+        <div className="clab-background" aria-hidden />
+        <section className="clab-chat-shell">
+          <div className="clab-loading">Preparing Conversation Lab...</div>
+        </section>
+      </div>
+    );
+  }
+
   return (
-    <div className="lab-shell">
-      <section className="lab-hero">
-        <div className="lab-glass lab-hero-card">
-          <div className="lab-chip-row">
-            <span className="lab-chip">Proposal Mode</span>
-            <span className="lab-chip">Live transcription</span>
-            <span className="lab-chip">Voice synthesis</span>
-          </div>
-          <h1 className="page-title" style={{ margin: "4px 0 0" }}>
-            Conversation Lab
-          </h1>
-          <p style={{ color: "var(--color-grey-700)", lineHeight: 1.7 }}>
-            A focused surface for experimenting with Quell AI&apos;s conversational presence. The layout mirrors the
-            original test-2 mock while staying aligned with the landing page system.
-          </p>
-          <div className="lab-metric-list">
-            {HERO_METRICS.map((metric) => (
-              <div key={metric.label} className="lab-metric">
-                <span>{metric.label}</span>
-                <span>{metric.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="conversation-lab">
+      <div className="clab-background" aria-hidden />
+      <section className="clab-chat-shell">
+        <div className="clab-chat-panel">
+          <header className="clab-chat-header">
+            <div>
+              <p className="clab-chat-title">Conversation stream</p>
+              <p className="clab-chat-subtitle">
+                Attach {attachmentContext} or type a natural question. Responses stay inside this lab.
+              </p>
+            </div>
+            <div className="clab-chat-actions">
+              <button type="button" className="clab-attach-btn" onClick={handleAttachmentButton} disabled={isUploading}>
+                Attach file
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_FILE_TYPES.join(",")}
+                multiple
+                hidden
+                onChange={handleFileSelection}
+              />
+            </div>
+          </header>
 
-        <div className="lab-glass lab-hero-card">
-          <h2 style={{ margin: 0, fontSize: "1.4rem" }}>What you can try</h2>
-          <p style={{ color: "var(--color-grey-700)", marginBottom: 12 }}>
-            Use the conversation surface or launch a voice run. Every test remains in this lab until you promote it.
-          </p>
-          <div className="lab-prompts">
-            {PROMPT_IDEAS.map((prompt) => (
-              <span key={prompt} className="lab-prompt">
-                {prompt}
-              </span>
-            ))}
-          </div>
-          <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
-            <button
-              type="button"
-              className="button-engage"
-              style={{ justifyContent: "center" }}
-              onClick={handleSend}
-            >
-              Run sample prompt
-            </button>
-            <small style={{ color: "var(--color-grey-600)" }}>
-              * This demo reuses landing-page tokens for buttons, inputs, and glassmorphism.
-            </small>
-          </div>
-        </div>
-      </section>
+          {error && (
+            <div className="clab-alert" role="status">
+              {error}
+            </div>
+          )}
 
-      <section className="lab-grid">
-        {FEATURE_CARDS.map((card) => (
-          <div key={card.title} className="lab-glass lab-grid-card">
-            <h3>{card.title}</h3>
-            <p>{card.body}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="lab-chat">
-        <div className="lab-glass lab-chat-panel">
-          <div className="lab-chat-messages">
+          <div className="clab-chat-messages">
             {messages.map((message) => (
-              <div key={message.id} className="lab-chat-row">
-                <div className={`lab-avatar ${message.role === "user" ? "user" : ""}`} aria-hidden />
-                <div className="lab-bubble">
-                  <p style={{ margin: 0 }}>{message.text}</p>
+              <div key={message.id} className={`clab-message ${message.role}`}>
+                <div className="clab-avatar" aria-hidden>
+                  {message.role === "assistant" ? "QA" : "You".slice(0, 2)}
+                </div>
+                <div className="clab-bubble">
+                  <div className="clab-bubble-meta">
+                    <span>{message.role === "assistant" ? ASSISTANT_NAME : sessionInfo?.displayName || "You"}</span>
+                    <span>{message.timestamp}</span>
+                  </div>
+                  <p>{message.text}</p>
+                  {message.attachment && (
+                    <div className="clab-attachment-card">
+                      <div className="clab-attachment-header">
+                        <div>
+                          <span className="clab-attachment-name">{message.attachment.filename}</span>
+                          <span className="clab-attachment-type">{message.attachment.fileType.toUpperCase()}</span>
+                        </div>
+                        <span>{attachmentSummary(message.attachment)}</span>
+                      </div>
+                      <p className="clab-attachment-summary">{message.attachment.summary}</p>
+                      <div className="clab-attachment-chips">
+                        {attachmentChips(message.attachment).map((chip) => (
+                          <span key={chip}>{chip}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
-          <div className="lab-chat-input">
+
+          <div className="clab-chat-input">
             <input
               value={draft}
+              placeholder={
+                needsName ? "First, let me know your name so I can personalize things." : "Type a message..."
+              }
               onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder="Type your message or ask Quell AI anything..."
+              onKeyDown={handleKeyDown}
+              disabled={isSending || isUploading}
             />
-            <button type="button" className="button-engage" onClick={handleSend}>
-              Send
+            <button type="button" onClick={handleSend} disabled={isSending || isUploading}>
+              {needsName ? "Share name" : "Send"}
             </button>
           </div>
         </div>
 
-        <div className="lab-glass lab-audio-card">
-          <div className="lab-audio-meta">
-            <div className="lab-audio-thumb" aria-hidden />
-            <div>
-              <div style={{ fontWeight: 700 }}>Voice draft</div>
-              <div style={{ color: "var(--color-grey-600)", fontSize: "0.9rem" }}>Synthesized tone: Calm Analyst</div>
-            </div>
-          </div>
-          <div className="lab-progress">
-            <span style={{ width: "58%" }} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", color: "var(--color-grey-600)", fontSize: "0.85rem" }}>
-            <span>01:12</span>
-            <span>02:05</span>
-          </div>
-          <p style={{ margin: 0, color: "var(--color-grey-700)" }}>
-            Preview how Quell AI would present your status update in a short audio clip before sending it to the team.
-          </p>
-          <div style={{ display: "flex", gap: 12 }}>
-            <button type="button" className="button-engage" style={{ flex: 1 }}>
-              Play
-            </button>
-            <button type="button" className="button-outline" style={{ flex: 1 }}>
-              Download
-            </button>
-          </div>
-        </div>
       </section>
     </div>
   );
 }
-

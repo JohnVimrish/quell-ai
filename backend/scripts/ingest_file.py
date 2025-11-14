@@ -168,7 +168,10 @@ def _format_structured_short(ad: Dict[str, Any]) -> str:
 
 
 def ingest_single_file(
-    file_path: Path,
+    file_path: Optional[Path] = None,
+    *,
+    file_data: Optional[bytes] = None,
+    filename_override: Optional[str] = None,
     save: bool,
     user_id: int,
     description: str,
@@ -176,18 +179,32 @@ def ingest_single_file(
     ask: str | None,
     user_email: str | None = None,
 ) -> Dict[str, Any]:
-    if not file_path.exists() or not file_path.is_file():
-        raise FileNotFoundError(f"File not found: {file_path}")
+    """Shared ingestion pipeline used by the CLI and Flask endpoints."""
 
-    filename = file_path.name
-    file_type = file_path.suffix.lower().lstrip(".")
+    if file_path is None and file_data is None:
+        raise ValueError("Either file_path or file_data must be provided")
+
+    if file_path is not None:
+        if not file_path.exists() or not file_path.is_file():
+            raise FileNotFoundError(f"File not found: {file_path}")
+        filename = file_path.name
+        payload_bytes = file_path.read_bytes()
+    else:
+        if not filename_override:
+            raise ValueError("filename_override is required when using file_data")
+        filename = filename_override
+        payload_bytes = file_data or b""
+
+    file_type = Path(filename).suffix.lower().lstrip(".")
     if file_type not in {"txt", "csv", "xlsx", "json"}:
         raise ValueError(f"Unsupported file type: .{file_type}")
 
-    file_data = file_path.read_bytes()
-    is_valid, error_msg = validate_file_size(len(file_data))
+    is_valid, error_msg = validate_file_size(len(payload_bytes))
     if not is_valid:
         raise ValueError(error_msg or "File too large")
+
+    # Reuse legacy variable name to avoid touching downstream logic
+    file_data = payload_bytes
 
     # Initialize Ollama service directly unless saving requires full app context
     ollama_service = OllamaService(model_path=os.getenv("OLLAMA_MODEL_PATH"))
