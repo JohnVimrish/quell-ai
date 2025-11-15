@@ -1,12 +1,16 @@
 import base64
 import hashlib
 import io
+import json
 import math
 import os
 import re
 import uuid
 import logging
+import time
+import time
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from flask import Blueprint, current_app, jsonify, request, session
@@ -30,9 +34,55 @@ CHAR_FALLBACK = 1200
 CHAR_OVERLAP = 200
 PIPELINE_CLIENT = LanguagePipelineClient.from_env()
 EMBED_DIM = PIPELINE_CLIENT.config.embed_dim or DEFAULT_EMBED_DIM
-LAB_ALLOWED_EXTENSIONS = {"txt", "csv", "xlsx"}
+LAB_ALLOWED_EXTENSIONS = {"txt", "csv", "xlsx", "json"}
 ASSISTANT_NAME = "Quell-Ai"
 DEFAULT_GREETING = "Hello! How can I help you today? To personalize things, may I have your name?"
+ASSISTANT_BEHAVIOR = (
+    "You are Quell-Ai, a data analysis copilot operating inside the Conversation Lab. "
+    "When the user uploads files, treat each as a pandas-style DataFrame (CSV/XLSX) or JSON document. "
+    "Use the provided summaries and retrieved file excerpts as authoritative context. "
+    "Perform joins, filters, group-bys, and aggregations in reasoning steps before answering. "
+    "If multiple files exist, compare or combine them as needed and explain any assumptions. "
+    "When data is missing or ambiguous, respond with a clarification such as "
+    "'The data doesn't seem to include enough information to answer that. Could you clarify or provide more context?'. "
+    "For plain questions with no files, rely on your general knowledge to help the user. "
+    "Always answer as Quell-Ai in a concise, friendly tone."
+)
+
+
+class InMemoryTempRepo:
+    """Fallback temp-user repo when DATABASE_URL is unavailable."""
+
+    def __init__(self):
+        self._data: Dict[int, Dict[str, Any]] = {}
+        self._counter = 0
+
+    def create_user(
+        self,
+        session_id: str,
+        *,
+        display_name: Optional[str] = None,
+        ip_hint: Optional[str] = None,
+    ) -> Dict[str, Optional[str]]:
+        self._counter += 1
+        entry = {
+            "id": self._counter,
+            "session_id": session_id,
+            "display_name": display_name,
+            "ip_hint": ip_hint,
+        }
+        self._data[self._counter] = entry
+        return entry
+
+    def get_user(self, user_id: int) -> Optional[Dict[str, Optional[str]]]:
+        return self._data.get(user_id)
+
+    def update_name(self, user_id: int, display_name: str) -> Optional[Dict[str, Optional[str]]]:
+        entry = self._data.get(user_id)
+        if entry is None:
+            return None
+        entry["display_name"] = display_name
+        return entry
 
 
 @dataclass
@@ -46,9 +96,32 @@ def _temp_user_repo() -> TempUserRepository:
     repo = current_app.config.get("LAB_TEMP_USER_REPO")
     if repo is None:
         cfg = current_app.config["APP_CONFIG"]
-        repo = TempUserRepository(cfg.database_url)
+        if not getattr(cfg, "database_url", None):
+            repo = current_app.config.get("LAB_TEMP_USER_INMEM")
+            if repo is None:
+                repo = InMemoryTempRepo()
+                current_app.config["LAB_TEMP_USER_INMEM"] = repo
+        else:
+            repo = TempUserRepository(cfg.database_url)
         current_app.config["LAB_TEMP_USER_REPO"] = repo
     return repo
+
+
+def _rate_limit(bucket: str, limit: int, window_seconds: int) -> bool:
+    """Simple session-based rate limiter. Returns True if blocked."""
+    now = time.time()
+    store: Dict[str, List[float]] = session.setdefault("lab_rate_limits", {})  # type: ignore[assignment]
+    hits = [ts for ts in store.get(bucket, []) if now - ts < window_seconds]
+    if len(hits) >= limit:
+        store[bucket] = hits
+        session["lab_rate_limits"] = store
+        session.modified = True
+        return True
+    hits.append(now)
+    store[bucket] = hits
+    session["lab_rate_limits"] = store
+    session.modified = True
+    return False
 
 
 def _ensure_lab_user() -> Dict[str, Any]:
@@ -57,13 +130,16 @@ def _ensure_lab_user() -> Dict[str, Any]:
     if temp_user_id:
         user = repo.get_user(temp_user_id)
         if user:
+            if user.get("display_name"):
+                session["lab_display_name"] = user.get("display_name")
             return user
     session_id = uuid.uuid4().hex
-    user = repo.create_user(session_id)
+    ip_hint = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user = repo.create_user(session_id, ip_hint=ip_hint)
     session["lab_temp_user_id"] = user.get("id")
     session["lab_temp_session_id"] = user.get("session_id")
     session.setdefault("lab_chat_history", [])
-    session.setdefault("lab_uploaded_summaries", [])
+    session.setdefault("lab_uploads", [])
     session.modified = True
     return user
 
@@ -92,17 +168,124 @@ def _conversation_context() -> str:
     return "\n".join(lines).strip()
 
 
-def _uploads_context() -> str:
-    uploads = session.get("lab_uploaded_summaries", [])
-    return "\n".join(f"- {summary}" for summary in uploads if summary)
+def _normalize_llm_reply(raw_reply: Any) -> str:
+    """Convert various LLM reply formats (plain or JSON) into clean text."""
+
+    def _prettify_text(text: str) -> str:
+        """Ensure numbered/bulleted lists render on their own lines for the UI."""
+        if not text:
+            return ""
+        normalized = text.replace("\r\n", "\n")
+        normalized = re.sub(r"\*\*(.*?)\*\*", r"\1", normalized)
+        normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+
+        def _insert_breaks(pattern: str, value: str) -> str:
+            return re.sub(
+                pattern,
+                lambda match: f"\n{match.group(1)} ",
+                value,
+            )
+
+        normalized = _insert_breaks(r"(?<!^)(?<!\n)\s*(\d+\.)\s+", normalized)
+        normalized = _insert_breaks(r"(?<!^)(?<!\n)\s*([-*•])\s+", normalized)
+        normalized = re.sub(r"\n\s+", "\n", normalized)
+        return normalized.strip()
+
+    def _extract_text_from_json(payload: Any) -> str:
+        if payload is None:
+            return ""
+        if isinstance(payload, str):
+            return payload.strip()
+        if isinstance(payload, (int, float)):
+            return str(payload)
+        if isinstance(payload, bool):
+            return "true" if payload else "false"
+        if isinstance(payload, dict):
+            priority_keys = ("answer", "response", "output", "content", "text", "message")
+            for key in priority_keys:
+                if key in payload:
+                    text = _extract_text_from_json(payload[key])
+                    if text:
+                        return text
+            fragments = []
+            for value in payload.values():
+                text = _extract_text_from_json(value)
+                if text:
+                    fragments.append(text)
+            return "\n\n".join(fragments)
+        if isinstance(payload, (list, tuple, set)):
+            fragments = []
+            for item in payload:
+                text = _extract_text_from_json(item)
+                if text:
+                    fragments.append(text)
+            return "\n\n".join(fragments)
+        return str(payload).strip()
+
+    if raw_reply is None:
+        return "I'm not sure how to respond right now. Could you please try again?"
+
+    if isinstance(raw_reply, (dict, list, tuple, set)):
+        parsed_text = _extract_text_from_json(raw_reply).strip()
+        if parsed_text:
+            return _prettify_text(parsed_text)
+        try:
+            return json.dumps(raw_reply, ensure_ascii=False)
+        except Exception:
+            return _prettify_text(str(raw_reply))
+
+    text_reply = str(raw_reply).strip()
+    if not text_reply:
+        return "I'm not sure how to respond right now. Could you please try again?"
+
+    if text_reply[0] in "{[":
+        try:
+            parsed = json.loads(text_reply)
+        except Exception:
+            return text_reply
+        parsed_text = _extract_text_from_json(parsed).strip()
+        return _prettify_text(parsed_text or text_reply)
+
+    return _prettify_text(text_reply)
 
 
-def _record_upload_summary(summary: str) -> None:
-    if not summary:
-        return
-    uploads = list(session.get("lab_uploaded_summaries", []))
-    uploads.append(summary)
-    session["lab_uploaded_summaries"] = uploads[-5:]
+def _uploads_context(limit: int = 3) -> str:
+    uploads = session.get("lab_uploads", [])
+    snippets = []
+    for item in uploads[-limit:]:
+        summary = item.get("summary") or ""
+        preview = item.get("processed_preview") or ""
+        body = summary or preview[:240]
+        if not body:
+            continue
+        snippets.append(f"{item.get('filename', 'upload')}:\n{body}")
+    return "\n\n".join(snippets)
+
+
+def _store_upload_record(
+    *,
+    user_id: int,
+    filename: str,
+    summary: str,
+    ingest_result: Dict[str, Any],
+    rag_document_id: Optional[int],
+) -> None:
+    uploads = list(session.get("lab_uploads", []))
+    uploads.append(
+        {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "filename": filename,
+            "summary": summary,
+            "analytics": ingest_result.get("analytics") or {},
+            "concepts": ingest_result.get("concepts") or {},
+            "processed_preview": (ingest_result.get("processed_content") or "")[:1000],
+            "metadata": ingest_result.get("metadata") or {},
+            "rag_document_id": rag_document_id,
+            "stored_at": datetime.utcnow().isoformat(),
+        }
+    )
+    session["lab_uploads"] = uploads[-8:]
     session.modified = True
 
 
@@ -137,6 +320,58 @@ def _summarize_ingest_payload(payload: Dict[str, Any]) -> str:
         pieces.append(f"language {language}")
 
     return " · ".join(str(part) for part in pieces if part)
+
+
+def _store_embedding_for_upload(user_id: int, processed_text: str, metadata: Dict[str, Any]) -> Optional[int]:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not (rag and processed_text):
+        return None
+    safe_meta = dict(metadata or {})
+    safe_meta.update({"source": "conversation_lab"})
+    if "file_hash" not in safe_meta:
+        safe_meta["file_hash"] = hashlib.sha256(processed_text.encode("utf-8", "ignore")).hexdigest()
+    timestamp = datetime.utcnow().isoformat()
+    safe_meta.setdefault("uploaded_at", timestamp)
+    safe_meta["updated_at"] = timestamp
+    try:
+        doc_id = rag.store_document_embedding(
+            user_id=user_id,
+            content=processed_text,
+            document_type="conversation_lab_upload",
+            metadata=safe_meta,
+        )
+        session_id = safe_meta.get("session_id")
+        if doc_id and session_id:
+            rag.prime_session_cache(user_id=user_id, session_id=session_id, document_type="conversation_lab_upload")
+        return doc_id
+    except Exception:
+        return None
+
+
+def _build_upload_context(prompt: str, user_id: int, session_id: Optional[str]) -> str:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if rag:
+        try:
+            docs = rag.retrieve_similar_documents(
+                prompt,
+                user_id,
+                document_types=["conversation_lab_upload"],
+                limit=3,
+                session_id=session_id,
+                metadata_filters={"session_id": session_id} if session_id else None,
+            )
+            if docs:
+                formatted = []
+                for doc in docs:
+                    meta = doc.get("document_metadata") or {}
+                    name = meta.get("filename") or meta.get("name") or "upload"
+                    excerpt = (doc.get("content") or "")[:800]
+                    formatted.append(f"{name}:\n{excerpt}")
+                if formatted:
+                    return "\n\n".join(formatted)
+        except Exception:
+            pass
+    return _uploads_context()
 
 
 @bp.get("/status")
@@ -269,24 +504,29 @@ def chat_session() -> Any:
 
 @bp.post("/labs/conversation/session")
 def conversation_lab_session() -> Any:
+    if _rate_limit("session_init", 12, 60):
+        return jsonify({"error": "Too many session requests. Please wait a moment."}), 429
     user = _ensure_lab_user()
     session.setdefault("lab_chat_history", [])
-    session.setdefault("lab_uploaded_summaries", [])
+    session.setdefault("lab_uploads", [])
     session.modified = True
+    display_name = user.get("display_name") or session.get("lab_display_name")
     return jsonify(
         {
             "userId": user.get("id"),
             "sessionId": user.get("session_id"),
             "assistantName": ASSISTANT_NAME,
             "greeting": DEFAULT_GREETING,
-            "hasName": bool(user.get("display_name")),
-            "displayName": user.get("display_name"),
+            "hasName": bool(display_name),
+            "displayName": display_name,
         }
     )
 
 
 @bp.post("/labs/conversation/name")
 def conversation_lab_set_name() -> Any:
+    if _rate_limit("set_name", 5, 300):
+        return jsonify({"error": "You are updating your name too quickly. Please wait."}), 429
     user = _ensure_lab_user()
     payload = request.get_json(force=True) or {}
     name = str(payload.get("name") or "").strip()
@@ -316,6 +556,8 @@ def conversation_lab_set_name() -> Any:
 
 @bp.post("/labs/conversation/chat")
 def conversation_lab_chat() -> Any:
+    if _rate_limit("chat", 60, 60):
+        return jsonify({"error": "Too many messages at once. Please slow down."}), 429
     user = _ensure_lab_user()
     payload = request.get_json(force=True) or {}
     message = str(payload.get("message") or "").strip()
@@ -324,10 +566,13 @@ def conversation_lab_chat() -> Any:
 
     _append_history("user", message)
 
-    context_sections: List[str] = []
-    uploads_context = _uploads_context()
-    if uploads_context:
-        context_sections.append("Recent uploads:\n" + uploads_context)
+    user_id = int(user.get("id") or 0)
+
+    context_sections: List[str] = [f"Assistant instructions:\n{ASSISTANT_BEHAVIOR}"]
+    session_id = session.get("lab_temp_session_id")
+    upload_context = _build_upload_context(message, user_id, session_id)
+    if upload_context:
+        context_sections.append("Uploaded files:\n" + upload_context)
     conversation_context = _conversation_context()
     if conversation_context:
         context_sections.append("Recent chat:\n" + conversation_context)
@@ -337,7 +582,8 @@ def conversation_lab_chat() -> Any:
     if not (ollama_service and ollama_service.is_available()):
         reply = "I'm unable to reach the Quell-Ai model right now. Please try again shortly."
     else:
-        reply = ollama_service.generate_response(message, context)
+        reply_raw = ollama_service.generate_response(message, context)
+        reply = _normalize_llm_reply(reply_raw)
 
     _append_history("assistant", reply)
     return jsonify(
@@ -353,68 +599,97 @@ def conversation_lab_chat() -> Any:
 def conversation_lab_ingest() -> Any:
     if ingest_single_file is None:
         return jsonify({"error": "ingestion pipeline unavailable"}), 503
+    if _rate_limit("ingest", 10, 300):
+        return jsonify({"error": "Too many uploads. Please wait a bit before trying again."}), 429
 
-    _ensure_lab_user()
+    user = _ensure_lab_user()
+    user_id = int(user.get("id") or 0)
 
-    storage = request.files.get("file")
-    if storage is None:
-        return jsonify({"error": "file is required"}), 400
+    files = request.files.getlist("file")
+    if not files:
+        return jsonify({"error": "file is required", "allowed": sorted(LAB_ALLOWED_EXTENSIONS)}), 400
+    if len(files) > 5:
+        return jsonify({"error": "You can upload up to 5 files at a time."}), 400
 
-    original_name = storage.filename or ""
-    filename = secure_filename(original_name)
-    if not filename:
-        return jsonify({"error": "valid filename required"}), 400
+    sanitized_files = []
+    for storage in files:
+        original_name = storage.filename or ""
+        filename = secure_filename(original_name)
+        if not filename:
+            return jsonify({"error": "valid filename required"}), 400
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in LAB_ALLOWED_EXTENSIONS:
+            return (
+                jsonify(
+                    {
+                        "error": "This file format is not supported. Please upload .csv, .txt, .json, or .xlsx only.",
+                        "allowed": sorted(LAB_ALLOWED_EXTENSIONS),
+                    }
+                ),
+                400,
+            )
+        file_bytes = storage.read()
+        if not file_bytes:
+            return jsonify({"error": f"{filename} appears to be empty."}), 400
+        file_hash = hashlib.sha256(file_bytes).hexdigest()
+        sanitized_files.append((filename, ext, file_bytes, file_hash))
 
-    ext = filename.rsplit(".", 1)[-1].lower()
-    if ext not in LAB_ALLOWED_EXTENSIONS:
-        return (
-            jsonify(
-                {
-                    "error": "unsupported file type",
-                    "allowed": sorted(LAB_ALLOWED_EXTENSIONS),
-                }
-            ),
-            400,
-        )
-
-    file_bytes = storage.read()
-    if not file_bytes:
-        return jsonify({"error": "file is empty"}), 400
-
+    uploaded_items: List[Dict[str, Any]] = []
     description = request.form.get("description", "Conversation Lab upload")
-    ask = request.form.get("ask")
-    user_id = session.get("user_id") or 0
+    for filename, ext, file_bytes, file_hash in sanitized_files:
+        try:
+            result = ingest_single_file(
+                file_path=None,
+                file_data=file_bytes,
+                filename_override=filename,
+                save=False,
+                user_id=user_id,
+                description=description,
+                classification="internal",
+                ask=None,
+                user_email=None,
+            )
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Conversation Lab ingest failed")
+            return jsonify({"error": "failed to process file"}), 500
 
-    try:
-        result = ingest_single_file(
-            file_path=None,
-            file_data=file_bytes,
-            filename_override=filename,
-            save=False,
+        if not result:
+            return jsonify({"error": "ingestion failed"}), 500
+        if result.get("ok") is False:
+            return jsonify({"error": result.get("error", "ingestion failed")}), 400
+
+        summary = _summarize_ingest_payload(result)
+        metadata = {
+            "filename": result.get("filename") or filename,
+            "language": result.get("language"),
+            "analytics": result.get("analytics") or {},
+            "concepts": result.get("concepts") or {},
+            "session_id": session.get("lab_temp_session_id"),
+            "file_hash": file_hash,
+        }
+        rag_doc_id = _store_embedding_for_upload(user_id, result.get("processed_content") or "", metadata)
+        _store_upload_record(
             user_id=user_id,
-            description=description,
-            classification="internal",
-            ask=ask,
-            user_email=None,
+            filename=metadata["filename"],
+            summary=summary,
+            ingest_result=result,
+            rag_document_id=rag_doc_id,
         )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-    except Exception as exc:  # noqa: BLE001
-        logger.exception("Conversation Lab ingest failed")
-        return jsonify({"error": "failed to process file"}), 500
 
-    response_payload = {
-        "ok": True,
-        "filename": result.get("filename") or filename,
-        "fileType": result.get("file_type") or ext,
-        "summary": _summarize_ingest_payload(result),
-        "language": result.get("language"),
-        "analytics": result.get("analytics") or {},
-        "concepts": result.get("concepts") or {},
-        "translated": bool(result.get("translated_to_english")),
-    }
-    _record_upload_summary(response_payload["summary"])
-    return jsonify(response_payload)
+        uploaded_items.append(
+            {
+                "filename": metadata["filename"],
+                "fileType": result.get("file_type") or ext,
+                "summary": summary,
+                "language": metadata["language"],
+                "translated": bool(result.get("translated_to_english")),
+                "analytics": metadata["analytics"],
+            }
+        )
+
+    return jsonify({"ok": True, "items": uploaded_items, "count": len(uploaded_items)})
 
 
 @bp.post("/rag/workbench")

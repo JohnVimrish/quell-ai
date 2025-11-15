@@ -170,7 +170,7 @@
              },
     "rag":  {
                 "vector_search":  "SELECT id, document_type, document_id, content, document_metadata, 1 - (embedding \u003c=\u003e :query_embedding) AS similarity_score FROM {embed_table} WHERE user_id = :user_id {type_filter} ORDER BY embedding \u003c=\u003e :query_embedding LIMIT :limit",
-                "embed_table":  "document_embeddings",
+                "embed_table":  "data_feeds_vectors.embeddings",
                 "context_table":  "conversation_contexts"
             }
 }

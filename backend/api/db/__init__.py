@@ -45,16 +45,7 @@ except Exception:
 # Expose only the names that resolved successfully
 _exports = {
     'User': User,
-    'Contact': Contact,
-    'ImportantContact': ImportantContact,
-    'Call': Call,
-    'CallTranscript': CallTranscript,
-    'TextMessage': TextMessage,
-    'TextConversation': TextConversation,
-    'AIInstruction': AIInstruction,
-    'VoiceModel': VoiceModel,
-    'CallAnalytics': CallAnalytics,
-    'WeeklyReport': WeeklyReport,
+    'VoiceModel': VoiceModel
 }
 
 __all__ = [name for name, val in _exports.items() if val is not None]

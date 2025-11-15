@@ -1,0 +1,128 @@
+{
+  "_publicTheme-BcOtk12-.js": {
+    "file": "assets/publicTheme-BcOtk12-.js",
+    "name": "publicTheme",
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2": {
+    "file": "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-cyrillic-wght-normal.woff2": {
+    "file": "assets/inter-cyrillic-wght-normal-DqGufNeO.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-cyrillic-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-greek-ext-wght-normal.woff2": {
+    "file": "assets/inter-greek-ext-wght-normal-DlzME5K_.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-greek-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-greek-wght-normal.woff2": {
+    "file": "assets/inter-greek-wght-normal-CkhJZR-_.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-greek-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2": {
+    "file": "assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2": {
+    "file": "assets/inter-latin-wght-normal-Dx4kXJAl.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2": {
+    "file": "assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2",
+    "src": "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2"
+  },
+  "node_modules/pdfjs-dist/build/pdf.worker.mjs": {
+    "file": "assets/pdf.worker-9aISQa3R.mjs",
+    "src": "node_modules/pdfjs-dist/build/pdf.worker.mjs"
+  },
+  "src/assets/images/relax_picture.png": {
+    "file": "assets/relax_picture-DuVMS5Km.png",
+    "src": "src/assets/images/relax_picture.png"
+  },
+  "src/assets/images/solution_address_picture.png": {
+    "file": "assets/solution_address_picture-DTYEpwJe.png",
+    "src": "src/assets/images/solution_address_picture.png"
+  },
+  "src/assets/images/worry_picture.png": {
+    "file": "assets/worry_picture-DmzCWqeS.png",
+    "src": "src/assets/images/worry_picture.png"
+  },
+  "src/main.tsx": {
+    "file": "assets/main-twaqvZcK.js",
+    "name": "main",
+    "src": "src/main.tsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "src/pages/LandingPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/SignupPage.tsx",
+      "src/pages/ConversationLab.tsx"
+    ],
+    "css": [
+      "assets/main-DwXAfVxn.css"
+    ],
+    "assets": [
+      "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
+      "assets/inter-cyrillic-wght-normal-DqGufNeO.woff2",
+      "assets/inter-greek-ext-wght-normal-DlzME5K_.woff2",
+      "assets/inter-greek-wght-normal-CkhJZR-_.woff2",
+      "assets/inter-vietnamese-wght-normal-CBcvBZtf.woff2",
+      "assets/inter-latin-ext-wght-normal-DO1Apj_S.woff2",
+      "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
+    ]
+  },
+  "src/pages/ConversationLab.tsx": {
+    "file": "assets/ConversationLab-1Nm1FTu4.js",
+    "name": "ConversationLab",
+    "src": "src/pages/ConversationLab.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ],
+    "css": [
+      "assets/ConversationLab-Cjk3-Atp.css"
+    ]
+  },
+  "src/pages/LandingPage.tsx": {
+    "file": "assets/LandingPage-DkVnuYwz.js",
+    "name": "LandingPage",
+    "src": "src/pages/LandingPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_publicTheme-BcOtk12-.js"
+    ],
+    "css": [
+      "assets/LandingPage-NDNSozaH.css"
+    ],
+    "assets": [
+      "assets/pdf.worker-9aISQa3R.mjs",
+      "assets/relax_picture-DuVMS5Km.png",
+      "assets/worry_picture-DmzCWqeS.png",
+      "assets/solution_address_picture-DTYEpwJe.png"
+    ]
+  },
+  "src/pages/LoginPage.tsx": {
+    "file": "assets/LoginPage-C-8th-eW.js",
+    "name": "LoginPage",
+    "src": "src/pages/LoginPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_publicTheme-BcOtk12-.js"
+    ]
+  },
+  "src/pages/SignupPage.tsx": {
+    "file": "assets/SignupPage-B9wzoqPe.js",
+    "name": "SignupPage",
+    "src": "src/pages/SignupPage.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx",
+      "_publicTheme-BcOtk12-.js"
+    ]
+  }
+}

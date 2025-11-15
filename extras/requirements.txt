@@ -28,6 +28,7 @@ psutil
 pyparsing
 python-dateutil
 PyYAML
+openpyxl
 regex
 requests
 safetensors

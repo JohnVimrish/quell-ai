@@ -7,7 +7,7 @@ from pgvector.sqlalchemy import Vector
 Base = declarative_base()
 
 class DocumentEmbedding(Base):
-    __tablename__ = 'document_embeddings'
+    __tablename__ = 'data_feeds_vectors.embeddings'
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)

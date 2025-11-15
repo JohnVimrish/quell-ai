@@ -176,7 +176,7 @@ def ingest_single_file(
     user_id: int,
     description: str,
     classification: str,
-    ask: str | None,
+    ask: str | None = None,
     user_email: str | None = None,
 ) -> Dict[str, Any]:
     """Shared ingestion pipeline used by the CLI and Flask endpoints."""
@@ -244,81 +244,79 @@ def ingest_single_file(
         except Exception as exc:
             return {"ok": False, "error": f"Failed to initialize app/DB for save: {exc}"}
 
-        # Parse file into normalized text/structures
-        parsed = process_file(file_data, filename, file_type)
-        if not parsed["success"]:
-            error = parsed.get("metadata", {}).get("error", "Failed to process file")
-            return {"ok": False, "error": error}
+    # Parse file into normalized text/structures
+    parsed = process_file(file_data, filename, file_type)
+    if not parsed["success"]:
+        error = parsed.get("metadata", {}).get("error", "Failed to process file")
+        return {"ok": False, "error": error}
 
-        base_text = parsed.get("processed_content", "")
+    base_text = parsed.get("processed_content", "")
 
-        # Language detection + translation
-        lang_code = detect_language(base_text)
-        translated_by = None
-        processed_text = base_text
-        if lang_code and lang_code not in ("en", "unknown"):
-            processed_text, translated_by = translate_to_english(base_text, ollama_service)
+    # Language detection + translation
+    lang_code = detect_language(base_text)
+    translated_by = None
+    processed_text = base_text
+    if lang_code and lang_code not in ("en", "unknown"):
+        processed_text, translated_by = translate_to_english(base_text, ollama_service)
 
-        # Analytics
-        analytics = {}
-        if parsed.get("rows") is not None and parsed.get("columns") is not None:
-            analytics = analyze_table(parsed.get("rows", []), parsed.get("columns", []))
-        elif file_type == "json":
-            analytics = (
-                analyze_json(parsed.get("json_data")) if parsed.get("json_data") is not None else {}
-            )
-        else:
-            analytics = analyze_text(processed_text)
+    # Analytics
+    analytics = {}
+    if parsed.get("rows") is not None and parsed.get("columns") is not None:
+        analytics = analyze_table(parsed.get("rows", []), parsed.get("columns", []))
+    elif file_type == "json":
+        analytics = analyze_json(parsed.get("json_data")) if parsed.get("json_data") is not None else {}
+    else:
+        analytics = analyze_text(processed_text)
 
-        # Concepts and embeddings
-        concepts = extract_key_concepts(processed_text, ollama_service)
-        embedding = None
-        ollama_model = None
-        if ollama_service and ollama_service.is_available():
-            embedding = ollama_service.generate_embedding(processed_text)
-            model_info = ollama_service.get_model_info()
-            ollama_model = f"{model_info.get('model_path', 'unknown')}"
+    # Concepts and embeddings
+    concepts = extract_key_concepts(processed_text, ollama_service)
+    embedding = None
+    ollama_model = None
+    if ollama_service and ollama_service.is_available():
+        embedding = ollama_service.generate_embedding(processed_text)
+        model_info = ollama_service.get_model_info()
+        ollama_model = f"{model_info.get('model_path', 'unknown')}"
 
-        vector_metadata = build_vector_metadata(concepts, embedding)
+    vector_metadata = build_vector_metadata(concepts, embedding)
 
-        # Optional DB persistence
-        doc_record: Dict[str, Any] = {}
-        if save and repo is not None and app is not None:
-            # Save file to disk
-            upload_dir = _get_upload_directory()
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            saved_filename = f"{user_id}_{timestamp}_{filename}"
-            file_out = upload_dir / saved_filename
-            file_out.write_bytes(file_data)
+    # Optional DB persistence
+    doc_record: Dict[str, Any] = {}
+    if save and repo is not None and app is not None:
+        # Save file to disk
+        upload_dir = _get_upload_directory()
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        saved_filename = f"{user_id}_{timestamp}_{filename}"
+        file_out = upload_dir / saved_filename
+        file_out.write_bytes(file_data)
 
-            payload = {
-                "user_id": user_id,
-                "name": filename,
-                "description": description,
-                "storage_uri": str(file_out),
-                "storage_type": "local",
-                "classification": classification,
-                "file_type": file_type,
-                "file_size_bytes": len(file_data),
-                "original_content": parsed["content"],
-                "processed_content": processed_text,
-                "content_metadata": {
-                    **parsed["metadata"],
-                    "concepts": concepts,
-                    "language": lang_code,
-                    "translated_to_english": bool(translated_by),
-                    "translation_model": translated_by,
-                    "analytics": analytics,
-                },
-                "embedding": embedding,
-                "vector_metadata": vector_metadata,
-                "ollama_model": ollama_model,
-                "allow_ai_to_suggest": True,
-            }
+        payload = {
+            "user_id": user_id,
+            "name": filename,
+            "description": description,
+            "storage_uri": str(file_out),
+            "storage_type": "local",
+            "classification": classification,
+            "file_type": file_type,
+            "file_size_bytes": len(file_data),
+            "original_content": parsed["content"],
+            "processed_content": processed_text,
+            "content_metadata": {
+                **parsed["metadata"],
+                "concepts": concepts,
+                "language": lang_code,
+                "translated_to_english": bool(translated_by),
+                "translation_model": translated_by,
+                "analytics": analytics,
+            },
+            "embedding": embedding,
+            "vector_metadata": vector_metadata,
+            "ollama_model": ollama_model,
+            "allow_ai_to_suggest": True,
+        }
 
-            doc_id = repo.create_data_feed(payload)
-            if doc_id:
-                doc_record = repo.get_document(doc_id, user_id) or {}
+        doc_id = repo.create_data_feed(payload)
+        if doc_id:
+            doc_record = repo.get_document(doc_id, user_id) or {}
 
         # Optional Q&A prompt to the model (LLM-only)
         model_answer = None
@@ -377,6 +375,8 @@ def ingest_single_file(
             "model_answer": model_answer,
             "model_answer_short": locals().get("result_answer_short"),
             "model_answer_data": locals().get("result_answer_data"),
+            "processed_content": processed_text,
+            "metadata": parsed.get("metadata", {}),
         }
 
 

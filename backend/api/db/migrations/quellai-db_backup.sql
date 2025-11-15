@@ -4404,6 +4404,39 @@ CREATE INDEX IF NOT EXISTS idx_contact_relationships_related
     ON user_management.contact_relationships (related_contact_id);
 
 
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_temp_users (
+    id          BIGSERIAL PRIMARY KEY,
+    session_id  VARCHAR(64) UNIQUE NOT NULL,
+    display_name VARCHAR(255),
+    ip_hint     VARCHAR(128),
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE ai_intelligence.conversation_lab_temp_users
+    ADD COLUMN IF NOT EXISTS ip_hint VARCHAR(128);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_conversation_lab_temp_users_session
+    ON ai_intelligence.conversation_lab_temp_users (session_id);
+
+ALTER TABLE data_feeds_vectors.embeddings
+    ADD COLUMN IF NOT EXISTS user_id BIGINT,
+    ADD COLUMN IF NOT EXISTS document_type TEXT,
+    ADD COLUMN IF NOT EXISTS document_id BIGINT,
+    ADD COLUMN IF NOT EXISTS document_metadata JSONB DEFAULT '{}'::jsonb;
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_user_type
+    ON data_feeds_vectors.embeddings (user_id, document_type);
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_session_id
+    ON data_feeds_vectors.embeddings ((document_metadata->>'session_id'));
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_filename
+    ON data_feeds_vectors.embeddings ((document_metadata->>'filename'));
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_vec
+    ON data_feeds_vectors.embeddings
+    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
 
 --
 -- PostgreSQL database dump complete

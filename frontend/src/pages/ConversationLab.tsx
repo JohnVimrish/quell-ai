@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import "./ConversationLab.css";
 
-const ACCEPTED_FILE_TYPES = [".txt", ".csv", ".xlsx"];
+const ACCEPTED_FILE_TYPES = [".txt", ".csv", ".json", ".xlsx"];
 const ASSISTANT_NAME = "Quell-Ai";
+const LAB_NAME_STORAGE_KEY = "qlx_lab_display_name";
+const LAB_CHAT_STORAGE_KEY = "qlx_lab_chat_history";
 
 type SessionInfo = {
   userId: number;
@@ -31,10 +33,49 @@ type ChatMessage = {
   timestamp: string;
   attachment?: AttachmentInsight;
   senderName?: string;
+  pending?: boolean;
+};
+
+type StoredChatHistory = {
+  sessionId: string;
+  history: ChatMessage[];
 };
 
 const generateId = () => `msg-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const formatTimestamp = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+const loadStoredChatHistory = (): StoredChatHistory | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LAB_CHAT_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredChatHistory;
+  } catch {
+    return null;
+  }
+};
+
+const persistChatHistory = (sessionId: string, history: ChatMessage[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: StoredChatHistory = {
+      sessionId,
+      history: history.slice(-15),
+    };
+    window.localStorage.setItem(LAB_CHAT_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // storage might be disabled
+  }
+};
+
+const clearStoredChatHistory = () => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(LAB_CHAT_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+};
 
 export default function ConversationLab() {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
@@ -44,6 +85,7 @@ export default function ConversationLab() {
   const [isUploading, setIsUploading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attachGlow, setAttachGlow] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,6 +96,48 @@ export default function ConversationLab() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!sessionInfo?.sessionId || messages.length === 0) {
+      return;
+    }
+    persistChatHistory(sessionInfo.sessionId, messages);
+  }, [messages, sessionInfo?.sessionId]);
+
+  const readStoredName = (): string => {
+    if (typeof window === "undefined") return "";
+    try {
+      return window.localStorage.getItem(LAB_NAME_STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const persistDisplayName = (value: string) => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(LAB_NAME_STORAGE_KEY, value);
+    } catch {
+      // storage might be disabled
+    }
+  };
+
+  const restoreStoredName = async (storedName: string) => {
+    try {
+      await setNameOnServer(storedName, { silent: true });
+      setSessionInfo((prev) =>
+        prev
+          ? {
+              ...prev,
+              hasName: true,
+              displayName: storedName,
+            }
+          : prev,
+      );
+    } catch (err) {
+      console.warn("Failed to restore stored Conversation Lab name", err);
+    }
+  };
 
   async function initializeSession() {
     setInitializing(true);
@@ -68,18 +152,26 @@ export default function ConversationLab() {
         throw new Error(data?.error || "Failed to initialize Conversation Lab session.");
       }
       setSessionInfo(data);
-      setMessages([
-        {
-          id: generateId(),
-          role: "assistant",
-          text: data.greeting,
-          timestamp: formatTimestamp(),
-          senderName: data.assistantName ?? ASSISTANT_NAME,
-        },
-      ]);
+
+      const stored = loadStoredChatHistory();
+      if (stored && stored.sessionId === data.sessionId && stored.history?.length) {
+        setMessages(stored.history);
+      } else {
+        clearStoredChatHistory();
+        setMessages([
+          {
+            id: generateId(),
+            role: "assistant",
+            text: data.greeting,
+            timestamp: formatTimestamp(),
+            senderName: data.assistantName ?? ASSISTANT_NAME,
+          },
+        ]);
+      }
     } catch (err) {
       const fallback = err instanceof Error ? err.message : "Unable to start the session.";
       setError(fallback);
+      clearStoredChatHistory();
       setMessages([
         {
           id: generateId(),
@@ -95,13 +187,63 @@ export default function ConversationLab() {
 
   const needsName = Boolean(sessionInfo && !sessionInfo.hasName);
 
-  const buildAssistantMessage = (text: string): ChatMessage => ({
-    id: generateId(),
-    role: "assistant",
-    text,
-    timestamp: formatTimestamp(),
-    senderName: sessionInfo?.assistantName ?? ASSISTANT_NAME,
-  });
+  const buildAssistantMessage = (text: string, overrides?: Partial<ChatMessage>): ChatMessage => {
+    const base: ChatMessage = {
+      id: overrides?.id ?? generateId(),
+      role: "assistant",
+      text,
+      timestamp: overrides?.timestamp ?? formatTimestamp(),
+      senderName: sessionInfo?.assistantName ?? ASSISTANT_NAME,
+    };
+    return { ...base, ...overrides };
+  };
+
+  const showThinkingBubble = () => {
+    const placeholder = buildAssistantMessage("Thinking with the Ollama model…", { pending: true });
+    const placeholderId = placeholder.id;
+    setMessages((prev) => [...prev, placeholder]);
+    return placeholderId;
+  };
+
+  const resolveAssistantMessage = (
+    text: string,
+    options?: { placeholderId?: string; attachment?: AttachmentInsight },
+  ) => {
+    const message = buildAssistantMessage(text, {
+      id: options?.placeholderId,
+      pending: false,
+      attachment: options?.attachment,
+    });
+    if (!options?.placeholderId) {
+      setMessages((prev) => [...prev, message]);
+      return;
+    }
+    setMessages((prev) => {
+      let replaced = false;
+      const next = prev.map((entry) => {
+        if (entry.id === message.id) {
+          replaced = true;
+          return message;
+        }
+        return entry;
+      });
+      return replaced ? next : [...next, message];
+    });
+  };
+
+  useEffect(() => {
+    if (!sessionInfo) return;
+    if (sessionInfo.displayName) {
+      persistDisplayName(sessionInfo.displayName);
+      return;
+    }
+    if (!sessionInfo.hasName) {
+      const stored = readStoredName();
+      if (stored) {
+        void restoreStoredName(stored);
+      }
+    }
+  }, [sessionInfo]);
 
   const handleSend = async () => {
     if (!sessionInfo) return;
@@ -120,6 +262,8 @@ export default function ConversationLab() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
+    let placeholderId: string | undefined;
+
     try {
       if (needsName) {
         const nameResponse = await setNameOnServer(trimmed);
@@ -134,16 +278,16 @@ export default function ConversationLab() {
         );
         setMessages((prev) => [...prev, buildAssistantMessage(nameResponse.assistantReply)]);
       } else {
+        placeholderId = showThinkingBubble();
         const chatResponse = await sendChat(trimmed);
-        setMessages((prev) => [...prev, buildAssistantMessage(chatResponse.reply)]);
+        resolveAssistantMessage(chatResponse.reply, { placeholderId });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to send message.";
       setError(message);
-      setMessages((prev) => [
-        ...prev,
-        buildAssistantMessage("I hit a snag while reaching the model. Please try again in a moment."),
-      ]);
+      resolveAssistantMessage("I hit a snag while reaching the model. Please try again in a moment.", {
+        placeholderId,
+      });
     } finally {
       setIsSending(false);
     }
@@ -158,6 +302,8 @@ export default function ConversationLab() {
 
   const handleAttachmentButton = () => {
     if (!initializing) {
+      setAttachGlow(true);
+      window.setTimeout(() => setAttachGlow(false), 900);
       fileInputRef.current?.click();
     }
   };
@@ -220,7 +366,7 @@ export default function ConversationLab() {
     setIsUploading(false);
   };
 
-  const setNameOnServer = async (name: string) => {
+  const setNameOnServer = async (name: string, options?: { silent?: boolean }) => {
     const response = await fetch("/api/labs/conversation/name", {
       method: "POST",
       credentials: "include",
@@ -231,7 +377,11 @@ export default function ConversationLab() {
     if (!response.ok || payload?.ok === false) {
       throw new Error(payload?.error || "Failed to store name.");
     }
-    return payload as { displayName: string; assistantReply: string; assistantName: string };
+    persistDisplayName(payload.displayName);
+    return {
+      ...(payload as { displayName: string; assistantReply: string; assistantName: string }),
+      silent: options?.silent,
+    };
   };
 
   const sendChat = async (message: string) => {
@@ -324,8 +474,16 @@ export default function ConversationLab() {
               </p>
             </div>
             <div className="clab-chat-actions">
-              <button type="button" className="clab-attach-btn" onClick={handleAttachmentButton} disabled={isUploading}>
-                Attach file
+              <button
+                type="button"
+                className={`clab-attach-btn ${attachGlow ? "active" : ""}`}
+                onClick={handleAttachmentButton}
+                disabled={isUploading}
+              >
+                <span className="clab-attach-icon" aria-hidden>
+                  📎
+                </span>
+                <span>Attach file</span>
               </button>
               <input
                 ref={fileInputRef}
@@ -346,7 +504,7 @@ export default function ConversationLab() {
 
           <div className="clab-chat-messages">
             {messages.map((message) => (
-              <div key={message.id} className={`clab-message ${message.role}`}>
+              <div key={message.id} className={`clab-message ${message.role} ${message.pending ? "pending" : ""}`}>
                 <div className="clab-avatar" aria-hidden>
                   {message.role === "assistant" ? "QA" : "You".slice(0, 2)}
                 </div>
@@ -355,7 +513,18 @@ export default function ConversationLab() {
                     <span>{message.role === "assistant" ? ASSISTANT_NAME : sessionInfo?.displayName || "You"}</span>
                     <span>{message.timestamp}</span>
                   </div>
-                  <p>{message.text}</p>
+                  {message.pending ? (
+                    <div className="clab-thinking" role="status" aria-live="polite">
+                      <span className="clab-thinking-dots" aria-hidden>
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                      <span>{message.text || "Thinking..."}</span>
+                    </div>
+                  ) : (
+                    <p className="clab-message-text">{message.text}</p>
+                  )}
                   {message.attachment && (
                     <div className="clab-attachment-card">
                       <div className="clab-attachment-header">
