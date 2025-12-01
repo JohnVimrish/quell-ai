@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from flask import Flask, session, g, redirect, request, jsonify, render_template
 from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room
 
 from api.utils.config import Config
 from api.utils.logging import LoggerManager
@@ -19,6 +19,7 @@ except Exception:  # Module archived or unavailable
     SpamDetector = None  # type: ignore
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
+from api.services.embedding_queue import EmbeddingQueue
 from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
@@ -66,7 +67,22 @@ def create_app(config_override=None):
         )
 
     # Initialize SocketIO for real-time features
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+    message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE", os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"))
+    try:
+        socketio = SocketIO(
+            app,
+            cors_allowed_origins="*",
+            async_mode="threading",
+            message_queue=message_queue,
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("SocketIO message queue unavailable (%s). Falling back to local mode.", exc)
+        socketio = SocketIO(
+            app,
+            cors_allowed_origins="*",
+            async_mode="threading",
+            message_queue=None,
+        )
 
     try:
         cfg = config_override or Config.load()
@@ -83,6 +99,11 @@ def create_app(config_override=None):
             AI_MODEL_PATH=os.getenv("AI_MODEL_PATH", "models/"),
             VOICE_SAMPLES_PATH=os.getenv("VOICE_SAMPLES_PATH", "voice_samples/"),
             TRANSCRIPTS_PATH=os.getenv("TRANSCRIPTS_PATH", "transcripts/"),
+            CONVERSATION_LAB_UPLOAD_DIR=os.getenv(
+                "CONVERSATION_LAB_UPLOAD_DIR",
+                os.path.join(project_root, "uploads", "conversation_lab"),
+            ),
+            SOCKETIO_MESSAGE_QUEUE=message_queue,
             FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
             DATABASE_URL= cfg.database_url,
             DEBUG=cfg.debug,
@@ -134,23 +155,30 @@ def create_app(config_override=None):
         else:
             app.config["SPAM_DETECTOR"] = None
 
-        app.config["RAG_SYSTEM"] = RAGSystem(cfg, app.config.get("OLLAMA_SERVICE"))
-
-        if app.config["VOICE_CLONING_ENABLED"]:
-            app.config["VOICE_MODEL"] = VoiceModel()
-        else:
-            app.config["VOICE_MODEL"] = None
-
-        # Initialize OLLama service for data feeds
         ollama_model_path = os.getenv(
             "OLLAMA_MODEL_PATH",
             "C:/Users/033690343/OneDrive - csulb/Models-LLM/Llama-3.2-1B-Instruct"
         )
         ollama_embedding_dim = int(os.getenv("OLLAMA_EMBEDDING_DIM", "384"))
-        app.config["OLLAMA_SERVICE"] = OllamaService(
+        ollama_service = OllamaService(
             model_path=ollama_model_path,
             embedding_dim=ollama_embedding_dim
         )
+        embedding_queue = None
+        if ollama_service and ollama_service.is_available():
+            embed_workers = int(os.getenv("EMBED_QUEUE_WORKERS", "2"))
+            embedding_queue = EmbeddingQueue(
+                ollama_service,
+                max_workers=max(1, embed_workers),
+            )
+        app.config["OLLAMA_SERVICE"] = ollama_service
+        app.config["EMBEDDING_QUEUE"] = embedding_queue
+        app.config["RAG_SYSTEM"] = RAGSystem(cfg, ollama_service, embedding_queue)
+
+        if app.config["VOICE_CLONING_ENABLED"]:
+            app.config["VOICE_MODEL"] = VoiceModel()
+        else:
+            app.config["VOICE_MODEL"] = None
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).exception("AI model initialization failed")
         app.config.update(
@@ -158,11 +186,19 @@ def create_app(config_override=None):
             RAG_SYSTEM=None,
             VOICE_MODEL=None,
             OLLAMA_SERVICE=None,
+            EMBEDDING_QUEUE=None,
         )
 
     os.makedirs(app.config["AI_MODEL_PATH"], exist_ok=True)
     os.makedirs(app.config["VOICE_SAMPLES_PATH"], exist_ok=True)
     os.makedirs(app.config["TRANSCRIPTS_PATH"], exist_ok=True)
+    os.makedirs(app.config["CONVERSATION_LAB_UPLOAD_DIR"], exist_ok=True)
+
+    @socketio.on("join_ingest_room")
+    def join_ingest_room(data):  # type: ignore
+        session_identifier = (data or {}).get("sessionId")
+        if session_identifier:
+            join_room(f"ingest:{session_identifier}")
 
     @app.before_request
     def before_request():  # noqa: D401

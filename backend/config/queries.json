@@ -155,7 +155,7 @@
                        "soft_delete":  "UPDATE data_feeds.documents SET is_deleted = true, deleted_at = now(), deleted_by = :deleted_by, vector_metadata = \u0027{}\u0027 WHERE id = :id AND user_id = :user_id RETURNING id, name, file_type, file_size_bytes, vector_metadata",
                        "restore_document":  "UPDATE data_feeds.documents SET is_deleted = false, deleted_at = NULL, deleted_by = NULL WHERE id = :id AND user_id = :user_id RETURNING id",
                        "list_deleted":  "SELECT id, name, file_type, file_size_bytes, deleted_at, deleted_by, created_at FROM data_feeds.documents WHERE user_id = :user_id AND is_deleted = true ORDER BY deleted_at DESC",
-                       "vector_search":  "SELECT id, name, description, file_type, file_size_bytes, content_metadata, vector_metadata, created_at, 1 - (embedding \u003c=\u003e :query_embedding) AS similarity_score FROM data_feeds.documents WHERE user_id = :user_id AND embedding IS NOT NULL AND is_deleted = false ORDER BY embedding \u003c=\u003e :query_embedding LIMIT :limit",
+                       "vector_search":  "SELECT id, name, description, file_type, file_size_bytes, content_metadata, vector_metadata, created_at, 1 - (embedding \u003c=\u003e CAST(:query_embedding AS vector)) AS similarity_score FROM data_feeds.documents WHERE user_id = :user_id AND embedding IS NOT NULL AND is_deleted = false ORDER BY embedding \u003c=\u003e :query_embedding LIMIT :limit",
                        "create_version_snapshot":  "INSERT INTO data_feeds.document_versions (document_id, version, embedding, content_snapshot, metadata_snapshot, created_by) VALUES (:document_id, :version, :embedding, :content_snapshot, :metadata_snapshot, :created_by) RETURNING id",
                        "get_version_history":  "SELECT version, created_at, created_by FROM data_feeds.document_versions WHERE document_id = :document_id ORDER BY version DESC",
                        "get_version_content":  "SELECT version, content_snapshot, metadata_snapshot, created_at, created_by FROM data_feeds.document_versions WHERE document_id = :document_id AND version = :version",
@@ -169,7 +169,7 @@
                  "get_by_id":  "SELECT id, user_id, title, body, tags, status, created_at, expires_at FROM ai_intelligence.feed_items WHERE id = "
              },
     "rag":  {
-                "vector_search":  "SELECT id, document_type, document_id, content, document_metadata, 1 - (embedding \u003c=\u003e :query_embedding) AS similarity_score FROM {embed_table} WHERE user_id = :user_id {type_filter} ORDER BY embedding \u003c=\u003e :query_embedding LIMIT :limit",
+                "vector_search":  "SELECT id, document_type, document_id, {content_column} AS content, document_metadata, 1 - (embedding \u003c=\u003e :query_embedding::vector) AS similarity_score FROM {embed_table} WHERE user_id = :user_id {type_filter} ORDER BY embedding \u003c=\u003e :query_embedding::vector LIMIT :limit",
                 "embed_table":  "data_feeds_vectors.embeddings",
                 "context_table":  "conversation_contexts"
             }

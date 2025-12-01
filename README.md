@@ -113,6 +113,34 @@ Start the API in development mode:
 flask --app api.app:create_app --debug run
 ```
 
+### Conversation Lab ingestion worker
+
+File uploads in the Conversation Lab now enqueue background jobs that perform parsing, analytics, and embedding generation. Run a Celery worker next to the Flask API (Redis is the default broker/result backend):
+
+```bash
+celery -A worker.celery_app worker -l info
+```
+
+Configure `CELERY_BROKER_URL`/`CELERY_RESULT_BACKEND` if you are not using `redis://localhost:6379/0`. Uploaded payloads are staged under `CONVERSATION_LAB_UPLOAD_DIR` (defaults to `backend/uploads/conversation_lab`) until the worker finishes processing them.
+
+You can throttle concurrent ingest jobs per session by setting `LAB_MAX_PENDING_UPLOADS` (default `5`). When the queue is full, `/api/labs/conversation/ingest` responds with HTTP 202 and a `Retry-After` header so the frontend can pause before retrying.
+
+For real-time status updates from background workers, set `SOCKETIO_MESSAGE_QUEUE` (defaults to the Celery broker URL). The Flask app and Celery workers will publish ingest events over that Redis channel, and the frontend subscribes via Socket.IO. If the message queue isn’t configured, the UI falls back to polling.
+
+### Embedding queue
+
+Both the API and ingestion worker reuse a shared embedding queue so Ollama stays warm between requests. Tune the number of background embedding threads by setting `EMBED_QUEUE_WORKERS` (default `2`). The queue also caches recent embeddings for a short period to avoid recomputing unchanged content.
+
+### Session cache priming
+
+To keep file uploads fast, `prime_session_cache` is debounced within the worker. Use `PRIME_SESSION_DEBOUNCE` (seconds, default `60`) to control how often each session/user combination is primed.
+
+### Frontend retry cache
+
+Conversation Lab caches the last few uploaded files (up to `MAX_CACHED_FILES` in code) in memory, keyed by their SHA-256 hash. When an ingest job fails, the UI presents a “Retry upload” button that reuses the cached file so the user doesn’t have to reselect it. The cached entry is released once the upload reaches the `ready` state.
+
+If the primary Ollama embedding model is unavailable, workers automatically fall back to `sentence-transformers/all-MiniLM-L6-v2`. Override this by setting `FALLBACK_EMBED_MODEL` to any SentenceTransformers checkpoint.
+
 The app factory auto-loads configuration, sets up CORS, registers all blueprints, and serves the SPA shell for non-API routes. Graceful shutdown now closes pooled database connections and calls ML model `cleanup()` hooks.
 
 ### Frontend setup

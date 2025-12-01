@@ -33,6 +33,8 @@ regex
 requests
 safetensors
 scikit-learn
+celery
+redis
 scipy
 sentence-transformers
 six

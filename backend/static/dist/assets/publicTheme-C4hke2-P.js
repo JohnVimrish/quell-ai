@@ -1,4 +1,4 @@
-import{j as t}from"./main-twaqvZcK.js";function c(){return t.jsxs("div",{className:"animated-bg","aria-hidden":"true",children:[t.jsx("div",{className:"shape1"}),t.jsx("div",{className:"shape2"}),t.jsx("div",{className:"shape3"})]})}const r="https://cdn.tailwindcss.com?plugins=forms,container-queries",o=`tailwind.config = {
+import{j as t}from"./main-DdieF_OH.js";function c(){return t.jsxs("div",{className:"animated-bg","aria-hidden":"true",children:[t.jsx("div",{className:"shape1"}),t.jsx("div",{className:"shape2"}),t.jsx("div",{className:"shape3"})]})}const r="https://cdn.tailwindcss.com?plugins=forms,container-queries",o=`tailwind.config = {
   darkMode: 'class',
   theme: {
     extend: {

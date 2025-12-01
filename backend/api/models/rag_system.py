@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from api.db.vector_store import ConversationContext, DocumentEmbedding
 from api.utils.config import Config
 from api.models.ollama_service import OllamaService
+from api.services.embedding_queue import EmbeddingQueue
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +26,21 @@ TARGET_VECTOR_DIM = 384
 class RAGSystem:
     """Retrieval-augmented generation backed by local Ollama service."""
 
-    def __init__(self, config: Config, ollama_service: Optional[OllamaService] = None):
+    def __init__(
+        self,
+        config: Config,
+        ollama_service: Optional[OllamaService] = None,
+        embedding_queue: Optional[EmbeddingQueue] = None,
+    ):
         self.config = config
         engine = create_engine(config.database_url, future=True)
         SessionFactory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
         self.engine = engine
+        self._session_factory = SessionFactory
         self.session: Session = SessionFactory()
 
         self.ollama_service: Optional[OllamaService] = ollama_service
+        self.embedding_queue = embedding_queue
 
         # Optional table names from config.queries (rag section) or defaults
         rag_cfg = (config.queries.get("rag") if isinstance(config.queries, dict) else None) or {}
@@ -41,7 +49,17 @@ class RAGSystem:
         self._cache_ttl = int(os.getenv("RAG_CACHE_TTL", "120"))
         self._query_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
         self._session_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
+        default_content_column = "content_snippet" if self.embed_table.endswith("data_feeds_vectors.embeddings") else "content"
+        self._content_column = rag_cfg.get("content_column", default_content_column)
         self._ensure_indexes()
+
+    def reset_session(self) -> None:
+        try:
+            if self.session:
+                self.session.close()
+        except Exception:
+            pass
+        self.session = self._session_factory()
 
     def _ensure_indexes(self) -> None:
         """Create useful indexes for faster retrieval and metadata lookups."""
@@ -70,9 +88,10 @@ class RAGSystem:
         document_type: str,
         document_id: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        embedding_override: Optional[List[float]] = None,
     ) -> Optional[int]:
         """Generate and persist an embedding for a document."""
-        embedding = self._embed_text(content)
+        embedding = embedding_override or self._embed_text(content)
         if embedding is None:
             logger.warning("Skipping document embedding; local LLM unavailable.")
             return None
@@ -213,7 +232,7 @@ class RAGSystem:
         try:
             sql = text(
                 f"""
-                SELECT id, document_type, document_id, content, document_metadata,
+                SELECT id, document_type, document_id, {self._content_column} AS content, document_metadata,
                        0.0 AS similarity_score
                 FROM {self.embed_table}
                 WHERE user_id = :user_id
@@ -293,9 +312,10 @@ class RAGSystem:
                 base_sql = tmpl.replace("{embed_table}", self.embed_table)
                 sql_text = base_sql.replace("{type_filter}", f" {type_filter} " if type_filter else "")
                 sql_text = sql_text.replace("{metadata_filter}", metadata_clause)
+                sql_text = sql_text.replace("{content_column}", self._content_column)
             else:
                 sql_text = f"""
-                    SELECT id, document_type, document_id, content, document_metadata,
+                    SELECT id, document_type, document_id, {self._content_column} AS content, document_metadata,
                         1 - (embedding <=> :query_embedding) AS similarity_score
                     FROM {self.embed_table}
                     WHERE user_id = :user_id {type_filter} {metadata_clause}
@@ -472,14 +492,29 @@ class RAGSystem:
         """
         if not text_value or not text_value.strip():
             return self._zero_vector()
+
+        embedding: Optional[List[float]] = None
+
+        if self.embedding_queue:
+            try:
+                embedding = self.embedding_queue.embed(text_value)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Embedding queue failed, falling back to direct call: %s", exc)
+
+        if embedding is None:
+            embedding = self._direct_embedding(text_value)
+
+        if embedding is None:
+            return None
+
+        return self._down_project_embedding(embedding)
+
+    def _direct_embedding(self, text_value: str) -> Optional[List[float]]:
         if not self._api_available:
             return None
         try:
             assert self.ollama_service is not None
-            embedding = self.ollama_service.generate_embedding(text_value)
-            if not embedding:
-                return None
-            return self._down_project_embedding(embedding)
+            return self.ollama_service.generate_embedding(text_value)
         except Exception as exc:  # noqa: BLE001
             logger.error("Embedding generation failed: %s", exc)
             return None

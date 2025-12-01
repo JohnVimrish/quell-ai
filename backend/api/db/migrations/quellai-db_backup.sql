@@ -4437,6 +4437,59 @@ CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_vec
     ON data_feeds_vectors.embeddings
     USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
+--
+-- Migration: Conversation Lab ingestion tracking table
+--
+
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_ingests (
+    id BIGSERIAL PRIMARY KEY,
+    session_id TEXT,
+    user_id BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    file_size_bytes BIGINT,
+    storage_path TEXT,
+    status TEXT NOT NULL DEFAULT 'queued',
+    error_code TEXT,
+    error_message TEXT,
+    embedding_id BIGINT,
+    needs_embedding BOOLEAN DEFAULT TRUE,
+    attempts INTEGER DEFAULT 0,
+    queued_at TIMESTAMPTZ DEFAULT now(),
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_session
+    ON ai_intelligence.conversation_lab_ingests (session_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_user
+    ON ai_intelligence.conversation_lab_ingests (user_id, queued_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_status
+    ON ai_intelligence.conversation_lab_ingests (status);
+
+
+--
+-- Migration: Instructional memories for Conversation Lab
+--
+
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_memories (
+    id BIGSERIAL PRIMARY KEY,
+    source_user_id BIGINT,
+    source_session_id TEXT,
+    source_display_name TEXT,
+    target_name TEXT NOT NULL,
+    memory_text TEXT NOT NULL,
+    instruction_scope TEXT NOT NULL DEFAULT 'remind-on-interaction',
+    delivered BOOLEAN NOT NULL DEFAULT FALSE,
+    delivered_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_memories_target
+ON ai_intelligence.conversation_lab_memories (lower(target_name));
 
 --
 -- PostgreSQL database dump complete

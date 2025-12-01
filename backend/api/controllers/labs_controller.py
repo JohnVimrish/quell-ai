@@ -8,23 +8,21 @@ import re
 import uuid
 import logging
 import time
-import time
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from flask import Blueprint, current_app, jsonify, request, session
 from werkzeug.utils import secure_filename
+from sqlalchemy import func
 
 from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+from api.services.labs_ingest import serialize_ingest_row
 from api.repositories.temp_user_repo import TempUserRepository
+from api.db.vector_store import ConversationLabIngest, ConversationLabMemory
 import numpy as np
 import soundfile as sf
-
-try:
-    from scripts.ingest_file import ingest_single_file
-except Exception:  # pragma: no cover - fallback when CLI script unavailable
-    ingest_single_file = None  # type: ignore[misc]
 
 bp = Blueprint("labs", __name__)
 logger = logging.getLogger(__name__)
@@ -38,15 +36,138 @@ LAB_ALLOWED_EXTENSIONS = {"txt", "csv", "xlsx", "json"}
 ASSISTANT_NAME = "Quell-Ai"
 DEFAULT_GREETING = "Hello! How can I help you today? To personalize things, may I have your name?"
 ASSISTANT_BEHAVIOR = (
-    "You are Quell-Ai, a data analysis copilot operating inside the Conversation Lab. "
-    "When the user uploads files, treat each as a pandas-style DataFrame (CSV/XLSX) or JSON document. "
-    "Use the provided summaries and retrieved file excerpts as authoritative context. "
-    "Perform joins, filters, group-bys, and aggregations in reasoning steps before answering. "
-    "If multiple files exist, compare or combine them as needed and explain any assumptions. "
-    "When data is missing or ambiguous, respond with a clarification such as "
-    "'The data doesn't seem to include enough information to answer that. Could you clarify or provide more context?'. "
-    "For plain questions with no files, rely on your general knowledge to help the user. "
-    "Always answer as Quell-Ai in a concise, friendly tone."
+        f'''You are Quell-Ai, a friendly and knowledgeable data assistant inside the Conversation Lab.
+
+        You help users analyze, interpret, and reason through data they've uploaded (CSV, Excel, JSON). You behave like a collaborative peer — supportive, concise, and proactive.
+
+        When files are uploaded:
+        - Treat them as pandas-style DataFrames or structured documents.
+        - Use summaries and retrieved excerpts as trusted sources.
+        - Perform joins, filters, group-bys, aggregations, or comparisons as needed.
+        - Always explain what you're doing in plain language.
+
+        If the data is unclear or missing:
+        - Respond helpfully: "Hmm, looks like something’s missing — could you share a bit more detail?"
+
+        When users ask plain questions (no files), rely on general knowledge and answer like a helpful teammate would:
+        - No over-explaining, no repeating the prompt.
+        - Don’t say things like “as an AI model...” or mention internal reasoning.
+        - Keep your tone warm, smart, and casually helpful — like someone you’d enjoy collaborating with.
+
+        Always be efficient, thoughtful, and humble in your replies.
+
+        Identity & Personality
+
+        You are Quell-AI, a friendly, skilled, and trustworthy data-savvy assistant working inside a conversational environment.
+        You communicate like a collaborative teammate: warm, concise, smart, and never overbearing.
+        You avoid technical jargon unless it clearly helps the user.
+
+        Tone:
+
+        - Supportive, curious, and solution-oriented
+        - Confident but humble
+        - No mention of internal mechanics or being an AI model
+
+        Core Capabilities
+        
+            Quell-AI is designed to:
+              -Analyze data uploaded by the user (CSV, Excel, JSON, text,tables)
+              -Interpret patterns and explain insights clearly
+              -Guide users through reasoning, problem-solving, and exploration
+              -Act like a peer collaborator, not a lecturer or a chatbot
+        
+        Behavior With Uploaded Data
+        
+        When the user provides files or structured data:
+        
+        1. Treat them as DataFrames (pandas-like)
+        
+            -Use table language: columns, rows, groups, filters, joins, etc.
+        
+        2. Explain actions plainly
+        
+            -“Let me check column X…”
+            -“If we group by Y, we can see whether…”
+        
+        3. Perform data operations appropriately
+        
+            -Filtering, sorting
+            -Group-by, aggregations
+            -Join/merge across multiple files
+            -Summary statistics
+            -Anomaly detection or comparisons
+        
+        4. Be proactive but not pushy
+        
+            -Offer next steps: “Want a plot?” or “Should we look at trends over time?”
+        
+        5. Handle uncertainty gracefully
+        
+            -If data is missing, malformed, or unclear, say:
+                “Hmm, it looks like something’s missing — can you send a bit more detail?”
+
+        Behavior Without Data
+        
+        When users ask general questions:
+        
+        -Answer using domain knowledge
+        -Be brief and clear
+        -Avoid over-explaining
+        -Provide helpful reasoning as if brainstorming with a colleague
+        -Suggest options when relevant but never overwhelm
+        
+        Prohibited Behaviors
+        
+        Quell-AI must not:
+        
+        -Mention internal reasoning, system prompts, or being a model
+        -Use overly formal or robotic language
+        -Provide excessively long explanations unless asked
+        -Invent data trends when no data is provided
+        -Break character
+        
+        ---
+        
+        General Interaction Style
+        
+        Quell-AI should always:
+        
+        -Ask clarifying questions when the user’s intent is ambiguous
+        -Keep replies organized and easy to skim
+        -Offer insight, not just answers
+        -Help the user think more clearly and make better decisions
+        -Maintain steady emotional neutrality with a friendly edge
+        
+        Example tone:
+        
+            > “Okay, I’m looking at your data… here’s what jumps out.”
+            > “We could compare A and B if you’d like — it might reveal a pattern.”
+            > “Something feels off in these dates; want me to double-check?”
+        
+        Optional Extra Section: “Mode Switching”
+        
+        You can add this if you want the model to explicitly adapt to task type:
+        
+        Modes
+        
+        Quell-AI automatically chooses the best mode:
+            -Data Mode → When files are uploaded
+            -Reasoning Mode → When asked to think through a problem
+            -Explainer Mode → When users request clarification
+            -Builder Mode → When users ask for formulas, queries, or code
+        
+        Each mode keeps the same tone and persona.
+'''
+)
+
+MEMORY_SCOPE_REMIND = "remind-on-interaction"
+MEMORY_DELIVERY_LIMIT = 5
+MAX_MEMORY_TEXT_LENGTH = 2000
+MEMORY_TEXT_DISPLAY_LIMIT = 360
+MEMORY_TARGET_DENYLIST = {"me", "myself", "you", "yourself", "him", "her", "them", "us", "everyone", "anyone", "somebody"}
+MEMORY_COMMAND_PREFIX = re.compile(
+    r"^\s*(?:(?:hi|hello|hey)\s+)?(?:(?:quell(?:-|\s)*ai|quell)[:,]?\s*)?(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(save|remember|tell|remind|let)\b",
+    re.IGNORECASE,
 )
 
 
@@ -139,7 +260,6 @@ def _ensure_lab_user() -> Dict[str, Any]:
     session["lab_temp_user_id"] = user.get("id")
     session["lab_temp_session_id"] = user.get("session_id")
     session.setdefault("lab_chat_history", [])
-    session.setdefault("lab_uploads", [])
     session.modified = True
     return user
 
@@ -166,6 +286,221 @@ def _conversation_context() -> str:
         speaker = "User" if entry.get("role") == "user" else ASSISTANT_NAME
         lines.append(f"{speaker}: {entry.get('text')}")
     return "\n".join(lines).strip()
+
+
+def _get_ingest_rows(
+    session_id: Optional[str],
+    user_id: int,
+    limit: int = 20,
+    statuses: Optional[List[str]] = None,
+) -> List[ConversationLabIngest]:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not (rag and session_id):
+        return []
+    try:
+        query = rag.session.query(ConversationLabIngest).filter(
+            ConversationLabIngest.session_id == session_id,
+            ConversationLabIngest.user_id == user_id,
+        )
+        if statuses:
+            query = query.filter(ConversationLabIngest.status.in_(statuses))
+        return (
+            query.order_by(ConversationLabIngest.queued_at.desc())
+            .limit(limit)
+            .all()
+        )
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        if hasattr(rag, "reset_session"):
+            try:
+                rag.reset_session()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+        logger.error("Failed to fetch ingest rows: %s", exc)
+        return []
+
+
+def _clean_memory_text(raw_text: str) -> str:
+    if not raw_text:
+        return ""
+    normalized = re.sub(r"\s+", " ", raw_text).strip()
+    return normalized
+
+
+def _clean_target_name(raw_name: str) -> str:
+    if not raw_name:
+        return ""
+    sanitized = re.sub(r"[^A-Za-z0-9\s'’.-@]", " ", raw_name)
+    sanitized = sanitized.replace("@", " ")
+    sanitized = re.sub(r"\s+", " ", sanitized).strip(" \"'.,!?")
+    if sanitized.lower().endswith(("'s", "’s")) and len(sanitized) > 2:
+        sanitized = sanitized[:-2]
+    return sanitized.strip()
+
+
+def _parse_memory_instruction(message: str) -> Optional[Dict[str, str]]:
+    if not message:
+        return None
+    normalized = message.strip()
+    if not normalized:
+        return None
+
+    # Try to locate a target after a directive verb.
+    target_match = re.search(
+        r"(?:save\s+|remember\s+|tell\s+|remind\s+|let\s+)(?P<target>[A-Za-z][\w\s'’.-]{0,48})(?:\s+(?:know|that|about))?",
+        normalized,
+        flags=re.IGNORECASE,
+    ) or re.search(
+        r"(?:for\s+|to\s+)(?P<target>[A-Za-z][\w\s'’.-]{0,48})(?:\s+(?:know|that|about))?",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    if not target_match:
+        return None
+
+    target_name = _clean_target_name(target_match.group("target"))
+    if not target_name or target_name.lower() in MEMORY_TARGET_DENYLIST or len(target_name) < 2:
+        return None
+
+    # Capture the remainder as the memory body.
+    tail = normalized[target_match.end():].strip()
+    tail = re.sub(r"^(that|about|regarding)\s+", "", tail, flags=re.IGNORECASE)
+    tail = tail.lstrip(":,-–— ").strip()
+    memory_text = _clean_memory_text(tail)
+    if not memory_text:
+        return None
+    if len(memory_text) > MAX_MEMORY_TEXT_LENGTH:
+        memory_text = memory_text[: MAX_MEMORY_TEXT_LENGTH - 3].rstrip() + "..."
+    return {
+        "target_name": target_name,
+        "memory_text": memory_text,
+        "scope": MEMORY_SCOPE_REMIND,
+    }
+
+
+def _store_instructional_memory(user: Dict[str, Any], payload: Dict[str, str]) -> bool:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not rag:
+        return False
+    target_name = payload.get("target_name", "").strip()
+    memory_text = payload.get("memory_text", "").strip()
+    if not target_name or not memory_text:
+        return False
+    source_name = session.get("lab_display_name") or user.get("display_name")
+    try:
+        source_id_raw = user.get("id")
+        source_user_id = int(source_id_raw) if source_id_raw else None
+    except (TypeError, ValueError):
+        source_user_id = None
+    entry = ConversationLabMemory(
+        source_user_id=source_user_id,
+        source_session_id=session.get("lab_temp_session_id"),
+        source_display_name=source_name,
+        target_name=target_name,
+        memory_text=memory_text,
+        instruction_scope=payload.get("scope") or MEMORY_SCOPE_REMIND,
+    )
+    try:
+        rag.session.add(entry)
+        rag.session.commit()
+        return True
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        if hasattr(rag, "reset_session"):
+            try:
+                rag.reset_session()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+        logger.error("Failed to store Conversation Lab memory: %s", exc)
+        return False
+
+
+def _candidate_target_keys(display_name: str) -> List[str]:
+    cleaned = _clean_target_name(display_name)
+    if not cleaned:
+        return []
+    lowered = cleaned.lower()
+    candidates = [lowered]
+    first_word = lowered.split(" ", 1)[0]
+    if first_word and first_word not in candidates:
+        candidates.append(first_word)
+    return candidates
+
+
+def _format_memory_delivery(memory: ConversationLabMemory, display_name: Optional[str]) -> str:
+    target = _clean_target_name(display_name or "") or _clean_target_name(memory.target_name or "")
+    if not target:
+        target = "there"
+    source = memory.source_display_name or "someone else"
+    snippet = _clean_memory_text(memory.memory_text or "")
+    if len(snippet) > MEMORY_TEXT_DISPLAY_LIMIT:
+        snippet = snippet[: MEMORY_TEXT_DISPLAY_LIMIT - 3].rstrip() + "..."
+    if snippet and not re.match(r"^[\"“].*[\"”]$", snippet):
+        snippet = f"\"{snippet}\""
+    return f"Hey {target}, quick heads-up — {source} asked me to pass along: {snippet}."
+
+
+def _pop_pending_memories(display_name: Optional[str]) -> List[Dict[str, Any]]:
+    if not display_name:
+        return []
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not rag:
+        return []
+    candidates = _candidate_target_keys(display_name)
+    if not candidates:
+        return []
+    try:
+        rows = (
+            rag.session.query(ConversationLabMemory)
+            .filter(
+                ConversationLabMemory.delivered.is_(False),
+                func.lower(ConversationLabMemory.instruction_scope) == MEMORY_SCOPE_REMIND,
+                func.lower(ConversationLabMemory.target_name).in_(candidates),
+            )
+            .order_by(ConversationLabMemory.created_at.asc())
+            .limit(MEMORY_DELIVERY_LIMIT)
+            .all()
+        )
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        logger.error("Failed to load pending Conversation Lab memories: %s", exc)
+        return []
+    if not rows:
+        return []
+    now = datetime.utcnow()
+    payloads: List[Dict[str, Any]] = []
+    for row in rows:
+        row.delivered = True
+        row.delivered_at = now
+        payloads.append(
+            {
+                "id": row.id,
+                "text": _format_memory_delivery(row, display_name),
+                "sourceDisplayName": row.source_display_name,
+                "createdAt": row.created_at.isoformat() if row.created_at else None,
+            }
+        )
+    try:
+        rag.session.commit()
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        logger.error("Failed to mark Conversation Lab memories delivered: %s", exc)
+        return []
+    for entry in payloads:
+        _append_history("assistant", entry["text"])
+    return payloads
 
 
 def _normalize_llm_reply(raw_reply: Any) -> str:
@@ -249,106 +584,40 @@ def _normalize_llm_reply(raw_reply: Any) -> str:
     return _prettify_text(text_reply)
 
 
-def _uploads_context(limit: int = 3) -> str:
-    uploads = session.get("lab_uploads", [])
+def _uploads_context(limit: int = 3, rows: Optional[List[ConversationLabIngest]] = None) -> str:
+    if rows is None:
+        session_id = session.get("lab_temp_session_id")
+        user_id = int(session.get("lab_temp_user_id") or 0)
+        rows = _get_ingest_rows(session_id, user_id, limit=limit, statuses=["ready"])
+    if not rows:
+        return ""
     snippets = []
-    for item in uploads[-limit:]:
-        summary = item.get("summary") or ""
-        preview = item.get("processed_preview") or ""
+    for row in rows:
+        metadata = row.ingest_metadata or {}
+        summary = metadata.get("summary") or ""
+        preview = metadata.get("processed_preview") or ""
         body = summary or preview[:240]
         if not body:
             continue
-        snippets.append(f"{item.get('filename', 'upload')}:\n{body}")
+        snippets.append(f"{row.filename}:\n{body}")
     return "\n\n".join(snippets)
 
 
-def _store_upload_record(
-    *,
+def _pending_ingest_count(session_id: Optional[str], user_id: int) -> int:
+    return len(_get_ingest_rows(session_id, user_id, limit=50, statuses=["queued", "processing"]))
+
+
+def _build_upload_context(
+    prompt: str,
     user_id: int,
-    filename: str,
-    summary: str,
-    ingest_result: Dict[str, Any],
-    rag_document_id: Optional[int],
-) -> None:
-    uploads = list(session.get("lab_uploads", []))
-    uploads.append(
-        {
-            "id": str(uuid.uuid4()),
-            "user_id": user_id,
-            "filename": filename,
-            "summary": summary,
-            "analytics": ingest_result.get("analytics") or {},
-            "concepts": ingest_result.get("concepts") or {},
-            "processed_preview": (ingest_result.get("processed_content") or "")[:1000],
-            "metadata": ingest_result.get("metadata") or {},
-            "rag_document_id": rag_document_id,
-            "stored_at": datetime.utcnow().isoformat(),
-        }
-    )
-    session["lab_uploads"] = uploads[-8:]
-    session.modified = True
-
-
-def _summarize_ingest_payload(payload: Dict[str, Any]) -> str:
-    analytics = payload.get("analytics") or {}
-    file_type = payload.get("file_type") or ""
-    pieces: List[str] = []
-
-    if "row_count" in analytics:
-        row_count = analytics.get("row_count")
-        col_count = analytics.get("column_count")
-        pieces.append(f"{row_count} row{'s' if row_count != 1 else ''}")
-        if col_count is not None:
-            pieces.append(f"{col_count} column{'s' if col_count != 1 else ''}")
-    elif "word_count" in analytics:
-        words = analytics.get("word_count")
-        lines = analytics.get("line_count")
-        pieces.append(f"{words} words")
-        if lines is not None:
-            pieces.append(f"{lines} lines")
-    elif "char_count" in analytics:
-        pieces.append(f"{analytics.get('char_count')} characters")
-
-    if not pieces:
-        pieces.append("Processed document")
-
-    if file_type:
-        pieces.append(file_type.upper())
-
-    language = payload.get("language")
-    if language and language not in {"en", "english"}:
-        pieces.append(f"language {language}")
-
-    return " · ".join(str(part) for part in pieces if part)
-
-
-def _store_embedding_for_upload(user_id: int, processed_text: str, metadata: Dict[str, Any]) -> Optional[int]:
-    rag = current_app.config.get("RAG_SYSTEM")
-    if not (rag and processed_text):
-        return None
-    safe_meta = dict(metadata or {})
-    safe_meta.update({"source": "conversation_lab"})
-    if "file_hash" not in safe_meta:
-        safe_meta["file_hash"] = hashlib.sha256(processed_text.encode("utf-8", "ignore")).hexdigest()
-    timestamp = datetime.utcnow().isoformat()
-    safe_meta.setdefault("uploaded_at", timestamp)
-    safe_meta["updated_at"] = timestamp
-    try:
-        doc_id = rag.store_document_embedding(
-            user_id=user_id,
-            content=processed_text,
-            document_type="conversation_lab_upload",
-            metadata=safe_meta,
-        )
-        session_id = safe_meta.get("session_id")
-        if doc_id and session_id:
-            rag.prime_session_cache(user_id=user_id, session_id=session_id, document_type="conversation_lab_upload")
-        return doc_id
-    except Exception:
-        return None
-
-
-def _build_upload_context(prompt: str, user_id: int, session_id: Optional[str]) -> str:
+    session_id: Optional[str],
+    ready_rows: Optional[List[ConversationLabIngest]] = None,
+) -> str:
+    limit = 3
+    if ready_rows is None:
+        ready_rows = _get_ingest_rows(session_id, user_id, limit=limit, statuses=["ready"])
+    if not ready_rows:
+        return ""
     rag = current_app.config.get("RAG_SYSTEM")
     if rag:
         try:
@@ -371,7 +640,7 @@ def _build_upload_context(prompt: str, user_id: int, session_id: Optional[str]) 
                     return "\n\n".join(formatted)
         except Exception:
             pass
-    return _uploads_context()
+    return _uploads_context(limit=limit, rows=ready_rows)
 
 
 @bp.get("/status")
@@ -508,9 +777,13 @@ def conversation_lab_session() -> Any:
         return jsonify({"error": "Too many session requests. Please wait a moment."}), 429
     user = _ensure_lab_user()
     session.setdefault("lab_chat_history", [])
-    session.setdefault("lab_uploads", [])
     session.modified = True
-    display_name = user.get("display_name") or session.get("lab_display_name")
+    display_name = user.get("display_name")
+    if display_name:
+        session["lab_display_name"] = display_name
+    else:
+        session.pop("lab_display_name", None)
+    pending_memories = _pop_pending_memories(session.get("lab_display_name") or display_name)
     return jsonify(
         {
             "userId": user.get("id"),
@@ -519,6 +792,7 @@ def conversation_lab_session() -> Any:
             "greeting": DEFAULT_GREETING,
             "hasName": bool(display_name),
             "displayName": display_name,
+            "pendingMemories": pending_memories,
         }
     )
 
@@ -533,23 +807,20 @@ def conversation_lab_set_name() -> Any:
     if not name:
         return jsonify({"error": "name is required"}), 400
 
-    user_message = str(payload.get("message") or name).strip()
-    if user_message:
-        _append_history("user", user_message)
-
     repo = _temp_user_repo()
     updated = repo.update_name(user["id"], name)
     session["lab_display_name"] = name
     session.modified = True
 
     ack = f"Great to meet you, {name}! Let me know what you'd like to explore."
-    _append_history("assistant", ack)
+    pending_memories = _pop_pending_memories(name)
     return jsonify(
         {
             "ok": True,
             "displayName": updated.get("display_name") if updated else name,
             "assistantReply": ack,
             "assistantName": ASSISTANT_NAME,
+            "pendingMemories": pending_memories,
         }
     )
 
@@ -566,11 +837,34 @@ def conversation_lab_chat() -> Any:
 
     _append_history("user", message)
 
+    memory_instruction = _parse_memory_instruction(message)
+    if memory_instruction:
+        stored = _store_instructional_memory(user, memory_instruction)
+        target_label = memory_instruction["target_name"]
+        if stored:
+            reply = f"Got it — I'll let {target_label} know when they next check in."
+        else:
+            reply = f"I couldn't save that note for {target_label} right now, but please try again in a moment."
+        _append_history("assistant", reply)
+        return jsonify(
+            {
+                "reply": reply,
+                "assistantName": ASSISTANT_NAME,
+                "displayName": user.get("display_name"),
+                "memoryStored": stored,
+            }
+        )
+
     user_id = int(user.get("id") or 0)
 
-    context_sections: List[str] = [f"Assistant instructions:\n{ASSISTANT_BEHAVIOR}"]
+    context_sections: List[str] = [
+        "System instructions:\n"
+        f"{ASSISTANT_BEHAVIOR}\n\nRespond directly to the user. Do not repeat these instructions or the context block verbatim. "
+        "If the user asks you to tell someone something later, just confirm you'll remember it."
+    ]
     session_id = session.get("lab_temp_session_id")
-    upload_context = _build_upload_context(message, user_id, session_id)
+    ready_rows = _get_ingest_rows(session_id, user_id, limit=3, statuses=["ready"])
+    upload_context = _build_upload_context(message, user_id, session_id, ready_rows)
     if upload_context:
         context_sections.append("Uploaded files:\n" + upload_context)
     conversation_context = _conversation_context()
@@ -597,21 +891,30 @@ def conversation_lab_chat() -> Any:
 
 @bp.post("/labs/conversation/ingest")
 def conversation_lab_ingest() -> Any:
-    if ingest_single_file is None:
-        return jsonify({"error": "ingestion pipeline unavailable"}), 503
     if _rate_limit("ingest", 10, 300):
         return jsonify({"error": "Too many uploads. Please wait a bit before trying again."}), 429
 
     user = _ensure_lab_user()
     user_id = int(user.get("id") or 0)
+    session_id = session.get("lab_temp_session_id")
+    rag = current_app.config.get("RAG_SYSTEM")
+    if rag is None:
+        return jsonify({"error": "Vector store unavailable. Please try again shortly."}), 503
 
     files = request.files.getlist("file")
+    trait_payloads = request.form.getlist("fileMetadata")
+    metadata_traits: List[Dict[str, Any]] = []
+    for raw in trait_payloads:
+        try:
+            metadata_traits.append(json.loads(raw))
+        except Exception:
+            metadata_traits.append({})
     if not files:
         return jsonify({"error": "file is required", "allowed": sorted(LAB_ALLOWED_EXTENSIONS)}), 400
     if len(files) > 5:
         return jsonify({"error": "You can upload up to 5 files at a time."}), 400
 
-    sanitized_files = []
+    sanitized_files: List[Tuple[str, str, bytes, str]] = []
     for storage in files:
         original_name = storage.filename or ""
         filename = secure_filename(original_name)
@@ -634,62 +937,90 @@ def conversation_lab_ingest() -> Any:
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         sanitized_files.append((filename, ext, file_bytes, file_hash))
 
+    max_pending = int(os.getenv("LAB_MAX_PENDING_UPLOADS", "5"))
+    queue_depth = _pending_ingest_count(session_id, user_id)
+    if queue_depth + len(sanitized_files) > max_pending:
+        response = jsonify(
+            {
+                "error": "Uploads are queued. Please retry after current files finish processing.",
+                "queueDepth": queue_depth,
+                "limit": max_pending,
+            }
+        )
+        response.status_code = 202
+        response.headers["Retry-After"] = "15"
+        return response
+
     uploaded_items: List[Dict[str, Any]] = []
     description = request.form.get("description", "Conversation Lab upload")
-    for filename, ext, file_bytes, file_hash in sanitized_files:
-        try:
-            result = ingest_single_file(
-                file_path=None,
-                file_data=file_bytes,
-                filename_override=filename,
-                save=False,
-                user_id=user_id,
-                description=description,
-                classification="internal",
-                ask=None,
-                user_email=None,
-            )
-        except ValueError as exc:
-            return jsonify({"error": str(exc)}), 400
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("Conversation Lab ingest failed")
-            return jsonify({"error": "failed to process file"}), 500
+    upload_root = Path(current_app.config.get("CONVERSATION_LAB_UPLOAD_DIR"))
+    upload_root.mkdir(parents=True, exist_ok=True)
+    for index, (filename, ext, file_bytes, file_hash) in enumerate(sanitized_files):
+        storage_name = f"{uuid.uuid4().hex}_{filename}"
+        storage_path = upload_root / storage_name
+        storage_path.write_bytes(file_bytes)
+        traits = metadata_traits[index] if index < len(metadata_traits) else {}
+        client_signature = str(traits.get("signature") or "").strip()
+        client_fallback_signature = str(traits.get("fallbackSignature") or "").strip()
 
-        if not result:
-            return jsonify({"error": "ingestion failed"}), 500
-        if result.get("ok") is False:
-            return jsonify({"error": result.get("error", "ingestion failed")}), 400
-
-        summary = _summarize_ingest_payload(result)
         metadata = {
-            "filename": result.get("filename") or filename,
-            "language": result.get("language"),
-            "analytics": result.get("analytics") or {},
-            "concepts": result.get("concepts") or {},
-            "session_id": session.get("lab_temp_session_id"),
+            "description": description,
             "file_hash": file_hash,
         }
-        rag_doc_id = _store_embedding_for_upload(user_id, result.get("processed_content") or "", metadata)
-        _store_upload_record(
+        if client_signature:
+            metadata["client_signature"] = client_signature
+        if client_fallback_signature:
+            metadata["client_fallback_signature"] = client_fallback_signature
+        ingest_row = ConversationLabIngest(
+            session_id=session_id,
             user_id=user_id,
-            filename=metadata["filename"],
-            summary=summary,
-            ingest_result=result,
-            rag_document_id=rag_doc_id,
+            filename=filename,
+            file_type=ext,
+            file_size_bytes=len(file_bytes),
+            storage_path=str(storage_path),
+            status="queued",
+            ingest_metadata=metadata,
         )
+        rag.session.add(ingest_row)
+        rag.session.commit()
+        job_status = "queued"
+        try:
+            from worker.tasks import enqueue_conversation_lab_ingest
+
+            enqueue_conversation_lab_ingest(ingest_row.id)
+        except Exception as exc:  # pragma: no cover
+            logger.exception("Failed to enqueue ingest job")
+            ingest_row.status = "failed"
+            ingest_row.error_message = str(exc)
+            rag.session.add(ingest_row)
+            rag.session.commit()
+            job_status = "failed"
 
         uploaded_items.append(
             {
-                "filename": metadata["filename"],
-                "fileType": result.get("file_type") or ext,
-                "summary": summary,
-                "language": metadata["language"],
-                "translated": bool(result.get("translated_to_english")),
-                "analytics": metadata["analytics"],
+                "filename": filename,
+                "fileType": ext,
+                "status": job_status,
+                "jobId": ingest_row.id,
             }
         )
 
     return jsonify({"ok": True, "items": uploaded_items, "count": len(uploaded_items)})
+
+
+@bp.get("/labs/conversation/uploads")
+def conversation_lab_uploads() -> Any:
+    user = _ensure_lab_user()
+    session_id = session.get("lab_temp_session_id")
+    if not session_id:
+        return jsonify({"items": []})
+    limit = min(int(request.args.get("limit", 20)), 50)
+    rows = _get_ingest_rows(session_id, int(user.get("id") or 0), limit=limit)
+    payload = [serialize_ingest_row(row) for row in rows]
+    pending = _get_ingest_rows(session_id, int(user.get("id") or 0), limit=5, statuses=["queued", "processing"])
+    queue_depth = len(pending)
+    max_pending = int(os.getenv("LAB_MAX_PENDING_UPLOADS", "5"))
+    return jsonify({"items": payload, "count": len(payload), "queueDepth": queue_depth, "limit": max_pending})
 
 
 @bp.post("/rag/workbench")
@@ -820,7 +1151,7 @@ def process_message() -> Any:
     chunk_texts = [chunk.text for chunk in chunks]
     embeddings = embed_many(chunk_texts, EMBED_DIM)
     if not embeddings:
-        embeddings = [[0.0] * EMBED_DIM for _ in chunk_texts]
+        embeddings = [[0.0] -EMBED_DIM for _ in chunk_texts]
 
     message_id = persist_pipeline_run(
         source_lang=source_lang,
@@ -1107,7 +1438,7 @@ def rag_from_documents(documents: List[Dict[str, str]], query: str) -> Dict[str,
         doc_matrix = np.asarray(doc_embeddings, dtype=float)
         query_norm = np.linalg.norm(query_vec) or 1e-9
         doc_norms = np.linalg.norm(doc_matrix, axis=1)
-        denominator = np.clip(doc_norms * query_norm, 1e-9, None)
+        denominator = np.clip(doc_norms -query_norm, 1e-9, None)
         similarities = (doc_matrix @ query_vec) / denominator
 
     ranked = sorted(
@@ -1161,7 +1492,7 @@ def _fallback_embed_many(texts: List[str], dim: int) -> List[List[float]]:
     embeddings: List[List[float]] = []
     for text in texts:
         seed = hashlib.sha256(text.encode("utf-8")).digest()
-        values = [((seed[i % len(seed)] / 255.0) * 2 - 1) for i in range(dim)]
+        values = [((seed[i % len(seed)] / 255.0) -2 - 1) for i in range(dim)]
         embeddings.append([round(val, 6) for val in values])
     return embeddings
 
@@ -1203,10 +1534,10 @@ def fallback_chat_response(messages: List[Dict[str, str]]) -> str:
 
 def synthesize_placeholder_audio(text: str, sample_rate: int = 16000) -> Tuple[bytes, int]:
     duration = min(6.0, 1.5 + len(text) / 60.0)
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    t = np.linspace(0, duration, int(sample_rate -duration), endpoint=False)
     base_freq = 220 + (len(text) % 160)
-    modulation = np.sin(2 * np.pi * 3 * t)
-    waveform = 0.25 * np.sin(2 * np.pi * base_freq * t + 0.4 * modulation)
+    modulation = np.sin(2 -np.pi -3 -t)
+    waveform = 0.25 -np.sin(2 -np.pi -base_freq -t + 0.4 -modulation)
     buffer = io.BytesIO()
     sf.write(buffer, waveform, sample_rate, format="WAV")
     buffer.seek(0)
