@@ -206,6 +206,8 @@ export default function ConversationLab() {
     [getCanonicalKey],
   );
 
+  const chatBlocked = isUploading || uploadJobs.some((job) => job.status !== "ready");
+
   const hasCachedFileForJob = useCallback(
     (job: UploadJob) => Boolean(getCachedEntry(job.fileHash) ?? getCachedEntry(job.clientSignature)),
     [getCachedEntry],
@@ -518,6 +520,10 @@ export default function ConversationLab() {
   }, [sessionInfo]);
 
   const handleSend = async () => {
+    if (chatBlocked) {
+      setError("Chat is temporarily disabled while uploads are processing.");
+      return;
+    }
     if (!sessionInfo) return;
     const trimmed = draft.trim();
     if (!trimmed || isSending || isUploading) return;
@@ -580,6 +586,10 @@ export default function ConversationLab() {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (chatBlocked) {
+      event.preventDefault();
+      return;
+    }
     if (event.key === "Enter") {
       event.preventDefault();
       handleSend();
@@ -914,7 +924,9 @@ export default function ConversationLab() {
             <div>
               <p className="clab-chat-title">Conversation stream</p>
               <p className="clab-chat-subtitle">
-                Attach {attachmentContext} or type a natural question. Responses stay inside this lab.
+                {chatBlocked
+                  ? `Attach ${attachmentContext}. Chat is paused while uploads finish processing.`
+                  : `Attach ${attachmentContext} or type a natural question. Responses stay inside this lab.`}
               </p>
             </div>
             <div className="clab-chat-actions">
@@ -1006,14 +1018,18 @@ export default function ConversationLab() {
             <input
               value={draft}
               placeholder={
-                needsName ? "First, let me know your name so I can personalize things." : "Type a message..."
+                chatBlocked
+                  ? "Chat paused while uploads finish."
+                  : needsName
+                    ? "First, let me know your name so I can personalize things."
+                    : "Type a message..."
               }
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isSending || isUploading}
+              disabled={chatBlocked || isSending || isUploading}
             />
-            <button type="button" onClick={handleSend} disabled={isSending || isUploading}>
-              {needsName ? "Share name" : "Send"}
+            <button type="button" onClick={handleSend} disabled={chatBlocked || isSending || isUploading}>
+              {chatBlocked ? "Wait for uploads" : needsName ? "Share name" : "Send"}
             </button>
           </div>
         </div>

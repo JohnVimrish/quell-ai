@@ -67,7 +67,8 @@ def create_app(config_override=None):
         )
 
     # Initialize SocketIO for real-time features
-    message_queue = os.getenv("SOCKETIO_MESSAGE_QUEUE", os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"))
+    message_queue_env = os.getenv("SOCKETIO_MESSAGE_QUEUE") or os.getenv("CELERY_BROKER_URL")
+    message_queue = message_queue_env.strip() if message_queue_env and message_queue_env.strip() else None
     try:
         socketio = SocketIO(
             app,

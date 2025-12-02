@@ -18,9 +18,14 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import func
 
 from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
-from api.services.labs_ingest import serialize_ingest_row
+from api.services.labs_ingest import (
+    serialize_ingest_row,
+    store_embedding_for_upload,
+    summarize_ingest_payload,
+)
 from api.repositories.temp_user_repo import TempUserRepository
 from api.db.vector_store import ConversationLabIngest, ConversationLabMemory
+from scripts.ingest_file import ingest_single_file
 import numpy as np
 import soundfile as sf
 
@@ -937,20 +942,6 @@ def conversation_lab_ingest() -> Any:
         file_hash = hashlib.sha256(file_bytes).hexdigest()
         sanitized_files.append((filename, ext, file_bytes, file_hash))
 
-    max_pending = int(os.getenv("LAB_MAX_PENDING_UPLOADS", "5"))
-    queue_depth = _pending_ingest_count(session_id, user_id)
-    if queue_depth + len(sanitized_files) > max_pending:
-        response = jsonify(
-            {
-                "error": "Uploads are queued. Please retry after current files finish processing.",
-                "queueDepth": queue_depth,
-                "limit": max_pending,
-            }
-        )
-        response.status_code = 202
-        response.headers["Retry-After"] = "15"
-        return response
-
     uploaded_items: List[Dict[str, Any]] = []
     description = request.form.get("description", "Conversation Lab upload")
     upload_root = Path(current_app.config.get("CONVERSATION_LAB_UPLOAD_DIR"))
@@ -978,34 +969,96 @@ def conversation_lab_ingest() -> Any:
             file_type=ext,
             file_size_bytes=len(file_bytes),
             storage_path=str(storage_path),
-            status="queued",
+            status="processing",
+            started_at=datetime.utcnow(),
             ingest_metadata=metadata,
         )
         rag.session.add(ingest_row)
         rag.session.commit()
-        job_status = "queued"
-        try:
-            from worker.tasks import enqueue_conversation_lab_ingest
 
-            enqueue_conversation_lab_ingest(ingest_row.id)
-        except Exception as exc:  # pragma: no cover
-            logger.exception("Failed to enqueue ingest job")
-            ingest_row.status = "failed"
-            ingest_row.error_message = str(exc)
+        try:
+            result = ingest_single_file(
+                file_data=file_bytes,
+                filename_override=filename,
+                save=False,
+                user_id=user_id,
+                description=description,
+                classification="internal",
+            )
+            if not result:
+                raise ValueError("Ingestion returned no result")
+            if result.get("ok") is False:
+                raise ValueError(result.get("error") or "Ingestion failed")
+
+            processed_content = result.get("processed_content") or ""
+            summary = summarize_ingest_payload(result)
+            metadata.update(
+                {
+                    "summary": summary,
+                    "analytics": result.get("analytics") or {},
+                    "concepts": result.get("concepts") or {},
+                    "language": result.get("language"),
+                    "processed_preview": processed_content[:1200],
+                    "progress_stage": "ready",
+                    "progress_detail": "inline",
+                }
+            )
+
+            extra_meta = dict(metadata)
+            extra_meta.update(
+                {
+                    "session_id": session_id,
+                    "filename": filename,
+                    "file_hash": metadata.get("file_hash"),
+                    "client_signature": metadata.get("client_signature"),
+                }
+            )
+
+            embedding_id = store_embedding_for_upload(
+                rag,
+                user_id,
+                processed_content,
+                extra_meta,
+            )
+            if embedding_id is None:
+                raise ValueError("Embedding generation failed")
+
+            ingest_row.embedding_id = embedding_id
+            ingest_row.ingest_metadata = metadata
+            ingest_row.status = "ready"
+            ingest_row.finished_at = datetime.utcnow()
             rag.session.add(ingest_row)
             rag.session.commit()
-            job_status = "failed"
+            uploaded_items.append(
+                {
+                    "filename": filename,
+                    "fileType": ext,
+                    "status": "ready",
+                    "jobId": ingest_row.id,
+                }
+            )
+        except Exception as exc:  # pragma: no cover
+            try:
+                rag.session.rollback()
+                ingest_row.status = "failed"
+                ingest_row.error_message = str(exc)
+                ingest_row.finished_at = datetime.utcnow()
+                rag.session.add(ingest_row)
+                rag.session.commit()
+            except Exception:
+                pass
+            uploaded_items.append(
+                {
+                    "filename": filename,
+                    "fileType": ext,
+                    "status": "failed",
+                    "error": str(exc),
+                    "jobId": ingest_row.id,
+                }
+            )
 
-        uploaded_items.append(
-            {
-                "filename": filename,
-                "fileType": ext,
-                "status": job_status,
-                "jobId": ingest_row.id,
-            }
-        )
-
-    return jsonify({"ok": True, "items": uploaded_items, "count": len(uploaded_items)})
+    ok = all(item.get("status") == "ready" for item in uploaded_items)
+    return jsonify({"ok": ok, "items": uploaded_items, "count": len(uploaded_items)})
 
 
 @bp.get("/labs/conversation/uploads")
