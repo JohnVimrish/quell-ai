@@ -1,10 +1,11 @@
 /* Shared theme tokens - Quell AI theme based on test.html */
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap');
+
 :root {
   /* Fonts */
   --font-serif: 'Merriweather', serif;
   --font-sans: 'Open Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap');
 
 :root {
   /* Primary palette (from test.html) */
@@ -432,11 +433,24 @@ a {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: -0.02em;
   color: var(--color-dark-text);
   min-width: 110px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.brand .brand-mark {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary-blue);
 }
 
 .nav-links {
@@ -516,6 +530,13 @@ a {
   border-color: var(--accent-pastel-green);
   box-shadow: 0 4px 12px rgba(194, 245, 171, 0.35);
   color: var(--color-dark-text);
+}
+
+/* Disabled nav item (archived sections) */
+.nav-disabled {
+  cursor: default;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 /* 3D interaction helpers aligned with test.html */

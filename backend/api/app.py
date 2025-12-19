@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from flask import Flask, session, g, redirect, request, jsonify, render_template
 from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room
 
 from api.utils.config import Config
 from api.utils.logging import LoggerManager
@@ -19,20 +19,13 @@ except Exception:  # Module archived or unavailable
     SpamDetector = None  # type: ignore
 from api.models.rag_system import RAGSystem
 from api.models.voice_model import VoiceModel
+from api.services.embedding_queue import EmbeddingQueue
 from app.asset_loader import asset_url, asset_css, reset_manifest_cache
 from .controllers import (
     feed_controller,
-    copilot_controller,
-    # archived: contacts_controller,
-    # archived: calls_controller,
-    texts_controller,
     documents_controller,
-    settings_controller,
-    # archived: report_controller,
-    webhooks_controller,
     auth_controller,
     labs_controller,
-    meetings_controller,
 )
 from flask import send_from_directory
 
@@ -70,11 +63,27 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         )
 
     # Initialize SocketIO for real-time features
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+    message_queue_env = os.getenv("SOCKETIO_MESSAGE_QUEUE") or os.getenv("CELERY_BROKER_URL")
+    message_queue = message_queue_env.strip() if message_queue_env and message_queue_env.strip() else None
+    try:
+        socketio = SocketIO(
+            app,
+            cors_allowed_origins="*",
+            async_mode="threading",
+            message_queue=message_queue,
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).warning("SocketIO message queue unavailable (%s). Falling back to local mode.", exc)
+        socketio = SocketIO(
+            app,
+            cors_allowed_origins="*",
+            async_mode="threading",
+            message_queue=None,
+        )
 
     try:
         cfg = config_override or Config.load()
@@ -91,12 +100,14 @@ def create_app(config_override=None):
             AI_MODEL_PATH=os.getenv("AI_MODEL_PATH", "models/"),
             VOICE_SAMPLES_PATH=os.getenv("VOICE_SAMPLES_PATH", "voice_samples/"),
             TRANSCRIPTS_PATH=os.getenv("TRANSCRIPTS_PATH", "transcripts/"),
-            # TWILIO_ACCOUNT_SID=os.getenv("TWILIO_ACCOUNT_SID"),
-            # TWILIO_AUTH_TOKEN=os.getenv("TWILIO_AUTH_TOKEN"),
-            # DEEPGRAM_API_KEY=os.getenv("DEEPGRAM_API_KEY"),
-            # ELEVENLABS_API_KEY=os.getenv("ELEVENLABS_API_KEY"),
-            # OPENAI_API_KEY=os.getenv("OPENAI_API_KEY"),
-            FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
+            CONVERSATION_LAB_UPLOAD_DIR=os.getenv(
+                "CONVERSATION_LAB_UPLOAD_DIR",
+                os.path.join(project_root, "uploads", "conversation_lab"),
+            ),
+            CONVERSATION_LAB_DOC_USER_ID=int(os.getenv("CONVERSATION_LAB_DOC_USER_ID", "0")),
+            CONVERSATION_LAB_DOC_USER_EMAIL=os.getenv("CONVERSATION_LAB_DOC_USER_EMAIL"),
+            SOCKETIO_MESSAGE_QUEUE=message_queue,
+            FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
             DATABASE_URL= cfg.database_url,
             DEBUG=cfg.debug,
             FEED_ACTIVE_DAYS=int(os.getenv("FEED_ACTIVE_DAYS", 7)),
@@ -127,9 +138,9 @@ def create_app(config_override=None):
         supports_credentials=True,
         origins=[
             app.config["FRONTEND_DEV_URL"],
-            "http://localhost:5173",
+            "http://35.232.121.42:5173",
             "http://127.0.0.1:5173",
-            "http://localhost:3000",
+            "http://35.232.121.42:3000",
             "http://127.0.0.1:3000",
         ],
     )
@@ -147,23 +158,26 @@ def create_app(config_override=None):
         else:
             app.config["SPAM_DETECTOR"] = None
 
-        app.config["RAG_SYSTEM"] = RAGSystem(cfg, app.config.get("OLLAMA_SERVICE"))
+
+        ollama_embedding_dim = int(os.getenv("OLLAMA_EMBEDDING_DIM", "384"))
+        ollama_service = OllamaService(
+            embedding_dim=ollama_embedding_dim
+        )
+        embedding_queue = None
+        if ollama_service and ollama_service.is_available():
+            embed_workers = int(os.getenv("EMBED_QUEUE_WORKERS", "2"))
+            embedding_queue = EmbeddingQueue(
+                ollama_service,
+                max_workers=max(1, embed_workers),
+            )
+        app.config["OLLAMA_SERVICE"] = ollama_service
+        app.config["EMBEDDING_QUEUE"] = embedding_queue
+        app.config["RAG_SYSTEM"] = RAGSystem(cfg, ollama_service, embedding_queue)
 
         if app.config["VOICE_CLONING_ENABLED"]:
             app.config["VOICE_MODEL"] = VoiceModel()
         else:
             app.config["VOICE_MODEL"] = None
-
-        # Initialize OLLama service for data feeds
-        ollama_model_path = os.getenv(
-            "OLLAMA_MODEL_PATH",
-            "C:/Users/033690343/OneDrive - csulb/Models-LLM/Llama-3.2-1B-Instruct"
-        )
-        ollama_embedding_dim = int(os.getenv("OLLAMA_EMBEDDING_DIM", "384"))
-        app.config["OLLAMA_SERVICE"] = OllamaService(
-            model_path=ollama_model_path,
-            embedding_dim=ollama_embedding_dim
-        )
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).exception("AI model initialization failed")
         app.config.update(
@@ -171,11 +185,19 @@ def create_app(config_override=None):
             RAG_SYSTEM=None,
             VOICE_MODEL=None,
             OLLAMA_SERVICE=None,
+            EMBEDDING_QUEUE=None,
         )
 
     os.makedirs(app.config["AI_MODEL_PATH"], exist_ok=True)
     os.makedirs(app.config["VOICE_SAMPLES_PATH"], exist_ok=True)
     os.makedirs(app.config["TRANSCRIPTS_PATH"], exist_ok=True)
+    os.makedirs(app.config["CONVERSATION_LAB_UPLOAD_DIR"], exist_ok=True)
+
+    @socketio.on("join_ingest_room")
+    def join_ingest_room(data):  # type: ignore
+        session_identifier = (data or {}).get("sessionId")
+        if session_identifier:
+            join_room(f"ingest:{session_identifier}")
 
     @app.before_request
     def before_request():  # noqa: D401
@@ -206,7 +228,7 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         ), 404
 
     @app.errorhandler(500)
@@ -216,24 +238,15 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         ), 500
 
 
 
     # Register API blueprints
     app.register_blueprint(auth_controller.bp, url_prefix="/api/auth")
-    app.register_blueprint(copilot_controller.bp, url_prefix="/api/copilot")
     app.register_blueprint(feed_controller.bp, url_prefix="/api/feed")
-    # Archived endpoints (Oct 2025)
-    # app.register_blueprint(contacts_controller.bp, url_prefix="/api/contacts")
-    # app.register_blueprint(calls_controller.bp, url_prefix="/api/calls")
-    app.register_blueprint(texts_controller.bp, url_prefix="/api/texts")
     app.register_blueprint(documents_controller.bp, url_prefix="/api/documents")
-    app.register_blueprint(meetings_controller.bp, url_prefix="/api/meetings")
-    app.register_blueprint(settings_controller.bp, url_prefix="/api/settings")
-    # app.register_blueprint(report_controller.bp, url_prefix="/api/reports")
-    app.register_blueprint(webhooks_controller.bp, url_prefix="/api/webhooks")
     app.register_blueprint(labs_controller.bp, url_prefix="/api")
 
     # Simple API status endpoint

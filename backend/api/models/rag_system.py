@@ -1,18 +1,24 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 import re
+import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, bindparam
 from sqlalchemy.orm import Session, sessionmaker
+from pgvector.sqlalchemy import Vector
 
 from api.db.vector_store import ConversationContext, DocumentEmbedding
 from api.utils.config import Config
 from api.models.ollama_service import OllamaService
+from api.services.embedding_queue import EmbeddingQueue
+from api.models.embedding_provider import get_embedding_backend, EmbeddingTimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -22,19 +28,58 @@ TARGET_VECTOR_DIM = 384
 class RAGSystem:
     """Retrieval-augmented generation backed by local Ollama service."""
 
-    def __init__(self, config: Config, ollama_service: Optional[OllamaService] = None):
+    def __init__(
+        self,
+        config: Config,
+        ollama_service: Optional[OllamaService] = None,
+        embedding_queue: Optional[EmbeddingQueue] = None,
+    ):
         self.config = config
         engine = create_engine(config.database_url, future=True)
         SessionFactory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
         self.engine = engine
+        self._session_factory = SessionFactory
         self.session: Session = SessionFactory()
 
         self.ollama_service: Optional[OllamaService] = ollama_service
+        self.embedding_backend = get_embedding_backend(ollama_service)
+        self.embedding_queue = embedding_queue
 
         # Optional table names from config.queries (rag section) or defaults
         rag_cfg = (config.queries.get("rag") if isinstance(config.queries, dict) else None) or {}
-        self.embed_table: str = rag_cfg.get("embed_table", "document_embeddings")
+        self.embed_table: str = rag_cfg.get("embed_table", "data_feeds_vectors.embeddings")
         self.context_table: str = rag_cfg.get("context_table", "conversation_contexts")
+        self._cache_ttl = int(os.getenv("RAG_CACHE_TTL", "120"))
+        self._query_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
+        self._session_cache: Dict[str, Tuple[float, List[Dict[str, Any]]]] = {}
+        default_content_column = "content_snippet" if self.embed_table.endswith("data_feeds_vectors.embeddings") else "content"
+        self._content_column = rag_cfg.get("content_column", default_content_column)
+        self._ensure_indexes()
+
+    def reset_session(self) -> None:
+        try:
+            if self.session:
+                self.session.close()
+        except Exception:
+            pass
+        self.session = self._session_factory()
+
+    def _ensure_indexes(self) -> None:
+        """Create useful indexes for faster retrieval and metadata lookups."""
+        # Sanitize table reference so generated index names are valid identifiers
+        index_table = re.sub(r"[^0-9a-zA-Z_]", "_", self.embed_table)
+        statements = [
+            f"CREATE INDEX IF NOT EXISTS idx_{index_table}_user_type ON {self.embed_table} (user_id, document_type)",
+            f"CREATE INDEX IF NOT EXISTS idx_{index_table}_session_id ON {self.embed_table} ((document_metadata->>'session_id'))",
+            f"CREATE INDEX IF NOT EXISTS idx_{index_table}_filename ON {self.embed_table} ((document_metadata->>'filename'))",
+            f"CREATE INDEX IF NOT EXISTS idx_{index_table}_embedding ON {self.embed_table} USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)",
+        ]
+        try:
+            with self.engine.begin() as conn:
+                for stmt in statements:
+                    conn.execute(text(stmt))
+        except Exception as exc:  # pragma: no cover - best effort
+            logger.warning("Unable to ensure RAG indexes: %s", exc)
 
     # ------------------------------------------------------------------ #
     # Public API
@@ -46,24 +91,58 @@ class RAGSystem:
         document_type: str,
         document_id: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        embedding_override: Optional[List[float]] = None,
     ) -> Optional[int]:
         """Generate and persist an embedding for a document."""
-        embedding = self._embed_text(content)
+        embedding = embedding_override or self._embed_text(content)
         if embedding is None:
             logger.warning("Skipping document embedding; local LLM unavailable.")
             return None
 
+        chunk_index = int((metadata or {}).get("chunk_index") or 0)
+        file_id = self._derive_file_id(document_id, metadata, user_id)
+        existing = self._find_existing_embedding(user_id, document_type, metadata, document_id)
+        timestamp = datetime.utcnow()
         try:
+            if existing:
+                delta_norm = self._compute_delta_norm(existing.embedding, embedding)
+                merged_meta = self._merge_metadata(existing.document_metadata, metadata)
+                merged_meta["updated_at"] = timestamp.isoformat()
+                if delta_norm is not None:
+                    merged_meta["delta_norm"] = delta_norm
+                merged_meta["file_id"] = file_id
+                merged_meta["chunk_index"] = chunk_index
+                existing.content = content
+                existing.embedding = embedding
+                existing.document_metadata = merged_meta
+                existing.updated_at = timestamp
+                existing.chunk_index = chunk_index
+                existing.file_id = file_id
+                if document_id:
+                    existing.document_id = document_id
+                existing.document_type = document_type
+                self.session.commit()
+                self._invalidate_cache(user_id)
+                logger.info("Updated existing embedding for document type %s", document_type)
+                return existing.id
+
+            enriched_meta = dict(metadata or {})
+            enriched_meta.setdefault("uploaded_at", timestamp.isoformat())
+            enriched_meta["file_id"] = file_id
+            enriched_meta["chunk_index"] = chunk_index
             record = DocumentEmbedding(
                 user_id=user_id,
                 document_type=document_type,
                 document_id=document_id,
+                file_id=file_id,
+                chunk_index=chunk_index,
                 content=content,
                 embedding=embedding,
-                document_metadata=metadata or {},
+                document_metadata=enriched_meta,
             )
             self.session.add(record)
             self.session.commit()
+            self._invalidate_cache(user_id)
             logger.info("Stored embedding for document type %s", document_type)
             return record.id
         except Exception as exc:  # noqa: BLE001
@@ -71,16 +150,184 @@ class RAGSystem:
             logger.error("Error storing document embedding: %s", exc)
             return None
 
+    def _find_existing_embedding(
+        self,
+        user_id: int,
+        document_type: str,
+        metadata: Optional[Dict[str, Any]],
+        document_id: Optional[int],
+    ) -> Optional[DocumentEmbedding]:
+        file_id = self._derive_file_id(document_id, metadata, user_id)
+        chunk_index = int((metadata or {}).get("chunk_index") or 0)
+        return (
+            self.session.query(DocumentEmbedding)
+            .filter(
+                DocumentEmbedding.user_id == user_id,
+                DocumentEmbedding.document_type == document_type,
+                DocumentEmbedding.file_id == file_id,
+                DocumentEmbedding.chunk_index == chunk_index,
+            )
+            .order_by(DocumentEmbedding.updated_at.desc())
+            .first()
+        )
+
+    def _compute_delta_norm(
+        self, previous: Optional[Any], current: List[float]
+    ) -> Optional[float]:
+        if previous is None:
+            return None
+        try:
+            prev_values = list(previous) if not isinstance(previous, list) else previous
+            prev_vec = np.array(prev_values, dtype=float)
+            curr_vec = np.array(current, dtype=float)
+            return float(np.linalg.norm(curr_vec - prev_vec))
+        except Exception:
+            return None
+
+    def _merge_metadata(
+        self, existing: Optional[Dict[str, Any]], new_meta: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        merged = dict(existing or {})
+        for key, value in (new_meta or {}).items():
+            merged[key] = value
+        return merged
+
+    def _derive_file_id(
+        self,
+        document_id: Optional[int],
+        metadata: Optional[Dict[str, Any]],
+        user_id: int,
+    ) -> int:
+        if document_id:
+            return int(document_id)
+
+        meta = metadata or {}
+        meta_file_id = meta.get("file_id")
+        if isinstance(meta_file_id, int) and meta_file_id > 0:
+            return meta_file_id
+
+        key_parts = [str(user_id)]
+        file_hash = meta.get("file_hash")
+        if file_hash:
+            key_parts.append(str(file_hash))
+        else:
+            key_parts.append(str(meta.get("filename") or meta.get("name") or ""))
+            key_parts.append(str(meta.get("session_id") or ""))
+
+        # Limit derived identifier to signed 32-bit range to match the DB column type.
+        digest_bytes = hashlib.sha1("|".join(key_parts).encode("utf-8")).digest()
+        derived = int.from_bytes(digest_bytes[:4], "big", signed=False) & 0x7FFFFFFF
+        return derived or 1
+
+    def _invalidate_cache(self, user_id: int) -> None:
+        prune_keys = [key for key in self._query_cache if key.startswith(f"{user_id}:")]
+        for key in prune_keys:
+            self._query_cache.pop(key, None)
+        prune_sessions = [key for key in self._session_cache if key.startswith(f"{user_id}:")]
+        for key in prune_sessions:
+            self._session_cache.pop(key, None)
+
+    def _metadata_filter_clause(self, filters: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
+        clauses: List[str] = []
+        params: Dict[str, Any] = {}
+        if not filters:
+            return "", params
+        for idx, (key, value) in enumerate(filters.items()):
+            if value is None:
+                continue
+            if not re.match(r"^[a-zA-Z0-9_]+$", key):
+                continue
+            param_name = f"meta_{idx}"
+            clauses.append(f"AND (document_metadata->>'{key}') = :{param_name}")
+            params[param_name] = str(value)
+        return " ".join(clauses), params
+
+    def _cache_key(
+        self,
+        user_id: int,
+        query: str,
+        document_types: Optional[List[str]],
+        metadata_filters: Optional[Dict[str, Any]],
+    ) -> str:
+        types_part = ",".join(sorted(document_types or []))
+        meta_part = json.dumps(metadata_filters or {}, sort_keys=True)
+        query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()
+        return f"{user_id}:{types_part}:{meta_part}:{query_hash}"
+
+    def _session_cache_key(self, user_id: int, session_id: Optional[str]) -> str:
+        return f"{user_id}:{session_id or 'global'}"
+
+    def prime_session_cache(
+        self,
+        user_id: int,
+        session_id: Optional[str],
+        document_type: str,
+        limit: int = 5,
+    ) -> None:
+        if not session_id:
+            return
+        try:
+            sql = text(
+                f"""
+                SELECT id, document_type, document_id, {self._content_column} AS content, document_metadata,
+                       0.0 AS similarity_score
+                FROM {self.embed_table}
+                WHERE user_id = :user_id
+                  AND document_type = :doc_type
+                  AND (document_metadata->>'session_id') = :session_id
+                ORDER BY created_at DESC
+                LIMIT :limit
+                """
+            )
+            rows = self.session.execute(
+                sql,
+                {
+                    "user_id": user_id,
+                    "doc_type": document_type,
+                    "session_id": session_id,
+                    "limit": limit,
+                },
+            ).mappings().all()
+            docs = [
+                {
+                    "id": r["id"],
+                    "document_type": r.get("document_type"),
+                    "document_id": r.get("document_id"),
+                    "content": r.get("content"),
+                    "document_metadata": r.get("document_metadata") or {},
+                    "similarity_score": r.get("similarity_score"),
+                }
+                for r in rows
+            ]
+            self._session_cache[self._session_cache_key(user_id, session_id)] = (time.time(), docs)
+        except Exception as exc:  # pragma: no cover - best effort
+            logger.warning("Unable to prime session cache: %s", exc)
+
     def retrieve_similar_documents(
         self,
         query: str,
         user_id: int,
         document_types: Optional[List[str]] = None,
         limit: int = 5,
+        session_id: Optional[str] = None,
+        metadata_filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Retrieve similar documents using vector similarity search (pgvector)."""
+        metadata_filters = dict(metadata_filters or {})
+        if session_id and "session_id" not in metadata_filters:
+            metadata_filters["session_id"] = session_id
+
+        cache_key = self._cache_key(user_id, query, document_types, metadata_filters)
+        now = time.time()
+        cached = self._query_cache.get(cache_key)
+        if cached and now - cached[0] < self._cache_ttl:
+            return cached[1]
+
         embedding = self._embed_text(query)
         if embedding is None:
+            fallback = self._session_cache.get(self._session_cache_key(user_id, session_id)) if session_id else None
+            if fallback and now - fallback[0] < self._cache_ttl:
+                return fallback[1]
             return []
 
         try:
@@ -90,6 +337,8 @@ class RAGSystem:
                 "user_id": user_id,
                 "limit": limit,
             }
+            metadata_clause, metadata_params = self._metadata_filter_clause(metadata_filters)
+            params.update(metadata_params)
             if document_types:
                 type_filter = "AND document_type = ANY(:doc_types)"
                 params["doc_types"] = document_types
@@ -99,20 +348,26 @@ class RAGSystem:
             if tmpl:
                 base_sql = tmpl.replace("{embed_table}", self.embed_table)
                 sql_text = base_sql.replace("{type_filter}", f" {type_filter} " if type_filter else "")
+                sql_text = sql_text.replace("{metadata_filter}", metadata_clause)
+                sql_text = sql_text.replace("{content_column}", self._content_column)
             else:
                 sql_text = f"""
-                    SELECT id, document_type, document_id, content, document_metadata,
+                    SELECT id, document_type, document_id, {self._content_column} AS content, document_metadata,
                         1 - (embedding <=> :query_embedding) AS similarity_score
                     FROM {self.embed_table}
-                    WHERE user_id = :user_id {type_filter}
+                    WHERE user_id = :user_id {type_filter} {metadata_clause}
                     ORDER BY embedding <=> :query_embedding
                     LIMIT :limit
                 """
 
-            rows = self.session.execute(text(sql_text), params).mappings().all()
+            sql_text = sql_text.replace(":query_embedding::vector", ":query_embedding")
+            stmt = text(sql_text).bindparams(
+                bindparam("query_embedding", type_=Vector(TARGET_VECTOR_DIM))
+            )
+            rows = self.session.execute(stmt, params).mappings().all()
 
             documents: List[Dict[str, Any]] = []
-          
+
             for r in rows:
                 documents.append(
                     {
@@ -120,10 +375,19 @@ class RAGSystem:
                         "document_type": r.get("document_type"),
                         "document_id": r.get("document_id"),
                         "content": r.get("content"),
-                        "document_metadata": r.get("document_metadata"),
+                        "document_metadata": r.get("document_metadata") or {},
                         "similarity_score": float(r["similarity_score"]),
                     }
                 )
+
+            if documents or metadata_filters:
+                self._query_cache[cache_key] = (now, documents)
+            if session_id:
+                self._session_cache[self._session_cache_key(user_id, session_id)] = (now, documents)
+            if not documents and session_id:
+                cached_docs = self._session_cache.get(self._session_cache_key(user_id, session_id))
+                if cached_docs and now - cached_docs[0] < self._cache_ttl:
+                    return cached_docs[1]
             return documents
         except Exception as exc:  # noqa: BLE001
             logger.error("Error retrieving similar documents: %s", exc)
@@ -233,8 +497,11 @@ class RAGSystem:
         try:
             record = self.session.query(DocumentEmbedding).filter_by(id=document_id).first()
             if record:
-                record.usage_count = (record.usage_count or 0) + 1
-                record.last_used = datetime.utcnow()
+                metadata = dict(record.document_metadata or {})
+                metadata["usage_count"] = int(metadata.get("usage_count", 0)) + 1
+                metadata["last_used_at"] = datetime.utcnow().isoformat()
+                record.document_metadata = metadata
+                record.updated_at = datetime.utcnow()
                 self.session.commit()
         except Exception as exc:  # noqa: BLE001
             self.session.rollback()
@@ -269,14 +536,29 @@ class RAGSystem:
         """
         if not text_value or not text_value.strip():
             return self._zero_vector()
-        if not self._api_available:
+
+        embedding: Optional[List[float]] = None
+
+        if self.embedding_queue and getattr(self.embedding_backend, "label", "") == "ollama":
+            try:
+                embedding = self.embedding_queue.embed(text_value)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Embedding queue failed, falling back to direct call: %s", exc)
+
+        if embedding is None:
+            embedding = self._direct_embedding(text_value)
+
+        if embedding is None:
             return None
+
+        return self._down_project_embedding(embedding)
+
+    def _direct_embedding(self, text_value: str) -> Optional[List[float]]:
         try:
-            assert self.ollama_service is not None
-            embedding = self.ollama_service.generate_embedding(text_value)
-            if not embedding:
-                return None
-            return self._down_project_embedding(embedding)
+            return self.embedding_backend.embed(text_value)
+        except EmbeddingTimeoutError:
+            logger.warning("Embedding provider timed out while embedding query/text.")
+            return None
         except Exception as exc:  # noqa: BLE001
             logger.error("Embedding generation failed: %s", exc)
             return None
@@ -327,5 +609,3 @@ class RAGSystem:
             return parsed
         except Exception:
             return None
-
-

@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Archived (Oct 2025): calls, contacts, reports
-    const engagedRoutes = ["/dashboard", "/documents", "/texts", "/settings", "/labs", "/labs/dev-playground"];
+    const engagedRoutes = ["/dashboard", "/texts", "/settings", "/labs", "/labs/dev-playground"];
     if (!isEngaged && engagedRoutes.some((route) => location.pathname.startsWith(route))) {
       setIsEngaged(true);
     }

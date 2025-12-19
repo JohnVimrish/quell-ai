@@ -1,7 +1,10 @@
 {
-  "_publicTheme-DMQodtD7.js": {
-    "file": "assets/publicTheme-DMQodtD7.js",
-    "name": "publicTheme"
+  "_publicTheme-CO_Kx67W.js": {
+    "file": "assets/publicTheme-CO_Kx67W.js",
+    "name": "publicTheme",
+    "imports": [
+      "src/main.tsx"
+    ]
   },
   "node_modules/@fontsource-variable/inter/files/inter-cyrillic-ext-wght-normal.woff2": {
     "file": "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -48,7 +51,7 @@
     "src": "src/assets/images/worry_picture.png"
   },
   "src/main.tsx": {
-    "file": "assets/main-C3MwaQcz.js",
+    "file": "assets/main-Dm2P27MT.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -56,11 +59,11 @@
       "src/pages/LandingPage.tsx",
       "src/pages/LoginPage.tsx",
       "src/pages/SignupPage.tsx",
-      "src/pages/DocumentsPage.tsx",
-      "src/pages/LabsPlayground.tsx"
+      "src/pages/ConversationLab.tsx",
+      "src/pages/ConversationLabTester.tsx"
     ],
     "css": [
-      "assets/main--ubPd89V.css"
+      "assets/main-DwXAfVxn.css"
     ],
     "assets": [
       "assets/inter-cyrillic-ext-wght-normal-BOeWTOD4.woff2",
@@ -72,32 +75,35 @@
       "assets/inter-latin-wght-normal-Dx4kXJAl.woff2"
     ]
   },
-  "src/pages/DocumentsPage.tsx": {
-    "file": "assets/DocumentsPage-CCS1jxpK.js",
-    "name": "DocumentsPage",
-    "src": "src/pages/DocumentsPage.tsx",
+  "src/pages/ConversationLab.tsx": {
+    "file": "assets/ConversationLab-CXeAqm6k.js",
+    "name": "ConversationLab",
+    "src": "src/pages/ConversationLab.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx"
+    ],
+    "css": [
+      "assets/ConversationLab-BpJxsJeE.css"
     ]
   },
-  "src/pages/LabsPlayground.tsx": {
-    "file": "assets/LabsPlayground-CllTzLAt.js",
-    "name": "LabsPlayground",
-    "src": "src/pages/LabsPlayground.tsx",
+  "src/pages/ConversationLabTester.tsx": {
+    "file": "assets/ConversationLabTester-CkdSbbM1.js",
+    "name": "ConversationLabTester",
+    "src": "src/pages/ConversationLabTester.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx"
     ]
   },
   "src/pages/LandingPage.tsx": {
-    "file": "assets/LandingPage-BXTscC7Q.js",
+    "file": "assets/LandingPage-D9zqFNn9.js",
     "name": "LandingPage",
     "src": "src/pages/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-CO_Kx67W.js"
     ],
     "css": [
       "assets/LandingPage-NDNSozaH.css"
@@ -110,23 +116,23 @@
     ]
   },
   "src/pages/LoginPage.tsx": {
-    "file": "assets/LoginPage-hzBv-lG3.js",
+    "file": "assets/LoginPage-B7q2lxPs.js",
     "name": "LoginPage",
     "src": "src/pages/LoginPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-CO_Kx67W.js"
     ]
   },
   "src/pages/SignupPage.tsx": {
-    "file": "assets/SignupPage-Copr_OsI.js",
+    "file": "assets/SignupPage-CnYyvvks.js",
     "name": "SignupPage",
     "src": "src/pages/SignupPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-DMQodtD7.js"
+      "_publicTheme-CO_Kx67W.js"
     ]
   }
 }

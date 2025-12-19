@@ -4,10 +4,12 @@ import argparse
 import os
 import sys
 from datetime import datetime
+import logging
 import json
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import time
 
 
 # Ensure 'backend' root (which contains the 'api' package) is importable when running this file directly
@@ -22,7 +24,24 @@ from api.utils.nlp_utils import detect_language, translate_to_english  # noqa: E
 from api.utils.analytics import analyze_text, analyze_table, analyze_json  # noqa: E402
 from api.utils.metadata_extractor import build_vector_metadata, extract_key_concepts  # noqa: E402
 from api.models.ollama_service import OllamaService  # noqa: E402
+from api.models.embedding_provider import (  # noqa: E402
+    EmbeddingTimeoutError,
+    get_embedding_backend,
+)
 
+
+logger = logging.getLogger(__name__)
+_log_level = os.getenv("INGEST_LOG_LEVEL") or os.getenv("LOG_LEVEL") or "INFO"
+try:
+    logger.setLevel(getattr(logging, _log_level.upper(), logging.INFO))
+except Exception:
+    logger.setLevel(logging.INFO)
+root_logger = logging.getLogger()
+if not root_logger.handlers:
+    logging.basicConfig(
+        level=logger.level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 def _get_upload_directory() -> Path:
     """Mirror the server's upload directory behavior."""
@@ -168,29 +187,56 @@ def _format_structured_short(ad: Dict[str, Any]) -> str:
 
 
 def ingest_single_file(
-    file_path: Path,
+    file_path: Optional[Path] = None,
+    *,
+    file_data: Optional[bytes] = None,
+    filename_override: Optional[str] = None,
     save: bool,
     user_id: int,
     description: str,
     classification: str,
-    ask: str | None,
+    ask: str | None = None,
     user_email: str | None = None,
 ) -> Dict[str, Any]:
-    if not file_path.exists() or not file_path.is_file():
-        raise FileNotFoundError(f"File not found: {file_path}")
+    """Shared ingestion pipeline used by the CLI and Flask endpoints."""
 
-    filename = file_path.name
-    file_type = file_path.suffix.lower().lstrip(".")
+    if file_path is None and file_data is None:
+        raise ValueError("Either file_path or file_data must be provided")
+
+    if file_path is not None:
+        if not file_path.exists() or not file_path.is_file():
+            raise FileNotFoundError(f"File not found: {file_path}")
+        filename = file_path.name
+        payload_bytes = file_path.read_bytes()
+    else:
+        if not filename_override:
+            raise ValueError("filename_override is required when using file_data")
+        filename = filename_override
+        payload_bytes = file_data or b""
+
+    file_type = Path(filename).suffix.lower().lstrip(".")
     if file_type not in {"txt", "csv", "xlsx", "json"}:
         raise ValueError(f"Unsupported file type: .{file_type}")
 
-    file_data = file_path.read_bytes()
-    is_valid, error_msg = validate_file_size(len(file_data))
+    start_time = time.time()
+    logger.info(
+        "[ingest] start file=%s size=%s user=%s desc=%s",
+        filename,
+        len(payload_bytes),
+        user_id,
+        description,
+    )
+
+    is_valid, error_msg = validate_file_size(len(payload_bytes))
     if not is_valid:
         raise ValueError(error_msg or "File too large")
 
+    # Reuse legacy variable name to avoid touching downstream logic
+    file_data = payload_bytes
+
     # Initialize Ollama service directly unless saving requires full app context
-    ollama_service = OllamaService(model_path=os.getenv("OLLAMA_MODEL_PATH"))
+    ollama_service = OllamaService()
+    embedding_backend = get_embedding_backend(ollama_service)
     repo = None
     app = None
     if save:
@@ -224,87 +270,125 @@ def ingest_single_file(
                 svc = app.config.get("OLLAMA_SERVICE")
                 if svc is not None:
                     ollama_service = svc
+                    embedding_backend = get_embedding_backend(ollama_service)
         except Exception as exc:
             return {"ok": False, "error": f"Failed to initialize app/DB for save: {exc}"}
 
-        # Parse file into normalized text/structures
-        parsed = process_file(file_data, filename, file_type)
-        if not parsed["success"]:
-            error = parsed.get("metadata", {}).get("error", "Failed to process file")
-            return {"ok": False, "error": error}
+    # Parse file into normalized text/structures
+    parse_start = time.time()
+    parsed = process_file(file_data, filename, file_type)
+    logger.debug(
+        "[ingest] parsed file=%s elapsed=%.2fs",
+        filename,
+        time.time() - parse_start,
+    )
+    if not parsed["success"]:
+        error = parsed.get("metadata", {}).get("error", "Failed to process file")
+        return {"ok": False, "error": error}
 
-        base_text = parsed.get("processed_content", "")
+    base_text = parsed.get("processed_content", "")
 
-        # Language detection + translation
-        lang_code = detect_language(base_text)
-        translated_by = None
-        processed_text = base_text
-        if lang_code and lang_code not in ("en", "unknown"):
-            processed_text, translated_by = translate_to_english(base_text, ollama_service)
+    # Language detection + translation
+    lang_code = detect_language(base_text)
+    translated_by = None
+    processed_text = base_text
+    if lang_code and lang_code not in ("en", "unknown"):
+        trans_start = time.time()
+        processed_text, translated_by = translate_to_english(base_text, ollama_service)
+        logger.debug(
+            "[ingest] translation file=%s lang=%s elapsed=%.2fs",
+            filename,
+            lang_code,
+            time.time() - trans_start,
+        )
 
-        # Analytics
-        analytics = {}
-        if parsed.get("rows") is not None and parsed.get("columns") is not None:
-            analytics = analyze_table(parsed.get("rows", []), parsed.get("columns", []))
-        elif file_type == "json":
-            analytics = (
-                analyze_json(parsed.get("json_data")) if parsed.get("json_data") is not None else {}
-            )
-        else:
-            analytics = analyze_text(processed_text)
+    # Analytics
+    analytics = {}
+    if parsed.get("rows") is not None and parsed.get("columns") is not None:
+        analytics = analyze_table(parsed.get("rows", []), parsed.get("columns", []))
+    elif file_type == "json":
+        analytics = analyze_json(parsed.get("json_data")) if parsed.get("json_data") is not None else {}
+    else:
+        analytics = analyze_text(processed_text)
+    logger.debug("[ingest] analytics ready file=%s keys=%s", filename, list(analytics.keys()))
 
-        # Concepts and embeddings
-        concepts = extract_key_concepts(processed_text, ollama_service)
+    # Concepts and embeddings
+    concepts = extract_key_concepts(processed_text, ollama_service)
+    embedding = None
+    embedding_model = getattr(embedding_backend, "label", "unknown")
+    embed_start = time.time()
+    try:
+        embedding = embedding_backend.embed(processed_text)
+    except EmbeddingTimeoutError:
+        logger.error(
+            "[ingest] embedding timed out file=%s elapsed=%.2fs",
+            filename,
+            time.time() - embed_start,
+        )
+        return {
+            "ok": False,
+            "error": "Embedding request timed out while generating the vector representation. Try a smaller model or restart the embedding service.",
+        }
+    except Exception as exc:
+        logger.error("[ingest] embedding backend failed: %s", exc, exc_info=True)
         embedding = None
-        ollama_model = None
-        if ollama_service and ollama_service.is_available():
-            embedding = ollama_service.generate_embedding(processed_text)
-            model_info = ollama_service.get_model_info()
-            ollama_model = f"{model_info.get('model_path', 'unknown')}"
+    else:
+        logger.debug(
+            "[ingest] embedding generated file=%s backend=%s elapsed=%.2fs",
+            filename,
+            embedding_model,
+            time.time() - embed_start,
+        )
 
-        vector_metadata = build_vector_metadata(concepts, embedding)
+    if ollama_service and ollama_service.is_available():
+        model_info = ollama_service.get_model_info()
+        embedding_model = model_info.get("model_name") or model_info.get("host") or "unknown"
 
-        # Optional DB persistence
-        doc_record: Dict[str, Any] = {}
-        if save and repo is not None and app is not None:
-            # Save file to disk
-            upload_dir = _get_upload_directory()
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-            saved_filename = f"{user_id}_{timestamp}_{filename}"
-            file_out = upload_dir / saved_filename
-            file_out.write_bytes(file_data)
+    vector_metadata = build_vector_metadata(concepts, embedding)
+    model_answer = None
+    result_answer_short = None
+    result_answer_data = None
 
-            payload = {
-                "user_id": user_id,
-                "name": filename,
-                "description": description,
-                "storage_uri": str(file_out),
-                "storage_type": "local",
-                "classification": classification,
-                "file_type": file_type,
-                "file_size_bytes": len(file_data),
-                "original_content": parsed["content"],
-                "processed_content": processed_text,
-                "content_metadata": {
-                    **parsed["metadata"],
-                    "concepts": concepts,
-                    "language": lang_code,
-                    "translated_to_english": bool(translated_by),
-                    "translation_model": translated_by,
-                    "analytics": analytics,
-                },
-                "embedding": embedding,
-                "vector_metadata": vector_metadata,
-                "ollama_model": ollama_model,
-                "allow_ai_to_suggest": True,
-            }
+    # Optional DB persistence
+    doc_record: Dict[str, Any] = {}
+    if save and repo is not None and app is not None:
+        # Save file to disk
+        upload_dir = _get_upload_directory()
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        saved_filename = f"{user_id}_{timestamp}_{filename}"
+        file_out = upload_dir / saved_filename
+        file_out.write_bytes(file_data)
 
-            doc_id = repo.create_data_feed(payload)
-            if doc_id:
-                doc_record = repo.get_document(doc_id, user_id) or {}
+        payload = {
+            "user_id": user_id,
+            "name": filename,
+            "description": description,
+            "storage_uri": str(file_out),
+            "storage_type": "local",
+            "classification": classification,
+            "file_type": file_type,
+            "file_size_bytes": len(file_data),
+            "original_content": parsed["content"],
+            "processed_content": processed_text,
+            "content_metadata": {
+                **parsed["metadata"],
+                "concepts": concepts,
+                "language": lang_code,
+                "translated_to_english": bool(translated_by),
+                "translation_model": translated_by,
+                "analytics": analytics,
+            },
+            "embedding": embedding,
+            "vector_metadata": vector_metadata,
+            "ollama_model": embedding_model,
+            "allow_ai_to_suggest": True,
+        }
+
+        doc_id = repo.create_data_feed(payload)
+        if doc_id:
+            doc_record = repo.get_document(doc_id, user_id) or {}
 
         # Optional Q&A prompt to the model (LLM-only)
-        model_answer = None
         if ask:
             if not (ollama_service and ollama_service.is_available()):
                 model_answer = None
@@ -346,21 +430,61 @@ def ingest_single_file(
                     result_answer_data = parts.get("answer_data")
                     result_answer_short = parts.get("answer_short")
 
-        return {
-            "ok": True,
-            "filename": filename,
-            "file_type": file_type,
-            "language": lang_code,
-            "translated_to_english": bool(translated_by),
-            "analytics": analytics,
-            "concepts": concepts,
-            "has_embedding": embedding is not None,
-            "saved": bool(doc_record),
-            "document": doc_record,
-            "model_answer": model_answer,
-            "model_answer_short": locals().get("result_answer_short"),
-            "model_answer_data": locals().get("result_answer_data"),
-        }
+    logger.info("[ingest] complete file=%s elapsed=%.2fs", filename, time.time() - start_time)
+    return {
+        "ok": True,
+        "filename": filename,
+        "file_type": file_type,
+        "language": lang_code,
+        "translated_to_english": bool(translated_by),
+        "analytics": analytics,
+        "concepts": concepts,
+        "has_embedding": embedding is not None,
+        "saved": bool(doc_record),
+        "document": doc_record,
+        "model_answer": model_answer,
+        "model_answer_short": result_answer_short,
+        "model_answer_data": result_answer_data,
+        "processed_content": processed_text,
+        "metadata": parsed.get("metadata", {}),
+        "vector": embedding,
+    }
+
+
+def ingest_multiple_files(
+    payloads: List[Dict[str, Any]],
+    *,
+    save: bool,
+    user_id: int,
+    description: str,
+    classification: str,
+    user_email: str | None = None,
+) -> List[Dict[str, Any]]:
+    """
+    Helper that wraps ingest_single_file for multiple uploads.
+    payloads -> list of dicts with keys:
+        - file_path (Path) OR file_data (bytes) + filename
+        - ask (optional)
+    """
+    results: List[Dict[str, Any]] = []
+    for item in payloads:
+        file_path = item.get("file_path")
+        file_data = item.get("file_data")
+        filename = item.get("filename")
+        ask = item.get("ask")
+        result = ingest_single_file(
+            file_path=file_path,
+            file_data=file_data,
+            filename_override=filename,
+            save=save,
+            user_id=user_id,
+            description=item.get("description") or description,
+            classification=item.get("classification") or classification,
+            ask=ask,
+            user_email=user_email,
+        )
+        results.append(result)
+    return results
 
 
 def main() -> None:
@@ -380,37 +504,48 @@ def main() -> None:
     parser.add_argument("--pretty", action="store_true", help="Print a human-readable summary instead of raw JSON")
 
     args = parser.parse_args()
-    result = ingest_single_file(
-        file_path=Path(args.file),
-        save=args.save,
-        user_id=args.user_id,
-        description=args.description,
-        classification=args.classification,
-        ask=args.ask,
-        user_email=args.user_email,
-    )
+    results: List[Dict[str, Any]] = []
+    file_paths: List[Path] = []
+    if args.file:
+        file_paths.append(Path(args.file))
+    elif args.files:
+        for item in args.files:
+            file_paths.append(Path(item))
+
+    for file_path in file_paths:
+        result = ingest_single_file(
+            file_path=file_path,
+            save=args.save,
+            user_id=args.user_id,
+            description=args.description,
+            classification=args.classification,
+            ask=args.ask,
+            user_email=args.user_email,
+        )
+        results.append(result)
 
     # Output
-    if args.pretty and result.get("ok"):
-        lines = []
-        lines.append(f"File: {result.get('filename')} ({result.get('file_type')})")
-        doc = result.get("document") or {}
-        if doc:
-            lines.append(f"Saved: id={doc.get('id')} | sheets={ (doc.get('content_metadata') or {}).get('sheets_count') }")
-        if args.ask:
-            short = result.get("model_answer_short")
-            lines.append(f"Question: {args.ask}")
-            lines.append(f"Answer: {short or (result.get('model_answer') or '').splitlines()[0][:120]}")
-            ad = result.get("model_answer_data") or {}
-            if ad:
-                try:
-                    lines.append("Details: " + json.dumps(ad, ensure_ascii=False))
-                except Exception:
-                    pass
-        print("\n".join(lines))
-    else:
-        import json as _json
-        print(_json.dumps(result, indent=2, ensure_ascii=False))
+    import json as _json
+    for result in results:
+        if args.pretty and result and result.get("ok"):
+            lines = []
+            lines.append(f"File: {result.get('filename')} ({result.get('file_type')})")
+            doc = result.get("document") or {}
+            if doc:
+                lines.append(f"Saved: id={doc.get('id')} | sheets={ (doc.get('content_metadata') or {}).get('sheets_count') }")
+            if args.ask:
+                short = result.get("model_answer_short")
+                lines.append(f"Question: {args.ask}")
+                lines.append(f"Answer: {short or (result.get('model_answer') or '').splitlines()[0][:120]}")
+                ad = result.get("model_answer_data") or {}
+                if ad:
+                    try:
+                        lines.append("Details: " + json.dumps(ad, ensure_ascii=False))
+                    except Exception:
+                        pass
+            print("\n".join(lines))
+        else:
+            print(_json.dumps(result, indent=2, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,14 +1,18 @@
 
-from flask import Blueprint, current_app, request, jsonify
+from flask import Blueprint, current_app, request, jsonify, session
 from api.repositories.feed_repo import FeedRepository
 from api.utils.validation import contains_sensitive
-from api.controllers.texts_controller import require_auth  
 import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 bp = Blueprint("feed", __name__)
+
+
+def require_auth() -> int | None:
+    """Minimal auth guard (session-based)."""
+    return session.get("user_id")
 
 @bp.post("")
 def create_feed():

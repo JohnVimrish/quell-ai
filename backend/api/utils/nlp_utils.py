@@ -51,7 +51,7 @@ def translate_to_english(text: str, ollama_service) -> Tuple[str, Optional[str]]
             return text, None
 
         model_info = ollama_service.get_model_info() if hasattr(ollama_service, "get_model_info") else {}
-        model_id = str(model_info.get("model_path", ""))
+        model_id = str(model_info.get("model_name") or model_info.get("host") or "")
 
         # Build a strict translation prompt
         query = (

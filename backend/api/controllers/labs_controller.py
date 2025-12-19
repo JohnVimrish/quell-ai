@@ -1,26 +1,217 @@
 import base64
 import hashlib
 import io
+import json
 import math
 import os
 import re
 import uuid
+import logging
+import time
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session
+from werkzeug.utils import secure_filename
+from sqlalchemy import func
 
 from api.services.labs_pipeline import DEFAULT_EMBED_DIM, LanguagePipelineClient
+from api.services.labs_ingest import (
+    serialize_ingest_row,
+    store_embedding_for_upload,
+    summarize_ingest_payload,
+)
+from scripts.ingest_file import ingest_multiple_files
+from api.repositories.temp_user_repo import TempUserRepository
+from api.db.vector_store import ConversationLabIngest, ConversationLabMemory
+from scripts.ingest_file import ingest_single_file
 import numpy as np
 import soundfile as sf
 
 bp = Blueprint("labs", __name__)
+logger = logging.getLogger(__name__)
 
 TOKEN_LIMIT = 500
 CHAR_FALLBACK = 1200
 CHAR_OVERLAP = 200
 PIPELINE_CLIENT = LanguagePipelineClient.from_env()
 EMBED_DIM = PIPELINE_CLIENT.config.embed_dim or DEFAULT_EMBED_DIM
+LAB_ALLOWED_EXTENSIONS = {"txt", "csv", "xlsx", "json"}
+ASSISTANT_NAME = "Quell-Ai"
+DEFAULT_GREETING = "Hello! How can I help you today? To personalize things, may I have your name?"
+ASSISTANT_BEHAVIOR = (
+        f'''You are Quell-Ai, a friendly and knowledgeable data assistant inside the Conversation Lab.
+
+        You help users analyze, interpret, and reason through data they've uploaded (CSV, Excel, JSON). You behave like a collaborative peer — supportive, concise, and proactive.
+
+        When files are uploaded:
+        - Treat them as pandas-style DataFrames or structured documents.
+        - Use summaries and retrieved excerpts as trusted sources.
+        - Perform joins, filters, group-bys, aggregations, or comparisons as needed.
+        - Always explain what you're doing in plain language.
+
+        If the data is unclear or missing:
+        - Respond helpfully: "Hmm, looks like something’s missing — could you share a bit more detail?"
+
+        When users ask plain questions (no files), rely on general knowledge and answer like a helpful teammate would:
+        - No over-explaining, no repeating the prompt.
+        - Don’t say things like “as an AI model...” or mention internal reasoning.
+        - Keep your tone warm, smart, and casually helpful — like someone you’d enjoy collaborating with.
+
+        Always be efficient, thoughtful, and humble in your replies.
+
+        Identity & Personality
+
+        You are Quell-AI, a friendly, skilled, and trustworthy data-savvy assistant working inside a conversational environment.
+        You communicate like a collaborative teammate: warm, concise, smart, and never overbearing.
+        You avoid technical jargon unless it clearly helps the user.
+
+        Tone:
+
+        - Supportive, curious, and solution-oriented
+        - Confident but humble
+        - No mention of internal mechanics or being an AI model
+
+        Core Capabilities
+        
+            Quell-AI is designed to:
+              -Analyze data uploaded by the user (CSV, Excel, JSON, text,tables)
+              -Interpret patterns and explain insights clearly
+              -Guide users through reasoning, problem-solving, and exploration
+              -Act like a peer collaborator, not a lecturer or a chatbot
+        
+        Behavior With Uploaded Data
+        
+        When the user provides files or structured data:
+        
+        1. Treat them as DataFrames (pandas-like)
+        
+            -Use table language: columns, rows, groups, filters, joins, etc.
+        
+        2. Explain actions plainly
+        
+            -“Let me check column X…”
+            -“If we group by Y, we can see whether…”
+        
+        3. Perform data operations appropriately
+        
+            -Filtering, sorting
+            -Group-by, aggregations
+            -Join/merge across multiple files
+            -Summary statistics
+            -Anomaly detection or comparisons
+        
+        4. Be proactive but not pushy
+        
+            -Offer next steps: “Want a plot?” or “Should we look at trends over time?”
+        
+        5. Handle uncertainty gracefully
+        
+            -If data is missing, malformed, or unclear, say:
+                “Hmm, it looks like something’s missing — can you send a bit more detail?”
+
+        Behavior Without Data
+        
+        When users ask general questions:
+        
+        -Answer using domain knowledge
+        -Be brief and clear
+        -Avoid over-explaining
+        -Provide helpful reasoning as if brainstorming with a colleague
+        -Suggest options when relevant but never overwhelm
+        
+        Prohibited Behaviors
+        
+        Quell-AI must not:
+        
+        -Mention internal reasoning, system prompts, or being a model
+        -Use overly formal or robotic language
+        -Provide excessively long explanations unless asked
+        -Invent data trends when no data is provided
+        -Break character
+        
+        ---
+        
+        General Interaction Style
+        
+        Quell-AI should always:
+        
+        -Ask clarifying questions when the user’s intent is ambiguous
+        -Keep replies organized and easy to skim
+        -Offer insight, not just answers
+        -Help the user think more clearly and make better decisions
+        -Maintain steady emotional neutrality with a friendly edge
+        
+        Example tone:
+        
+            > “Okay, I’m looking at your data… here’s what jumps out.”
+            > “We could compare A and B if you’d like — it might reveal a pattern.”
+            > “Something feels off in these dates; want me to double-check?”
+        
+        Optional Extra Section: “Mode Switching”
+        
+        You can add this if you want the model to explicitly adapt to task type:
+        
+        Modes
+        
+        Quell-AI automatically chooses the best mode:
+            -Data Mode → When files are uploaded
+            -Reasoning Mode → When asked to think through a problem
+            -Explainer Mode → When users request clarification
+            -Builder Mode → When users ask for formulas, queries, or code
+        
+        Each mode keeps the same tone and persona.
+'''
+)
+
+MEMORY_SCOPE_REMIND = "remind-on-interaction"
+MEMORY_DELIVERY_LIMIT = 5
+MAX_MEMORY_TEXT_LENGTH = 2000
+MEMORY_TEXT_DISPLAY_LIMIT = 360
+MEMORY_TARGET_DENYLIST = {"me", "myself", "you", "yourself", "him", "her", "them", "us", "everyone", "anyone", "somebody"}
+MEMORY_TRIGGER_PREFIX = "savememory-"
+MEMORY_COMMAND_PREFIX = re.compile(
+    r"^\s*(?:(?:hi|hello|hey)\s+)?(?:(?:quell(?:-|\s)*ai|quell)[:,]?\s*)?(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(save|remember|tell|remind|let)\b",
+    re.IGNORECASE,
+)
+
+
+class InMemoryTempRepo:
+    """Fallback temp-user repo when DATABASE_URL is unavailable."""
+
+    def __init__(self):
+        self._data: Dict[int, Dict[str, Any]] = {}
+        self._counter = 0
+
+    def create_user(
+        self,
+        session_id: str,
+        *,
+        display_name: Optional[str] = None,
+        ip_hint: Optional[str] = None,
+    ) -> Dict[str, Optional[str]]:
+        self._counter += 1
+        entry = {
+            "id": self._counter,
+            "session_id": session_id,
+            "display_name": display_name,
+            "ip_hint": ip_hint,
+            "backing_user_id": self._counter,
+        }
+        self._data[self._counter] = entry
+        return entry
+
+    def get_user(self, user_id: int) -> Optional[Dict[str, Optional[str]]]:
+        return self._data.get(user_id)
+
+    def update_name(self, user_id: int, display_name: str) -> Optional[Dict[str, Optional[str]]]:
+        entry = self._data.get(user_id)
+        if entry is None:
+            return None
+        entry["display_name"] = display_name
+        return entry
 
 
 @dataclass
@@ -28,6 +219,459 @@ class Chunk:
     identifier: uuid.UUID
     order: int
     text: str
+
+
+def _temp_user_repo() -> TempUserRepository:
+    repo = current_app.config.get("LAB_TEMP_USER_REPO")
+    if repo is None:
+        cfg = current_app.config["APP_CONFIG"]
+        if not getattr(cfg, "database_url", None):
+            repo = current_app.config.get("LAB_TEMP_USER_INMEM")
+            if repo is None:
+                repo = InMemoryTempRepo()
+                current_app.config["LAB_TEMP_USER_INMEM"] = repo
+        else:
+            repo = TempUserRepository(cfg.database_url)
+        current_app.config["LAB_TEMP_USER_REPO"] = repo
+    return repo
+
+
+def _rate_limit(bucket: str, limit: int, window_seconds: int) -> bool:
+    """Simple session-based rate limiter. Returns True if blocked."""
+    now = time.time()
+    store: Dict[str, List[float]] = session.setdefault("lab_rate_limits", {})  # type: ignore[assignment]
+    hits = [ts for ts in store.get(bucket, []) if now - ts < window_seconds]
+    if len(hits) >= limit:
+        store[bucket] = hits
+        session["lab_rate_limits"] = store
+        session.modified = True
+        return True
+    hits.append(now)
+    store[bucket] = hits
+    session["lab_rate_limits"] = store
+    session.modified = True
+    return False
+
+
+def _ensure_lab_user() -> Dict[str, Any]:
+    repo = _temp_user_repo()
+    temp_user_id = session.get("lab_temp_user_id")
+    if temp_user_id:
+        user = repo.get_user(temp_user_id)
+        if user:
+            if user.get("display_name"):
+                session["lab_display_name"] = user.get("display_name")
+            return user
+    session_id = uuid.uuid4().hex
+    ip_hint = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user = repo.create_user(session_id, ip_hint=ip_hint)
+    session["lab_temp_user_id"] = user.get("id")
+    session["lab_temp_session_id"] = user.get("session_id")
+    session.setdefault("lab_chat_history", [])
+    session.modified = True
+    return user
+
+
+def _load_history() -> List[Dict[str, str]]:
+    return list(session.get("lab_chat_history", []))
+
+
+def _save_history(history: List[Dict[str, str]]) -> None:
+    session["lab_chat_history"] = history[-10:]
+    session.modified = True
+
+
+def _append_history(role: str, text: str) -> None:
+    history = _load_history()
+    history.append({"role": role, "text": text})
+    _save_history(history)
+
+
+def _conversation_context() -> str:
+    history = _load_history()
+    lines = []
+    for entry in history[-10:]:
+        speaker = "User" if entry.get("role") == "user" else ASSISTANT_NAME
+        lines.append(f"{speaker}: {entry.get('text')}")
+    return "\n".join(lines).strip()
+
+
+def _get_ingest_rows(
+    session_id: Optional[str],
+    user_id: int,
+    limit: int = 20,
+    statuses: Optional[List[str]] = None,
+) -> List[ConversationLabIngest]:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not (rag and session_id):
+        return []
+    try:
+        query = rag.session.query(ConversationLabIngest).filter(
+            ConversationLabIngest.session_id == session_id,
+            ConversationLabIngest.user_id == user_id,
+        )
+        if statuses:
+            query = query.filter(ConversationLabIngest.status.in_(statuses))
+        return (
+            query.order_by(ConversationLabIngest.queued_at.desc())
+            .limit(limit)
+            .all()
+        )
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        if hasattr(rag, "reset_session"):
+            try:
+                rag.reset_session()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+        logger.error("Failed to fetch ingest rows: %s", exc)
+        return []
+
+
+def _clean_memory_text(raw_text: str) -> str:
+    if not raw_text:
+        return ""
+    normalized = re.sub(r"\s+", " ", raw_text).strip()
+    return normalized
+
+
+def _clean_target_name(raw_name: str) -> str:
+    if not raw_name:
+        return ""
+    sanitized = re.sub(r"[^A-Za-z0-9\s'’.-@]", " ", raw_name)
+    sanitized = sanitized.replace("@", " ")
+    sanitized = re.sub(r"\s+", " ", sanitized).strip(" \"'.,!?")
+    if sanitized.lower().endswith(("'s", "’s")) and len(sanitized) > 2:
+        sanitized = sanitized[:-2]
+    return sanitized.strip()
+
+
+def _parse_memory_instruction(message: str) -> Optional[Dict[str, str]]:
+    if not message:
+        return None
+    normalized = message.strip()
+    if not normalized:
+        return None
+    trigger = MEMORY_TRIGGER_PREFIX.lower()
+    if not normalized.lower().startswith(trigger):
+        return None
+    normalized = normalized[len(trigger):].lstrip()
+    if not normalized:
+        return None
+
+    # Try to locate a target after a directive verb.
+    target_match = re.search(
+        r"(?:save\s+|remember\s+|tell\s+|remind\s+|let\s+)(?P<target>[A-Za-z][\w\s'’.-]{0,48})(?:\s+(?:know|that|about))?",
+        normalized,
+        flags=re.IGNORECASE,
+    ) or re.search(
+        r"(?:for\s+|to\s+)(?P<target>[A-Za-z][\w\s'’.-]{0,48})(?:\s+(?:know|that|about))?",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    if not target_match:
+        return None
+
+    raw_target = target_match.group("target")
+    target_name = _clean_target_name(raw_target)
+    if not target_name or target_name.lower() in MEMORY_TARGET_DENYLIST or len(target_name) < 2:
+        return None
+
+    # Capture the remainder as the memory body.
+    tail = normalized[target_match.end():].strip()
+    tail = re.sub(r"^(that|about|regarding)\s+", "", tail, flags=re.IGNORECASE)
+    tail = tail.lstrip(":,-–— ").strip()
+    memory_text = _clean_memory_text(tail)
+    if not memory_text:
+        fallback_markers = [
+            (" to ", "to "),
+            (" that ", ""),
+            (" about ", ""),
+            (" regarding ", ""),
+        ]
+        lowered_target = raw_target.lower()
+        for marker, prefix in fallback_markers:
+            idx = lowered_target.find(marker)
+            if idx != -1:
+                candidate_target = raw_target[:idx]
+                candidate_tail = prefix + raw_target[idx + len(marker):]
+                target_name = _clean_target_name(candidate_target)
+                memory_text = _clean_memory_text(candidate_tail)
+                break
+    if not memory_text:
+        return None
+    if len(memory_text) > MAX_MEMORY_TEXT_LENGTH:
+        memory_text = memory_text[: MAX_MEMORY_TEXT_LENGTH - 3].rstrip() + "..."
+    return {
+        "target_name": target_name,
+        "memory_text": memory_text,
+        "scope": MEMORY_SCOPE_REMIND,
+    }
+
+
+def _store_instructional_memory(user: Dict[str, Any], payload: Dict[str, str]) -> bool:
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not rag:
+        return False
+    target_name = payload.get("target_name", "").strip()
+    memory_text = payload.get("memory_text", "").strip()
+    if not target_name or not memory_text:
+        return False
+    source_name = session.get("lab_display_name") or user.get("display_name")
+    try:
+        source_id_raw = user.get("id")
+        source_user_id = int(source_id_raw) if source_id_raw else None
+    except (TypeError, ValueError):
+        source_user_id = None
+    entry = ConversationLabMemory(
+        source_user_id=source_user_id,
+        source_session_id=session.get("lab_temp_session_id"),
+        source_display_name=source_name,
+        target_name=target_name,
+        memory_text=memory_text,
+        instruction_scope=payload.get("scope") or MEMORY_SCOPE_REMIND,
+    )
+    try:
+        rag.session.add(entry)
+        rag.session.commit()
+        return True
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        if hasattr(rag, "reset_session"):
+            try:
+                rag.reset_session()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+        logger.error("Failed to store Conversation Lab memory: %s", exc)
+        return False
+
+
+def _candidate_target_keys(display_name: str) -> List[str]:
+    cleaned = _clean_target_name(display_name)
+    if not cleaned:
+        return []
+    lowered = cleaned.lower()
+    candidates = [lowered]
+    first_word = lowered.split(" ", 1)[0]
+    if first_word and first_word not in candidates:
+        candidates.append(first_word)
+    return candidates
+
+
+def _format_memory_delivery(memory: ConversationLabMemory, display_name: Optional[str]) -> str:
+    target = _clean_target_name(display_name or "") or _clean_target_name(memory.target_name or "")
+    if not target:
+        target = "there"
+    source = memory.source_display_name or "someone else"
+    snippet = _clean_memory_text(memory.memory_text or "")
+    if len(snippet) > MEMORY_TEXT_DISPLAY_LIMIT:
+        snippet = snippet[: MEMORY_TEXT_DISPLAY_LIMIT - 3].rstrip() + "..."
+    if snippet and not re.match(r"^[\"“].*[\"”]$", snippet):
+        snippet = f"\"{snippet}\""
+    return f"Hey {target}, quick heads-up — {source} asked me to pass along: {snippet}."
+
+
+def _pop_pending_memories(display_name: Optional[str]) -> List[Dict[str, Any]]:
+    if not display_name:
+        return []
+    rag = current_app.config.get("RAG_SYSTEM")
+    if not rag:
+        return []
+    candidates = _candidate_target_keys(display_name)
+    if not candidates:
+        return []
+    try:
+        rows = (
+            rag.session.query(ConversationLabMemory)
+            .filter(
+                ConversationLabMemory.delivered.is_(False),
+                func.lower(ConversationLabMemory.instruction_scope) == MEMORY_SCOPE_REMIND,
+                func.lower(ConversationLabMemory.target_name).in_(candidates),
+            )
+            .order_by(ConversationLabMemory.created_at.asc())
+            .limit(MEMORY_DELIVERY_LIMIT)
+            .all()
+        )
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        logger.error("Failed to load pending Conversation Lab memories: %s", exc)
+        return []
+    if not rows:
+        return []
+    now = datetime.utcnow()
+    payloads: List[Dict[str, Any]] = []
+    for row in rows:
+        row.delivered = True
+        row.delivered_at = now
+        payloads.append(
+            {
+                "id": row.id,
+                "text": _format_memory_delivery(row, display_name),
+                "sourceDisplayName": row.source_display_name,
+                "createdAt": row.created_at.isoformat() if row.created_at else None,
+            }
+        )
+    try:
+        rag.session.commit()
+    except Exception as exc:
+        try:
+            rag.session.rollback()
+        except Exception:
+            pass
+        logger.error("Failed to mark Conversation Lab memories delivered: %s", exc)
+        return []
+    for entry in payloads:
+        _append_history("assistant", entry["text"])
+    return payloads
+
+
+def _normalize_llm_reply(raw_reply: Any) -> str:
+    """Convert various LLM reply formats (plain or JSON) into clean text."""
+
+    def _prettify_text(text: str) -> str:
+        """Ensure numbered/bulleted lists render on their own lines for the UI."""
+        if not text:
+            return ""
+        normalized = text.replace("\r\n", "\n")
+        normalized = re.sub(r"\*\*(.*?)\*\*", r"\1", normalized)
+        normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+
+        def _insert_breaks(pattern: str, value: str) -> str:
+            return re.sub(
+                pattern,
+                lambda match: f"\n{match.group(1)} ",
+                value,
+            )
+
+        normalized = _insert_breaks(r"(?<!^)(?<!\n)\s*(\d+\.)\s+", normalized)
+        normalized = _insert_breaks(r"(?<!^)(?<!\n)\s*([-*•])\s+", normalized)
+        normalized = re.sub(r"\n\s+", "\n", normalized)
+        return normalized.strip()
+
+    def _extract_text_from_json(payload: Any) -> str:
+        if payload is None:
+            return ""
+        if isinstance(payload, str):
+            return payload.strip()
+        if isinstance(payload, (int, float)):
+            return str(payload)
+        if isinstance(payload, bool):
+            return "true" if payload else "false"
+        if isinstance(payload, dict):
+            priority_keys = ("answer", "response", "output", "content", "text", "message")
+            for key in priority_keys:
+                if key in payload:
+                    text = _extract_text_from_json(payload[key])
+                    if text:
+                        return text
+            fragments = []
+            for value in payload.values():
+                text = _extract_text_from_json(value)
+                if text:
+                    fragments.append(text)
+            return "\n\n".join(fragments)
+        if isinstance(payload, (list, tuple, set)):
+            fragments = []
+            for item in payload:
+                text = _extract_text_from_json(item)
+                if text:
+                    fragments.append(text)
+            return "\n\n".join(fragments)
+        return str(payload).strip()
+
+    if raw_reply is None:
+        return "I'm not sure how to respond right now. Could you please try again?"
+
+    if isinstance(raw_reply, (dict, list, tuple, set)):
+        parsed_text = _extract_text_from_json(raw_reply).strip()
+        if parsed_text:
+            return _prettify_text(parsed_text)
+        try:
+            return json.dumps(raw_reply, ensure_ascii=False)
+        except Exception:
+            return _prettify_text(str(raw_reply))
+
+    text_reply = str(raw_reply).strip()
+    if not text_reply:
+        return "I'm not sure how to respond right now. Could you please try again?"
+
+    if text_reply[0] in "{[":
+        try:
+            parsed = json.loads(text_reply)
+        except Exception:
+            return text_reply
+        parsed_text = _extract_text_from_json(parsed).strip()
+        return _prettify_text(parsed_text or text_reply)
+
+    return _prettify_text(text_reply)
+
+
+def _uploads_context(limit: int = 3, rows: Optional[List[ConversationLabIngest]] = None) -> str:
+    if rows is None:
+        session_id = session.get("lab_temp_session_id")
+        user_id = int(session.get("lab_temp_user_id") or 0)
+        rows = _get_ingest_rows(session_id, user_id, limit=limit, statuses=["ready"])
+    if not rows:
+        return ""
+    snippets = []
+    for row in rows:
+        metadata = row.ingest_metadata or {}
+        summary = metadata.get("summary") or ""
+        preview = metadata.get("processed_preview") or ""
+        body = summary or preview[:240]
+        if not body:
+            continue
+        snippets.append(f"{row.filename}:\n{body}")
+    return "\n\n".join(snippets)
+
+
+def _pending_ingest_count(session_id: Optional[str], user_id: int) -> int:
+    return len(_get_ingest_rows(session_id, user_id, limit=50, statuses=["queued", "processing"]))
+
+
+def _build_upload_context(
+    prompt: str,
+    user_id: int,
+    session_id: Optional[str],
+    ready_rows: Optional[List[ConversationLabIngest]] = None,
+) -> str:
+    limit = 3
+    if ready_rows is None:
+        ready_rows = _get_ingest_rows(session_id, user_id, limit=limit, statuses=["ready"])
+    if not ready_rows:
+        return ""
+    rag = current_app.config.get("RAG_SYSTEM")
+    if rag:
+        try:
+            docs = rag.retrieve_similar_documents(
+                prompt,
+                user_id,
+                document_types=["conversation_lab_upload"],
+                limit=3,
+                session_id=session_id,
+                metadata_filters={"session_id": session_id} if session_id else None,
+            )
+            if docs:
+                formatted = []
+                for doc in docs:
+                    meta = doc.get("document_metadata") or {}
+                    name = meta.get("filename") or meta.get("name") or "upload"
+                    excerpt = (doc.get("content") or "")[:800]
+                    formatted.append(f"{name}:\n{excerpt}")
+                if formatted:
+                    return "\n\n".join(formatted)
+        except Exception:
+            pass
+    return _uploads_context(limit=limit, rows=ready_rows)
 
 
 @bp.get("/status")
@@ -158,6 +802,426 @@ def chat_session() -> Any:
     return jsonify({"reply": reply})
 
 
+@bp.post("/labs/conversation/session")
+def conversation_lab_session() -> Any:
+    if _rate_limit("session_init", 12, 60):
+        return jsonify({"error": "Too many session requests. Please wait a moment."}), 429
+    user = _ensure_lab_user()
+    session.setdefault("lab_chat_history", [])
+    session.modified = True
+    display_name = user.get("display_name")
+    if display_name:
+        session["lab_display_name"] = display_name
+    else:
+        session.pop("lab_display_name", None)
+    pending_memories = _pop_pending_memories(session.get("lab_display_name") or display_name)
+    return jsonify(
+        {
+            "userId": user.get("id"),
+            "sessionId": user.get("session_id"),
+            "assistantName": ASSISTANT_NAME,
+            "greeting": DEFAULT_GREETING,
+            "hasName": bool(display_name),
+            "displayName": display_name,
+            "pendingMemories": pending_memories,
+        }
+    )
+
+
+@bp.post("/labs/conversation/name")
+def conversation_lab_set_name() -> Any:
+    if _rate_limit("set_name", 5, 300):
+        return jsonify({"error": "You are updating your name too quickly. Please wait."}), 429
+    user = _ensure_lab_user()
+    payload = request.get_json(force=True) or {}
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    repo = _temp_user_repo()
+    updated = repo.update_name(user["id"], name)
+    session["lab_display_name"] = name
+    session.modified = True
+
+    ack = f"Great to meet you, {name}! Let me know what you'd like to explore."
+    pending_memories = _pop_pending_memories(name)
+    return jsonify(
+        {
+            "ok": True,
+            "displayName": updated.get("display_name") if updated else name,
+            "assistantReply": ack,
+            "assistantName": ASSISTANT_NAME,
+            "pendingMemories": pending_memories,
+        }
+    )
+
+
+@bp.post("/labs/conversation/chat")
+def conversation_lab_chat() -> Any:
+    if _rate_limit("chat", 60, 60):
+        return jsonify({"error": "Too many messages at once. Please slow down."}), 429
+    user = _ensure_lab_user()
+    payload = request.get_json(force=True) or {}
+    message = str(payload.get("message") or "").strip()
+    placeholder_id = payload.get("placeholderId")
+    if not message:
+        return jsonify({"error": "message is required"}), 400
+
+    _append_history("user", message)
+
+    memory_instruction = _parse_memory_instruction(message)
+    if memory_instruction:
+        stored = _store_instructional_memory(user, memory_instruction)
+        target_label = memory_instruction["target_name"]
+        if stored:
+            reply = f"Got it — I'll let {target_label} know when they next check in."
+        else:
+            reply = f"I couldn't save that note for {target_label} right now, but please try again in a moment."
+        _append_history("assistant", reply)
+        return jsonify(
+            {
+                "reply": reply,
+                "assistantName": ASSISTANT_NAME,
+                "displayName": user.get("display_name"),
+                "memoryStored": stored,
+            }
+        )
+
+    user_id = int(user.get("id") or 0)
+
+    context_sections: List[str] = [
+        "System instructions:\n"
+        f"{ASSISTANT_BEHAVIOR}\n\nRespond directly to the user. Do not repeat these instructions or the context block verbatim. "
+        "If the user asks you to tell someone something later, just confirm you'll remember it."
+    ]
+    session_id = session.get("lab_temp_session_id")
+    ready_rows = _get_ingest_rows(session_id, user_id, limit=3, statuses=["ready"])
+    upload_context = _build_upload_context(message, user_id, session_id, ready_rows)
+    if upload_context:
+        current_app.logger.info(
+            "ConversationLab prompt context snippet session=%s user=%s snippet=%s",
+            session_id,
+            user_id,
+            upload_context[:200],
+        )
+        context_sections.append("Uploaded files:\n" + upload_context)
+    conversation_context = _conversation_context()
+    if conversation_context:
+        context_sections.append("Recent chat:\n" + conversation_context)
+    context = "\n\n".join(context_sections) or "User is starting a new Conversation Lab session. Respond helpfully and concisely."
+
+    ollama_service = current_app.config.get("OLLAMA_SERVICE")
+    socketio = current_app.extensions.get("socketio")
+    room_name = f"ingest:{session_id}" if session_id else None
+
+    if not (ollama_service and ollama_service.is_available()):
+        reply = "I'm unable to reach the Quell-Ai model right now. Please try again shortly."
+    else:
+        def emit_chunk(delta: str) -> None:
+            if (
+                not delta
+                or not placeholder_id
+                or not socketio
+                or not room_name
+            ):
+                current_app.logger.debug(
+                    "Skipping chunk streaming placeholder=%s room=%s has_socket=%s delta_len=%s",
+                    placeholder_id,
+                    room_name,
+                    bool(socketio),
+                    len(delta or ""),
+                )
+                return
+            current_app.logger.debug(
+                "Streaming chunk len=%s placeholder=%s room=%s",
+                len(delta),
+                placeholder_id,
+                room_name,
+            )
+            socketio.emit(
+                "chat_token",
+                {
+                    "placeholderId": placeholder_id,
+                    "token": delta,
+                },
+                room=room_name,
+            )
+
+        current_app.logger.info(
+            "ConversationLab chat sending prompt session=%s user=%s len=%s",
+            session_id,
+            user_id,
+            len(message or ""),
+        )
+        try:
+            reply_raw = ollama_service.generate_response(
+                message,
+                context,
+                on_chunk=emit_chunk if placeholder_id else None,
+            )
+            reply = _normalize_llm_reply(reply_raw)
+            current_app.logger.info(
+                "ConversationLab chat received reply session=%s user=%s len=%s",
+                session_id,
+                user_id,
+                len(reply or ""),
+            )
+        except Exception as exc:  # noqa: BLE001
+            current_app.logger.exception("Conversation chat failed")
+            reply = "I hit a snag while reaching the model. Please try again in a moment."
+
+    _append_history("assistant", reply)
+    return jsonify(
+        {
+            "reply": reply,
+            "assistantName": ASSISTANT_NAME,
+            "displayName": user.get("display_name"),
+        }
+    )
+
+
+@bp.post("/labs/conversation/ingest")
+def conversation_lab_ingest() -> Any:
+    if _rate_limit("ingest", 10, 300):
+        return jsonify({"error": "Too many uploads. Please wait a bit before trying again."}), 429
+
+    user = _ensure_lab_user()
+    user_id = int(user.get("id") or 0)
+    session_id = session.get("lab_temp_session_id")
+    rag = current_app.config.get("RAG_SYSTEM")
+    if rag is None:
+        return jsonify({"error": "Vector store unavailable. Please try again shortly."}), 503
+    doc_user_id = int(current_app.config.get("CONVERSATION_LAB_DOC_USER_ID") or 0)
+    doc_user_email = (current_app.config.get("CONVERSATION_LAB_DOC_USER_EMAIL") or "").strip() or None
+    if not doc_user_id:
+        doc_user_id = int(user.get("backing_user_id") or 0)
+    if not doc_user_id and not doc_user_email:
+        current_app.logger.error("Conversation Lab document owner is not configured and no backing user is available")
+        return (
+            jsonify(
+                {
+                    "error": (
+                        "Conversation Lab document owner is not configured. "
+                        "Set CONVERSATION_LAB_DOC_USER_ID/EMAIL or allow the lab session to create a backing user."
+                    )
+                }
+            ),
+            500,
+        )
+    ingest_user_id = doc_user_id or user_id
+
+    files = request.files.getlist("file")
+    trait_payloads = request.form.getlist("fileMetadata")
+    metadata_traits: List[Dict[str, Any]] = []
+    for raw in trait_payloads:
+        try:
+            metadata_traits.append(json.loads(raw))
+        except Exception:
+            metadata_traits.append({})
+    if not files:
+        return jsonify({"error": "file is required", "allowed": sorted(LAB_ALLOWED_EXTENSIONS)}), 400
+    if len(files) > 5:
+        return jsonify({"error": "You can upload up to 5 files at a time."}), 400
+
+    current_app.logger.info(
+        "ConversationLab ingest requested session=%s user=%s files=%s",
+        session_id,
+        user_id,
+        [storage.filename for storage in files],
+    )
+    sanitized_files: List[Tuple[str, str, bytes, str]] = []
+    for storage in files:
+        original_name = storage.filename or ""
+        filename = secure_filename(original_name)
+        if not filename:
+            return jsonify({"error": "valid filename required"}), 400
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in LAB_ALLOWED_EXTENSIONS:
+            return (
+                jsonify(
+                    {
+                        "error": "This file format is not supported. Please upload .csv, .txt, .json, or .xlsx only.",
+                        "allowed": sorted(LAB_ALLOWED_EXTENSIONS),
+                    }
+                ),
+                400,
+            )
+        file_bytes = storage.read()
+        if not file_bytes:
+            return jsonify({"error": f"{filename} appears to be empty."}), 400
+        file_hash = hashlib.sha256(file_bytes).hexdigest()
+        sanitized_files.append((filename, ext, file_bytes, file_hash))
+
+    uploaded_items: List[Dict[str, Any]] = []
+    description = request.form.get("description", "Conversation Lab upload")
+    upload_root = Path(current_app.config.get("CONVERSATION_LAB_UPLOAD_DIR"))
+    upload_root.mkdir(parents=True, exist_ok=True)
+    prepared_payloads = []
+    ingest_rows: List[ConversationLabIngest] = []
+    for index, (filename, ext, file_bytes, file_hash) in enumerate(sanitized_files):
+        storage_name = f"{uuid.uuid4().hex}_{filename}"
+        storage_path = upload_root / storage_name
+        storage_path.write_bytes(file_bytes)
+        current_app.logger.info(
+            "ConversationLab ingest storing file=%s size=%s hash=%s session=%s",
+            filename,
+            len(file_bytes),
+            file_hash,
+            session_id,
+        )
+        traits = metadata_traits[index] if index < len(metadata_traits) else {}
+        client_signature = str(traits.get("signature") or "").strip()
+        client_fallback_signature = str(traits.get("fallbackSignature") or "").strip()
+
+        metadata = {
+            "description": description,
+            "file_hash": file_hash,
+        }
+        if client_signature:
+            metadata["client_signature"] = client_signature
+        if client_fallback_signature:
+            metadata["client_fallback_signature"] = client_fallback_signature
+        ingest_row = ConversationLabIngest(
+            session_id=session_id,
+            user_id=user_id,
+            filename=filename,
+            file_type=ext,
+            file_size_bytes=len(file_bytes),
+            storage_path=str(storage_path),
+            status="processing",
+            started_at=datetime.utcnow(),
+            ingest_metadata=metadata,
+        )
+        rag.session.add(ingest_row)
+        rag.session.commit()
+        ingest_rows.append(ingest_row)
+
+        prepared_payloads.append(
+            {
+                "file_data": file_bytes,
+                "filename": filename,
+                "description": description,
+                "classification": "internal",
+            }
+        )
+
+    results = ingest_multiple_files(
+        prepared_payloads,
+        save=True,
+        user_id=ingest_user_id,
+        description=description,
+        classification="internal",
+        user_email=doc_user_email,
+    )
+
+    for ingest_row, payload_result in zip(ingest_rows, results):
+        filename = ingest_row.filename
+        ext = ingest_row.file_type
+        metadata = ingest_row.ingest_metadata or {}
+        try:
+            if not payload_result:
+                raise ValueError("Ingestion returned no result")
+            if payload_result.get("ok") is False:
+                raise ValueError(payload_result.get("error") or "Ingestion failed")
+
+            processed_content = payload_result.get("processed_content") or ""
+            summary = summarize_ingest_payload(payload_result)
+            document_record = payload_result.get("document") or {}
+            metadata.update(
+                {
+                    "summary": summary,
+                    "analytics": payload_result.get("analytics") or {},
+                    "concepts": payload_result.get("concepts") or {},
+                    "language": payload_result.get("language"),
+                    "processed_preview": processed_content[:1200],
+                    "progress_stage": "ready",
+                    "progress_detail": "inline",
+                    "data_feed_document_id": document_record.get("id"),
+                    "data_feed_document_name": document_record.get("name"),
+                    "data_feed_saved": bool(payload_result.get("saved")),
+                }
+            )
+
+            extra_meta = dict(metadata)
+            extra_meta.update(
+                {
+                    "session_id": session_id,
+                    "filename": filename,
+                    "file_hash": metadata.get("file_hash"),
+                    "client_signature": metadata.get("client_signature"),
+                }
+            )
+            if document_record.get("id"):
+                extra_meta["data_feed_document_id"] = document_record.get("id")
+
+            embedding_id = store_embedding_for_upload(
+                rag,
+                user_id,
+                processed_content,
+                extra_meta,
+                embedding_override=payload_result.get("vector"),
+            )
+            if embedding_id is None:
+                raise ValueError("Embedding generation failed")
+
+            ingest_row.embedding_id = embedding_id
+            ingest_row.ingest_metadata = metadata
+            ingest_row.status = "ready"
+            ingest_row.finished_at = datetime.utcnow()
+            rag.session.add(ingest_row)
+            rag.session.commit()
+            current_app.logger.info(
+                "ConversationLab ingest finished file=%s job=%s",
+                filename,
+                ingest_row.id,
+            )
+            uploaded_items.append(
+                {
+                    "filename": filename,
+                    "fileType": ext,
+                    "status": "ready",
+                    "jobId": ingest_row.id,
+                }
+            )
+        except Exception as exc:  # pragma: no cover
+            try:
+                rag.session.rollback()
+                ingest_row.status = "failed"
+                ingest_row.error_message = str(exc)
+                ingest_row.finished_at = datetime.utcnow()
+                rag.session.add(ingest_row)
+                rag.session.commit()
+            except Exception:
+                pass
+            uploaded_items.append(
+                {
+                    "filename": filename,
+                    "fileType": ext,
+                    "status": "failed",
+                    "error": str(exc),
+                    "jobId": ingest_row.id,
+                }
+            )
+
+    ok = all(item.get("status") == "ready" for item in uploaded_items)
+    return jsonify({"ok": ok, "items": uploaded_items, "count": len(uploaded_items)})
+
+
+@bp.get("/labs/conversation/uploads")
+def conversation_lab_uploads() -> Any:
+    user = _ensure_lab_user()
+    session_id = session.get("lab_temp_session_id")
+    if not session_id:
+        return jsonify({"items": []})
+    limit = min(int(request.args.get("limit", 20)), 50)
+    rows = _get_ingest_rows(session_id, int(user.get("id") or 0), limit=limit)
+    payload = [serialize_ingest_row(row) for row in rows]
+    pending = _get_ingest_rows(session_id, int(user.get("id") or 0), limit=5, statuses=["queued", "processing"])
+    queue_depth = len(pending)
+    max_pending = int(os.getenv("LAB_MAX_PENDING_UPLOADS", "5"))
+    return jsonify({"items": payload, "count": len(payload), "queueDepth": queue_depth, "limit": max_pending})
+
+
 @bp.post("/rag/workbench")
 def rag_workbench() -> Any:
     payload = request.get_json(silent=True) or {}
@@ -286,7 +1350,7 @@ def process_message() -> Any:
     chunk_texts = [chunk.text for chunk in chunks]
     embeddings = embed_many(chunk_texts, EMBED_DIM)
     if not embeddings:
-        embeddings = [[0.0] * EMBED_DIM for _ in chunk_texts]
+        embeddings = [[0.0] -EMBED_DIM for _ in chunk_texts]
 
     message_id = persist_pipeline_run(
         source_lang=source_lang,
@@ -573,7 +1637,7 @@ def rag_from_documents(documents: List[Dict[str, str]], query: str) -> Dict[str,
         doc_matrix = np.asarray(doc_embeddings, dtype=float)
         query_norm = np.linalg.norm(query_vec) or 1e-9
         doc_norms = np.linalg.norm(doc_matrix, axis=1)
-        denominator = np.clip(doc_norms * query_norm, 1e-9, None)
+        denominator = np.clip(doc_norms -query_norm, 1e-9, None)
         similarities = (doc_matrix @ query_vec) / denominator
 
     ranked = sorted(
@@ -627,7 +1691,7 @@ def _fallback_embed_many(texts: List[str], dim: int) -> List[List[float]]:
     embeddings: List[List[float]] = []
     for text in texts:
         seed = hashlib.sha256(text.encode("utf-8")).digest()
-        values = [((seed[i % len(seed)] / 255.0) * 2 - 1) for i in range(dim)]
+        values = [((seed[i % len(seed)] / 255.0) -2 - 1) for i in range(dim)]
         embeddings.append([round(val, 6) for val in values])
     return embeddings
 
@@ -669,10 +1733,10 @@ def fallback_chat_response(messages: List[Dict[str, str]]) -> str:
 
 def synthesize_placeholder_audio(text: str, sample_rate: int = 16000) -> Tuple[bytes, int]:
     duration = min(6.0, 1.5 + len(text) / 60.0)
-    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+    t = np.linspace(0, duration, int(sample_rate -duration), endpoint=False)
     base_freq = 220 + (len(text) % 160)
-    modulation = np.sin(2 * np.pi * 3 * t)
-    waveform = 0.25 * np.sin(2 * np.pi * base_freq * t + 0.4 * modulation)
+    modulation = np.sin(2 -np.pi -3 -t)
+    waveform = 0.25 -np.sin(2 -np.pi -base_freq -t + 0.4 -modulation)
     buffer = io.BytesIO()
     sf.write(buffer, waveform, sample_rate, format="WAV")
     buffer.seek(0)

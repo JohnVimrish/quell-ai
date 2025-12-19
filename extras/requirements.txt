@@ -28,10 +28,14 @@ psutil
 pyparsing
 python-dateutil
 PyYAML
+openpyxl
 regex
 requests
 safetensors
 scikit-learn
+ollama
+celery
+redis
 scipy
 sentence-transformers
 six

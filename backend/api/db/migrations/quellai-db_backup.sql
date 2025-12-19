@@ -4404,6 +4404,92 @@ CREATE INDEX IF NOT EXISTS idx_contact_relationships_related
     ON user_management.contact_relationships (related_contact_id);
 
 
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_temp_users (
+    id          BIGSERIAL PRIMARY KEY,
+    session_id  VARCHAR(64) UNIQUE NOT NULL,
+    display_name VARCHAR(255),
+    ip_hint     VARCHAR(128),
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE ai_intelligence.conversation_lab_temp_users
+    ADD COLUMN IF NOT EXISTS ip_hint VARCHAR(128);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_conversation_lab_temp_users_session
+    ON ai_intelligence.conversation_lab_temp_users (session_id);
+
+ALTER TABLE data_feeds_vectors.embeddings
+    ADD COLUMN IF NOT EXISTS user_id BIGINT,
+    ADD COLUMN IF NOT EXISTS document_type TEXT,
+    ADD COLUMN IF NOT EXISTS document_id BIGINT,
+    ADD COLUMN IF NOT EXISTS document_metadata JSONB DEFAULT '{}'::jsonb;
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_user_type
+    ON data_feeds_vectors.embeddings (user_id, document_type);
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_session_id
+    ON data_feeds_vectors.embeddings ((document_metadata->>'session_id'));
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_filename
+    ON data_feeds_vectors.embeddings ((document_metadata->>'filename'));
+
+CREATE INDEX IF NOT EXISTS idx_data_feeds_vectors_embeddings_vec
+    ON data_feeds_vectors.embeddings
+    USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+--
+-- Migration: Conversation Lab ingestion tracking table
+--
+
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_ingests (
+    id BIGSERIAL PRIMARY KEY,
+    session_id TEXT,
+    user_id BIGINT NOT NULL,
+    filename TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    file_size_bytes BIGINT,
+    storage_path TEXT,
+    status TEXT NOT NULL DEFAULT 'queued',
+    error_code TEXT,
+    error_message TEXT,
+    embedding_id BIGINT,
+    needs_embedding BOOLEAN DEFAULT TRUE,
+    attempts INTEGER DEFAULT 0,
+    queued_at TIMESTAMPTZ DEFAULT now(),
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_session
+    ON ai_intelligence.conversation_lab_ingests (session_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_user
+    ON ai_intelligence.conversation_lab_ingests (user_id, queued_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_ingests_status
+    ON ai_intelligence.conversation_lab_ingests (status);
+
+
+--
+-- Migration: Instructional memories for Conversation Lab
+--
+
+CREATE TABLE IF NOT EXISTS ai_intelligence.conversation_lab_memories (
+    id BIGSERIAL PRIMARY KEY,
+    source_user_id BIGINT,
+    source_session_id TEXT,
+    source_display_name TEXT,
+    target_name TEXT NOT NULL,
+    memory_text TEXT NOT NULL,
+    instruction_scope TEXT NOT NULL DEFAULT 'remind-on-interaction',
+    delivered BOOLEAN NOT NULL DEFAULT FALSE,
+    delivered_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_lab_memories_target
+ON ai_intelligence.conversation_lab_memories (lower(target_name));
 
 --
 -- PostgreSQL database dump complete
