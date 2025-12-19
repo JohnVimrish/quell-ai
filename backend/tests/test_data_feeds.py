@@ -122,8 +122,8 @@ def test_ollama_service_initialization():
     """Test OLLama service initialization"""
     from api.models.ollama_service import OllamaService
     
-    # Initialize with non-existent path (should not crash)
-    service = OllamaService(model_path="/nonexistent/path")
+    # Initialize with non-existent model (should not crash)
+    service = OllamaService(model_name="nonexistent-model")
     assert service is not None
     assert service.is_available() is False  # Model won't load
     

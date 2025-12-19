@@ -23,6 +23,7 @@ from api.services.labs_ingest import (
     store_embedding_for_upload,
     summarize_ingest_payload,
 )
+from scripts.ingest_file import ingest_multiple_files
 from api.repositories.temp_user_repo import TempUserRepository
 from api.db.vector_store import ConversationLabIngest, ConversationLabMemory
 from scripts.ingest_file import ingest_single_file
@@ -170,6 +171,7 @@ MEMORY_DELIVERY_LIMIT = 5
 MAX_MEMORY_TEXT_LENGTH = 2000
 MEMORY_TEXT_DISPLAY_LIMIT = 360
 MEMORY_TARGET_DENYLIST = {"me", "myself", "you", "yourself", "him", "her", "them", "us", "everyone", "anyone", "somebody"}
+MEMORY_TRIGGER_PREFIX = "savememory-"
 MEMORY_COMMAND_PREFIX = re.compile(
     r"^\s*(?:(?:hi|hello|hey)\s+)?(?:(?:quell(?:-|\s)*ai|quell)[:,]?\s*)?(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(save|remember|tell|remind|let)\b",
     re.IGNORECASE,
@@ -196,6 +198,7 @@ class InMemoryTempRepo:
             "session_id": session_id,
             "display_name": display_name,
             "ip_hint": ip_hint,
+            "backing_user_id": self._counter,
         }
         self._data[self._counter] = entry
         return entry
@@ -352,6 +355,12 @@ def _parse_memory_instruction(message: str) -> Optional[Dict[str, str]]:
     normalized = message.strip()
     if not normalized:
         return None
+    trigger = MEMORY_TRIGGER_PREFIX.lower()
+    if not normalized.lower().startswith(trigger):
+        return None
+    normalized = normalized[len(trigger):].lstrip()
+    if not normalized:
+        return None
 
     # Try to locate a target after a directive verb.
     target_match = re.search(
@@ -366,7 +375,8 @@ def _parse_memory_instruction(message: str) -> Optional[Dict[str, str]]:
     if not target_match:
         return None
 
-    target_name = _clean_target_name(target_match.group("target"))
+    raw_target = target_match.group("target")
+    target_name = _clean_target_name(raw_target)
     if not target_name or target_name.lower() in MEMORY_TARGET_DENYLIST or len(target_name) < 2:
         return None
 
@@ -375,6 +385,22 @@ def _parse_memory_instruction(message: str) -> Optional[Dict[str, str]]:
     tail = re.sub(r"^(that|about|regarding)\s+", "", tail, flags=re.IGNORECASE)
     tail = tail.lstrip(":,-–— ").strip()
     memory_text = _clean_memory_text(tail)
+    if not memory_text:
+        fallback_markers = [
+            (" to ", "to "),
+            (" that ", ""),
+            (" about ", ""),
+            (" regarding ", ""),
+        ]
+        lowered_target = raw_target.lower()
+        for marker, prefix in fallback_markers:
+            idx = lowered_target.find(marker)
+            if idx != -1:
+                candidate_target = raw_target[:idx]
+                candidate_tail = prefix + raw_target[idx + len(marker):]
+                target_name = _clean_target_name(candidate_target)
+                memory_text = _clean_memory_text(candidate_tail)
+                break
     if not memory_text:
         return None
     if len(memory_text) > MAX_MEMORY_TEXT_LENGTH:
@@ -837,6 +863,7 @@ def conversation_lab_chat() -> Any:
     user = _ensure_lab_user()
     payload = request.get_json(force=True) or {}
     message = str(payload.get("message") or "").strip()
+    placeholder_id = payload.get("placeholderId")
     if not message:
         return jsonify({"error": "message is required"}), 400
 
@@ -871,6 +898,12 @@ def conversation_lab_chat() -> Any:
     ready_rows = _get_ingest_rows(session_id, user_id, limit=3, statuses=["ready"])
     upload_context = _build_upload_context(message, user_id, session_id, ready_rows)
     if upload_context:
+        current_app.logger.info(
+            "ConversationLab prompt context snippet session=%s user=%s snippet=%s",
+            session_id,
+            user_id,
+            upload_context[:200],
+        )
         context_sections.append("Uploaded files:\n" + upload_context)
     conversation_context = _conversation_context()
     if conversation_context:
@@ -878,11 +911,64 @@ def conversation_lab_chat() -> Any:
     context = "\n\n".join(context_sections) or "User is starting a new Conversation Lab session. Respond helpfully and concisely."
 
     ollama_service = current_app.config.get("OLLAMA_SERVICE")
+    socketio = current_app.extensions.get("socketio")
+    room_name = f"ingest:{session_id}" if session_id else None
+
     if not (ollama_service and ollama_service.is_available()):
         reply = "I'm unable to reach the Quell-Ai model right now. Please try again shortly."
     else:
-        reply_raw = ollama_service.generate_response(message, context)
-        reply = _normalize_llm_reply(reply_raw)
+        def emit_chunk(delta: str) -> None:
+            if (
+                not delta
+                or not placeholder_id
+                or not socketio
+                or not room_name
+            ):
+                current_app.logger.debug(
+                    "Skipping chunk streaming placeholder=%s room=%s has_socket=%s delta_len=%s",
+                    placeholder_id,
+                    room_name,
+                    bool(socketio),
+                    len(delta or ""),
+                )
+                return
+            current_app.logger.debug(
+                "Streaming chunk len=%s placeholder=%s room=%s",
+                len(delta),
+                placeholder_id,
+                room_name,
+            )
+            socketio.emit(
+                "chat_token",
+                {
+                    "placeholderId": placeholder_id,
+                    "token": delta,
+                },
+                room=room_name,
+            )
+
+        current_app.logger.info(
+            "ConversationLab chat sending prompt session=%s user=%s len=%s",
+            session_id,
+            user_id,
+            len(message or ""),
+        )
+        try:
+            reply_raw = ollama_service.generate_response(
+                message,
+                context,
+                on_chunk=emit_chunk if placeholder_id else None,
+            )
+            reply = _normalize_llm_reply(reply_raw)
+            current_app.logger.info(
+                "ConversationLab chat received reply session=%s user=%s len=%s",
+                session_id,
+                user_id,
+                len(reply or ""),
+            )
+        except Exception as exc:  # noqa: BLE001
+            current_app.logger.exception("Conversation chat failed")
+            reply = "I hit a snag while reaching the model. Please try again in a moment."
 
     _append_history("assistant", reply)
     return jsonify(
@@ -905,6 +991,24 @@ def conversation_lab_ingest() -> Any:
     rag = current_app.config.get("RAG_SYSTEM")
     if rag is None:
         return jsonify({"error": "Vector store unavailable. Please try again shortly."}), 503
+    doc_user_id = int(current_app.config.get("CONVERSATION_LAB_DOC_USER_ID") or 0)
+    doc_user_email = (current_app.config.get("CONVERSATION_LAB_DOC_USER_EMAIL") or "").strip() or None
+    if not doc_user_id:
+        doc_user_id = int(user.get("backing_user_id") or 0)
+    if not doc_user_id and not doc_user_email:
+        current_app.logger.error("Conversation Lab document owner is not configured and no backing user is available")
+        return (
+            jsonify(
+                {
+                    "error": (
+                        "Conversation Lab document owner is not configured. "
+                        "Set CONVERSATION_LAB_DOC_USER_ID/EMAIL or allow the lab session to create a backing user."
+                    )
+                }
+            ),
+            500,
+        )
+    ingest_user_id = doc_user_id or user_id
 
     files = request.files.getlist("file")
     trait_payloads = request.form.getlist("fileMetadata")
@@ -919,6 +1023,12 @@ def conversation_lab_ingest() -> Any:
     if len(files) > 5:
         return jsonify({"error": "You can upload up to 5 files at a time."}), 400
 
+    current_app.logger.info(
+        "ConversationLab ingest requested session=%s user=%s files=%s",
+        session_id,
+        user_id,
+        [storage.filename for storage in files],
+    )
     sanitized_files: List[Tuple[str, str, bytes, str]] = []
     for storage in files:
         original_name = storage.filename or ""
@@ -946,10 +1056,19 @@ def conversation_lab_ingest() -> Any:
     description = request.form.get("description", "Conversation Lab upload")
     upload_root = Path(current_app.config.get("CONVERSATION_LAB_UPLOAD_DIR"))
     upload_root.mkdir(parents=True, exist_ok=True)
+    prepared_payloads = []
+    ingest_rows: List[ConversationLabIngest] = []
     for index, (filename, ext, file_bytes, file_hash) in enumerate(sanitized_files):
         storage_name = f"{uuid.uuid4().hex}_{filename}"
         storage_path = upload_root / storage_name
         storage_path.write_bytes(file_bytes)
+        current_app.logger.info(
+            "ConversationLab ingest storing file=%s size=%s hash=%s session=%s",
+            filename,
+            len(file_bytes),
+            file_hash,
+            session_id,
+        )
         traits = metadata_traits[index] if index < len(metadata_traits) else {}
         client_signature = str(traits.get("signature") or "").strip()
         client_fallback_signature = str(traits.get("fallbackSignature") or "").strip()
@@ -975,32 +1094,51 @@ def conversation_lab_ingest() -> Any:
         )
         rag.session.add(ingest_row)
         rag.session.commit()
+        ingest_rows.append(ingest_row)
 
+        prepared_payloads.append(
+            {
+                "file_data": file_bytes,
+                "filename": filename,
+                "description": description,
+                "classification": "internal",
+            }
+        )
+
+    results = ingest_multiple_files(
+        prepared_payloads,
+        save=True,
+        user_id=ingest_user_id,
+        description=description,
+        classification="internal",
+        user_email=doc_user_email,
+    )
+
+    for ingest_row, payload_result in zip(ingest_rows, results):
+        filename = ingest_row.filename
+        ext = ingest_row.file_type
+        metadata = ingest_row.ingest_metadata or {}
         try:
-            result = ingest_single_file(
-                file_data=file_bytes,
-                filename_override=filename,
-                save=False,
-                user_id=user_id,
-                description=description,
-                classification="internal",
-            )
-            if not result:
+            if not payload_result:
                 raise ValueError("Ingestion returned no result")
-            if result.get("ok") is False:
-                raise ValueError(result.get("error") or "Ingestion failed")
+            if payload_result.get("ok") is False:
+                raise ValueError(payload_result.get("error") or "Ingestion failed")
 
-            processed_content = result.get("processed_content") or ""
-            summary = summarize_ingest_payload(result)
+            processed_content = payload_result.get("processed_content") or ""
+            summary = summarize_ingest_payload(payload_result)
+            document_record = payload_result.get("document") or {}
             metadata.update(
                 {
                     "summary": summary,
-                    "analytics": result.get("analytics") or {},
-                    "concepts": result.get("concepts") or {},
-                    "language": result.get("language"),
+                    "analytics": payload_result.get("analytics") or {},
+                    "concepts": payload_result.get("concepts") or {},
+                    "language": payload_result.get("language"),
                     "processed_preview": processed_content[:1200],
                     "progress_stage": "ready",
                     "progress_detail": "inline",
+                    "data_feed_document_id": document_record.get("id"),
+                    "data_feed_document_name": document_record.get("name"),
+                    "data_feed_saved": bool(payload_result.get("saved")),
                 }
             )
 
@@ -1013,12 +1151,15 @@ def conversation_lab_ingest() -> Any:
                     "client_signature": metadata.get("client_signature"),
                 }
             )
+            if document_record.get("id"):
+                extra_meta["data_feed_document_id"] = document_record.get("id")
 
             embedding_id = store_embedding_for_upload(
                 rag,
                 user_id,
                 processed_content,
                 extra_meta,
+                embedding_override=payload_result.get("vector"),
             )
             if embedding_id is None:
                 raise ValueError("Embedding generation failed")
@@ -1029,6 +1170,11 @@ def conversation_lab_ingest() -> Any:
             ingest_row.finished_at = datetime.utcnow()
             rag.session.add(ingest_row)
             rag.session.commit()
+            current_app.logger.info(
+                "ConversationLab ingest finished file=%s job=%s",
+                filename,
+                ingest_row.id,
+            )
             uploaded_items.append(
                 {
                     "filename": filename,

@@ -10,13 +10,15 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-from sqlalchemy import and_, create_engine, text
+from sqlalchemy import create_engine, text, bindparam
 from sqlalchemy.orm import Session, sessionmaker
+from pgvector.sqlalchemy import Vector
 
 from api.db.vector_store import ConversationContext, DocumentEmbedding
 from api.utils.config import Config
 from api.models.ollama_service import OllamaService
 from api.services.embedding_queue import EmbeddingQueue
+from api.models.embedding_provider import get_embedding_backend, EmbeddingTimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,7 @@ class RAGSystem:
         self.session: Session = SessionFactory()
 
         self.ollama_service: Optional[OllamaService] = ollama_service
+        self.embedding_backend = get_embedding_backend(ollama_service)
         self.embedding_queue = embedding_queue
 
         # Optional table names from config.queries (rag section) or defaults
@@ -96,7 +99,9 @@ class RAGSystem:
             logger.warning("Skipping document embedding; local LLM unavailable.")
             return None
 
-        existing = self._find_existing_embedding(user_id, document_type, metadata)
+        chunk_index = int((metadata or {}).get("chunk_index") or 0)
+        file_id = self._derive_file_id(document_id, metadata, user_id)
+        existing = self._find_existing_embedding(user_id, document_type, metadata, document_id)
         timestamp = datetime.utcnow()
         try:
             if existing:
@@ -105,10 +110,17 @@ class RAGSystem:
                 merged_meta["updated_at"] = timestamp.isoformat()
                 if delta_norm is not None:
                     merged_meta["delta_norm"] = delta_norm
+                merged_meta["file_id"] = file_id
+                merged_meta["chunk_index"] = chunk_index
                 existing.content = content
                 existing.embedding = embedding
                 existing.document_metadata = merged_meta
-                existing.last_used = timestamp
+                existing.updated_at = timestamp
+                existing.chunk_index = chunk_index
+                existing.file_id = file_id
+                if document_id:
+                    existing.document_id = document_id
+                existing.document_type = document_type
                 self.session.commit()
                 self._invalidate_cache(user_id)
                 logger.info("Updated existing embedding for document type %s", document_type)
@@ -116,10 +128,14 @@ class RAGSystem:
 
             enriched_meta = dict(metadata or {})
             enriched_meta.setdefault("uploaded_at", timestamp.isoformat())
+            enriched_meta["file_id"] = file_id
+            enriched_meta["chunk_index"] = chunk_index
             record = DocumentEmbedding(
                 user_id=user_id,
                 document_type=document_type,
                 document_id=document_id,
+                file_id=file_id,
+                chunk_index=chunk_index,
                 content=content,
                 embedding=embedding,
                 document_metadata=enriched_meta,
@@ -139,36 +155,30 @@ class RAGSystem:
         user_id: int,
         document_type: str,
         metadata: Optional[Dict[str, Any]],
+        document_id: Optional[int],
     ) -> Optional[DocumentEmbedding]:
-        if not metadata:
-            return None
-        filename = metadata.get("filename")
-        session_id = metadata.get("session_id")
-        if not filename:
-            return None
-
-        query = (
+        file_id = self._derive_file_id(document_id, metadata, user_id)
+        chunk_index = int((metadata or {}).get("chunk_index") or 0)
+        return (
             self.session.query(DocumentEmbedding)
             .filter(
                 DocumentEmbedding.user_id == user_id,
                 DocumentEmbedding.document_type == document_type,
-                DocumentEmbedding.document_metadata["filename"].astext == filename,
+                DocumentEmbedding.file_id == file_id,
+                DocumentEmbedding.chunk_index == chunk_index,
             )
-            .order_by(DocumentEmbedding.id.desc())
+            .order_by(DocumentEmbedding.updated_at.desc())
+            .first()
         )
-        if session_id:
-            query = query.filter(
-                DocumentEmbedding.document_metadata["session_id"].astext == session_id
-            )
-        return query.first()
 
     def _compute_delta_norm(
-        self, previous: Optional[List[float]], current: List[float]
+        self, previous: Optional[Any], current: List[float]
     ) -> Optional[float]:
         if previous is None:
             return None
         try:
-            prev_vec = np.array(previous, dtype=float)
+            prev_values = list(previous) if not isinstance(previous, list) else previous
+            prev_vec = np.array(prev_values, dtype=float)
             curr_vec = np.array(current, dtype=float)
             return float(np.linalg.norm(curr_vec - prev_vec))
         except Exception:
@@ -181,6 +191,33 @@ class RAGSystem:
         for key, value in (new_meta or {}).items():
             merged[key] = value
         return merged
+
+    def _derive_file_id(
+        self,
+        document_id: Optional[int],
+        metadata: Optional[Dict[str, Any]],
+        user_id: int,
+    ) -> int:
+        if document_id:
+            return int(document_id)
+
+        meta = metadata or {}
+        meta_file_id = meta.get("file_id")
+        if isinstance(meta_file_id, int) and meta_file_id > 0:
+            return meta_file_id
+
+        key_parts = [str(user_id)]
+        file_hash = meta.get("file_hash")
+        if file_hash:
+            key_parts.append(str(file_hash))
+        else:
+            key_parts.append(str(meta.get("filename") or meta.get("name") or ""))
+            key_parts.append(str(meta.get("session_id") or ""))
+
+        # Limit derived identifier to signed 32-bit range to match the DB column type.
+        digest_bytes = hashlib.sha1("|".join(key_parts).encode("utf-8")).digest()
+        derived = int.from_bytes(digest_bytes[:4], "big", signed=False) & 0x7FFFFFFF
+        return derived or 1
 
     def _invalidate_cache(self, user_id: int) -> None:
         prune_keys = [key for key in self._query_cache if key.startswith(f"{user_id}:")]
@@ -323,7 +360,11 @@ class RAGSystem:
                     LIMIT :limit
                 """
 
-            rows = self.session.execute(text(sql_text), params).mappings().all()
+            sql_text = sql_text.replace(":query_embedding::vector", ":query_embedding")
+            stmt = text(sql_text).bindparams(
+                bindparam("query_embedding", type_=Vector(TARGET_VECTOR_DIM))
+            )
+            rows = self.session.execute(stmt, params).mappings().all()
 
             documents: List[Dict[str, Any]] = []
 
@@ -456,8 +497,11 @@ class RAGSystem:
         try:
             record = self.session.query(DocumentEmbedding).filter_by(id=document_id).first()
             if record:
-                record.usage_count = (record.usage_count or 0) + 1
-                record.last_used = datetime.utcnow()
+                metadata = dict(record.document_metadata or {})
+                metadata["usage_count"] = int(metadata.get("usage_count", 0)) + 1
+                metadata["last_used_at"] = datetime.utcnow().isoformat()
+                record.document_metadata = metadata
+                record.updated_at = datetime.utcnow()
                 self.session.commit()
         except Exception as exc:  # noqa: BLE001
             self.session.rollback()
@@ -495,7 +539,7 @@ class RAGSystem:
 
         embedding: Optional[List[float]] = None
 
-        if self.embedding_queue:
+        if self.embedding_queue and getattr(self.embedding_backend, "label", "") == "ollama":
             try:
                 embedding = self.embedding_queue.embed(text_value)
             except Exception as exc:  # noqa: BLE001
@@ -510,11 +554,11 @@ class RAGSystem:
         return self._down_project_embedding(embedding)
 
     def _direct_embedding(self, text_value: str) -> Optional[List[float]]:
-        if not self._api_available:
-            return None
         try:
-            assert self.ollama_service is not None
-            return self.ollama_service.generate_embedding(text_value)
+            return self.embedding_backend.embed(text_value)
+        except EmbeddingTimeoutError:
+            logger.warning("Embedding provider timed out while embedding query/text.")
+            return None
         except Exception as exc:  # noqa: BLE001
             logger.error("Embedding generation failed: %s", exc)
             return None

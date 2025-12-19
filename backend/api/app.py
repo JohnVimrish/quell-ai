@@ -63,7 +63,7 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         )
 
     # Initialize SocketIO for real-time features
@@ -104,8 +104,10 @@ def create_app(config_override=None):
                 "CONVERSATION_LAB_UPLOAD_DIR",
                 os.path.join(project_root, "uploads", "conversation_lab"),
             ),
+            CONVERSATION_LAB_DOC_USER_ID=int(os.getenv("CONVERSATION_LAB_DOC_USER_ID", "0")),
+            CONVERSATION_LAB_DOC_USER_EMAIL=os.getenv("CONVERSATION_LAB_DOC_USER_EMAIL"),
             SOCKETIO_MESSAGE_QUEUE=message_queue,
-            FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://localhost:5173"),
+            FRONTEND_DEV_URL=os.getenv("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
             DATABASE_URL= cfg.database_url,
             DEBUG=cfg.debug,
             FEED_ACTIVE_DAYS=int(os.getenv("FEED_ACTIVE_DAYS", 7)),
@@ -136,9 +138,9 @@ def create_app(config_override=None):
         supports_credentials=True,
         origins=[
             app.config["FRONTEND_DEV_URL"],
-            "http://localhost:5173",
+            "http://35.232.121.42:5173",
             "http://127.0.0.1:5173",
-            "http://localhost:3000",
+            "http://35.232.121.42:3000",
             "http://127.0.0.1:3000",
         ],
     )
@@ -156,13 +158,9 @@ def create_app(config_override=None):
         else:
             app.config["SPAM_DETECTOR"] = None
 
-        ollama_model_path = os.getenv(
-            "OLLAMA_MODEL_PATH",
-            "C:/Users/033690343/OneDrive - csulb/Models-LLM/Llama-3.2-1B-Instruct"
-        )
+
         ollama_embedding_dim = int(os.getenv("OLLAMA_EMBEDDING_DIM", "384"))
         ollama_service = OllamaService(
-            model_path=ollama_model_path,
             embedding_dim=ollama_embedding_dim
         )
         embedding_queue = None
@@ -230,7 +228,7 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         ), 404
 
     @app.errorhandler(500)
@@ -240,7 +238,7 @@ def create_app(config_override=None):
         return render_template(
             "base.html",
             is_debug=app.debug,
-            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://localhost:5173"),
+            vite_dev_url=app.config.get("FRONTEND_DEV_URL", "http://35.232.121.42:5173"),
         ), 500
 
 

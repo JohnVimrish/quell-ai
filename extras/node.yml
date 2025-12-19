@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: node:dev
+    image: node:20
     container_name: node-frontend
     working_dir: /app
     ports:

@@ -158,7 +158,7 @@ Or use the project's container workflow (mirrors `node_build.txt`):
 ```bash
 docker compose -f extras/node.yml up -d                # start node-frontend container
 docker exec -it node-frontend npm install              # install packages inside container
-docker exec -it node-frontend npm run dev              # Vite dev server on http://localhost:5173
+docker exec -it node-frontend npm run dev              # Vite dev server on http://35.232.121.42:5173
 ```
 
 The SPA proxies `/api/*` calls to `http://127.0.0.1:5000` while in development.

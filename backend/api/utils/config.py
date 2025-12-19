@@ -17,8 +17,9 @@ class Config:
     
     @staticmethod
     def load() -> "Config":
-        load_dotenv()
         root = Path(__file__).resolve().parents[2]
+        dotenv_path = root / ".env"
+        load_dotenv(dotenv_path=dotenv_path, override=False)
 
         # Load provider/policy/query definitions
         with open(root/"config"/"providers.json", "r",encoding="utf-8-sig") as f:

@@ -1,6 +1,6 @@
 {
-  "_publicTheme-BEZxEt5h.js": {
-    "file": "assets/publicTheme-BEZxEt5h.js",
+  "_publicTheme-CO_Kx67W.js": {
+    "file": "assets/publicTheme-CO_Kx67W.js",
     "name": "publicTheme",
     "imports": [
       "src/main.tsx"
@@ -51,7 +51,7 @@
     "src": "src/assets/images/worry_picture.png"
   },
   "src/main.tsx": {
-    "file": "assets/main-qdSBNbRC.js",
+    "file": "assets/main-Dm2P27MT.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -59,7 +59,8 @@
       "src/pages/LandingPage.tsx",
       "src/pages/LoginPage.tsx",
       "src/pages/SignupPage.tsx",
-      "src/pages/ConversationLab.tsx"
+      "src/pages/ConversationLab.tsx",
+      "src/pages/ConversationLabTester.tsx"
     ],
     "css": [
       "assets/main-DwXAfVxn.css"
@@ -75,7 +76,7 @@
     ]
   },
   "src/pages/ConversationLab.tsx": {
-    "file": "assets/ConversationLab-DTyopMfR.js",
+    "file": "assets/ConversationLab-CXeAqm6k.js",
     "name": "ConversationLab",
     "src": "src/pages/ConversationLab.tsx",
     "isDynamicEntry": true,
@@ -86,14 +87,23 @@
       "assets/ConversationLab-BpJxsJeE.css"
     ]
   },
+  "src/pages/ConversationLabTester.tsx": {
+    "file": "assets/ConversationLabTester-CkdSbbM1.js",
+    "name": "ConversationLabTester",
+    "src": "src/pages/ConversationLabTester.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "src/main.tsx"
+    ]
+  },
   "src/pages/LandingPage.tsx": {
-    "file": "assets/LandingPage-kQnsCBTx.js",
+    "file": "assets/LandingPage-D9zqFNn9.js",
     "name": "LandingPage",
     "src": "src/pages/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-BEZxEt5h.js"
+      "_publicTheme-CO_Kx67W.js"
     ],
     "css": [
       "assets/LandingPage-NDNSozaH.css"
@@ -106,23 +116,23 @@
     ]
   },
   "src/pages/LoginPage.tsx": {
-    "file": "assets/LoginPage-01pXpRBK.js",
+    "file": "assets/LoginPage-B7q2lxPs.js",
     "name": "LoginPage",
     "src": "src/pages/LoginPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-BEZxEt5h.js"
+      "_publicTheme-CO_Kx67W.js"
     ]
   },
   "src/pages/SignupPage.tsx": {
-    "file": "assets/SignupPage-7Zt2ohaa.js",
+    "file": "assets/SignupPage-CnYyvvks.js",
     "name": "SignupPage",
     "src": "src/pages/SignupPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "src/main.tsx",
-      "_publicTheme-BEZxEt5h.js"
+      "_publicTheme-CO_Kx67W.js"
     ]
   }
 }

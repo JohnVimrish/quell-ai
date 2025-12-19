@@ -7,6 +7,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const SignupPage = lazy(() => import("./pages/SignupPage"));
 const ConversationLab = lazy(() => import("./pages/ConversationLab"));
+const ConversationLabTester = lazy(() => import("./pages/ConversationLabTester"));
 
 function LoadingFallback() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="signup" element={<SignupPage />} />
             <Route element={<Layout />}>
               <Route path="labs/conversation-lab" element={<ConversationLab />} />
+              <Route path="labs/conversation-lab/tester" element={<ConversationLabTester />} />
             </Route>
           </Routes>
         </Suspense>

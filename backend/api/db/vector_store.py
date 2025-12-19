@@ -9,31 +9,34 @@ from pgvector.sqlalchemy import Vector
 Base = declarative_base()
 
 class DocumentEmbedding(Base):
-    __tablename__ = 'data_feeds_vectors.embeddings'
+    __tablename__ = "embeddings"
+    __table_args__ = {"schema": "data_feeds_vectors"}
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    document_type = Column(String(50), nullable=False)  # 'instruction', 'call_transcript', 'text_message', 'contact_info'
-    document_id = Column(Integer, nullable=True)  # Reference to original document
-    content = Column("content_snippet", Text, nullable=False)
-    embedding = Column(Vector(384))  # 384-dimensional embeddings
-    document_metadata = Column(JSON, nullable=True)
-    relevance_score = Column(Float, default=0.0)
-    usage_count = Column(Integer, default=0)
-    last_used = Column(DateTime, nullable=True)
+    file_id = Column(Integer, nullable=False)
+    chunk_index = Column(Integer, nullable=False, default=0)
+    embedding = Column(Vector(384), nullable=False)
+    content = Column("content_snippet", Text, nullable=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
-    
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    user_id = Column(BigInteger, nullable=True)
+    document_type = Column(Text, nullable=True)
+    document_id = Column(BigInteger, nullable=True)
+    document_metadata = Column(JSON, nullable=True, default=dict)
+
     def to_dict(self):
         return {
-            'id': self.id,
-            'document_type': self.document_type,
-            'document_id': self.document_id,
-            'content': self.content,
-            'document_metadata': self.document_metadata,
-            'relevance_score': self.relevance_score,
-            'usage_count': self.usage_count,
-            'last_used': self.last_used.isoformat() if self.last_used else None,
-            'created_at': self.created_at.isoformat()
+            "id": self.id,
+            "file_id": self.file_id,
+            "chunk_index": self.chunk_index,
+            "document_type": self.document_type,
+            "document_id": self.document_id,
+            "content": self.content,
+            "document_metadata": self.document_metadata,
+            "is_active": self.is_active,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
 class ConversationContext(Base):

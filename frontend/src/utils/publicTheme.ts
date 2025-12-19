@@ -1,5 +1,6 @@
 ﻿const TAILWIND_CDN_URL = "https://cdn.tailwindcss.com?plugins=forms,container-queries";
-const TAILWIND_CONFIG_SCRIPT = `tailwind.config = {
+const TAILWIND_CONFIG_SCRIPT = `window.tailwind = window.tailwind || {};
+window.tailwind.config = {
   darkMode: 'class',
   theme: {
     extend: {

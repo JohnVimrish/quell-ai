@@ -15,7 +15,10 @@ const UPLOAD_ERROR_MESSAGES: Record<string, string> = {
   embedding_failed: "Embedding generation failed; we will retry later.",
   openpyxl_missing: "Excel support is unavailable on the server. Contact support.",
 };
-const SOCKET_ENDPOINT = import.meta.env.DEV ? "http://localhost:5000" : undefined;
+const SOCKET_ENDPOINT =
+  import.meta.env.VITE_SOCKET_ENDPOINT ??
+  (import.meta.env.DEV ? "http://35.232.121.42:5000" : undefined);
+const THINKING_MESSAGE = "Thinking with the Ollama model…";
 
 type MemoryReminder = {
   id: number;
@@ -206,7 +209,8 @@ export default function ConversationLab() {
     [getCanonicalKey],
   );
 
-  const chatBlocked = isUploading || uploadJobs.some((job) => job.status !== "ready");
+  const chatBlocked =
+    isUploading || uploadJobs.some((job) => job.status === "queued" || job.status === "processing");
 
   const hasCachedFileForJob = useCallback(
     (job: UploadJob) => Boolean(getCachedEntry(job.fileHash) ?? getCachedEntry(job.clientSignature)),
@@ -319,32 +323,6 @@ export default function ConversationLab() {
       window.clearInterval(intervalId);
     };
   }, [sessionInfo?.sessionId, fetchUploadStatus]);
-
-  useEffect(() => {
-    if (!sessionInfo?.sessionId) {
-      return;
-    }
-    const socket = io(SOCKET_ENDPOINT ?? "/", {
-      withCredentials: true,
-    });
-    socketRef.current = socket;
-    const sessionRoom = sessionInfo.sessionId;
-    socket.emit("join_ingest_room", { sessionId: sessionRoom });
-    socket.on("ingest_update", (payload: UploadJob) => {
-      if (!payload || !payload.id) return;
-      setUploadJobs((prev) => {
-        const next = prev.filter((job) => job.id !== payload.id);
-        return [payload, ...next].slice(0, 50);
-      });
-    });
-    socket.on("disconnect", () => {
-      // fallback to polling already active
-    });
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [sessionInfo?.sessionId]);
 
   useEffect(() => {
     uploadJobs.forEach((job) => {
@@ -473,11 +451,68 @@ export default function ConversationLab() {
   };
 
   const showThinkingBubble = () => {
-    const placeholder = buildAssistantMessage("Thinking with the Ollama model…", { pending: true });
+    const placeholder = buildAssistantMessage(THINKING_MESSAGE, { pending: true });
     const placeholderId = placeholder.id;
     setMessages((prev) => [...prev, placeholder]);
     return placeholderId;
   };
+
+  const appendAssistantMessage = useCallback((
+    delta: string,
+    options: { placeholderId: string },
+  ) => {
+    if (!delta || !options.placeholderId) {
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((entry) => {
+        if (entry.id !== options.placeholderId) {
+          return entry;
+        }
+        const baseText = entry.text === THINKING_MESSAGE ? "" : entry.text;
+        return {
+          ...entry,
+          text: `${baseText}${delta}`,
+        };
+      }),
+    );
+  }, []);
+  const appendAssistantMessageRef = useRef(appendAssistantMessage);
+  useEffect(() => {
+    appendAssistantMessageRef.current = appendAssistantMessage;
+  }, [appendAssistantMessage]);
+
+  useEffect(() => {
+    if (!sessionInfo?.sessionId) {
+      return;
+    }
+    const socket = io(SOCKET_ENDPOINT ?? "/", {
+      withCredentials: true,
+    });
+    socketRef.current = socket;
+    const sessionRoom = sessionInfo.sessionId;
+    socket.emit("join_ingest_room", { sessionId: sessionRoom });
+    socket.on("ingest_update", (payload: UploadJob) => {
+      if (!payload || !payload.id) return;
+      setUploadJobs((prev) => {
+        const next = prev.filter((job) => job.id !== payload.id);
+        return [payload, ...next].slice(0, 50);
+      });
+    });
+    socket.on("chat_token", (payload: { placeholderId?: string; token?: string }) => {
+      if (!payload?.placeholderId || !payload?.token) {
+        return;
+      }
+      appendAssistantMessageRef.current(payload.token, { placeholderId: payload.placeholderId });
+    });
+    socket.on("disconnect", () => {
+      // fallback to polling already active
+    });
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [sessionInfo?.sessionId, appendAssistantMessage]);
 
   const resolveAssistantMessage = (
     text: string,
@@ -572,7 +607,7 @@ export default function ConversationLab() {
 
     try {
       placeholderId = showThinkingBubble();
-      const chatResponse = await sendChat(trimmed);
+      const chatResponse = await sendChat(trimmed, placeholderId);
       resolveAssistantMessage(chatResponse.reply, { placeholderId });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to send message.";
@@ -698,12 +733,12 @@ export default function ConversationLab() {
     };
   };
 
-  const sendChat = async (message: string) => {
+  const sendChat = async (message: string, placeholderId?: string) => {
     const response = await fetch("/api/labs/conversation/chat", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, placeholderId }),
     });
     const payload = await response.json();
     if (!response.ok || payload?.error) {
@@ -719,6 +754,8 @@ export default function ConversationLab() {
       fallbackSignature: string;
     },
   ) => {
+    const start = performance.now();
+    console.info("[ConversationLab] ingestFile start", file.name, file.size);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("description", "Conversation Lab upload");
@@ -731,7 +768,12 @@ export default function ConversationLab() {
       credentials: "include",
       body: formData,
     });
-
+    console.info(
+      "[ConversationLab] ingestFile response",
+      file.name,
+      response.status,
+      `${Math.round(performance.now() - start)}ms`,
+    );
     const payload = await response.json();
     if (response.status === 202) {
       const queueDepth = payload?.queueDepth;

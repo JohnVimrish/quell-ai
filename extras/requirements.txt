@@ -33,6 +33,7 @@ regex
 requests
 safetensors
 scikit-learn
+ollama
 celery
 redis
 scipy

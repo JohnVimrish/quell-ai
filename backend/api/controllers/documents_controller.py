@@ -18,6 +18,7 @@ from api.utils.file_processors import (
 from api.utils.metadata_extractor import build_vector_metadata, extract_key_concepts
 from api.utils.nlp_utils import detect_language, translate_to_english
 from api.utils.analytics import analyze_text, analyze_table, analyze_json
+from api.models.embedding_provider import get_embedding_backend, EmbeddingTimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,7 @@ def upload_file():
     repo = DocumentsRepository(cfg.database_url, cfg.queries)
     ollama_service = current_app.config.get("OLLAMA_SERVICE")
     rag_system = current_app.config.get("RAG_SYSTEM")
+    embedding_backend = get_embedding_backend(ollama_service)
 
     description = request.form.get("description", "")
     classification = request.form.get("classification", "internal")
@@ -128,11 +130,24 @@ def upload_file():
             concepts = extract_key_concepts(processed_text, ollama_service)
 
             embedding = None
-            ollama_model = None
+            embedding_model = getattr(embedding_backend, "label", "unknown")
+            try:
+                embedding = embedding_backend.embed(processed_text)
+            except EmbeddingTimeoutError:
+                results.append({"error": "Embedding generation timed out. Please retry later.", "name": filename})
+                continue
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.error("Embedding backend failed: %s", exc, exc_info=True)
+                results.append({"error": "Embedding generation failed", "name": filename})
+                continue
+
+            if embedding is None:
+                results.append({"error": "Unable to generate embedding for this file.", "name": filename})
+                continue
+
             if ollama_service and ollama_service.is_available():
-                embedding = ollama_service.generate_embedding(processed_text)
                 model_info = ollama_service.get_model_info()
-                ollama_model = f"{model_info.get('model_path', 'unknown')}"
+                embedding_model = model_info.get("model_name") or model_info.get("host") or "unknown"
 
             vector_metadata = build_vector_metadata(concepts, embedding)
 
@@ -244,7 +259,7 @@ def upload_file():
                 },
                 "embedding": embedding,
                 "vector_metadata": vector_metadata,
-                "ollama_model": ollama_model,
+                "ollama_model": embedding_model,
                 "allow_ai_to_suggest": True,
             }
 
@@ -298,13 +313,23 @@ def submit_text():
             return jsonify({"error": error}), 400
 
         ollama_service = current_app.config.get("OLLAMA_SERVICE")
+        embedding_backend = get_embedding_backend(ollama_service)
         concepts = extract_key_concepts(result["processed_content"], ollama_service)
-        embedding = None
-        ollama_model = None
+        embedding_model = getattr(embedding_backend, "label", "unknown")
+        try:
+            embedding = embedding_backend.embed(result["processed_content"])
+        except EmbeddingTimeoutError:
+            return jsonify({"error": "Embedding generation timed out. Please retry later."}), 504
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.error("Embedding backend failed: %s", exc, exc_info=True)
+            return jsonify({"error": "Embedding generation failed"}), 500
+
+        if embedding is None:
+            return jsonify({"error": "Unable to generate embedding for the provided text."}), 400
+
         if ollama_service and ollama_service.is_available():
-            embedding = ollama_service.generate_embedding(result["processed_content"])
             model_info = ollama_service.get_model_info()
-            ollama_model = f"{model_info.get('model_path', 'unknown')}"
+            embedding_model = model_info.get("model_name") or model_info.get("host") or "unknown"
 
         cfg = current_app.config["APP_CONFIG"]
         repo = DocumentsRepository(cfg.database_url, cfg.queries)
@@ -324,7 +349,7 @@ def submit_text():
             "content_metadata": {**result["metadata"], "concepts": concepts},
             "embedding": embedding,
             "vector_metadata": vector_metadata,
-            "ollama_model": ollama_model,
+            "ollama_model": embedding_model,
             "allow_ai_to_suggest": True,
         }
 
